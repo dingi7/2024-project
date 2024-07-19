@@ -22,7 +22,6 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { usePathname } from 'next/navigation';
-import { useRouter } from 'next/router';
 import Header from '@/components/Header';
 
 export default function ContestPage() {
@@ -31,6 +30,7 @@ export default function ContestPage() {
     const id = pathname.split('/').pop();
 
     const [isOwner, setIsOwner] = useState(true);
+    const [isEditEnabled, setIsEditEnabled] = useState(false);
     const [contest, setContest] = useState({
         title: 'Code Challenge: Optimize Sorting Algorithm',
         description:
@@ -64,7 +64,7 @@ export default function ContestPage() {
         sortBy: 'date',
         order: 'desc',
     });
-    const handleSubmit = (solution) => {
+    const handleSubmit = (solution: any) => {
         setSubmissions([
             ...submissions,
             {
@@ -75,7 +75,7 @@ export default function ContestPage() {
             },
         ]);
     };
-    const handleEditContest = (updatedContest) => {
+    const handleEditContest = (updatedContest: any) => {
         setContest(updatedContest);
     };
     const filteredSubmissions = useMemo(() => {
@@ -88,14 +88,14 @@ export default function ContestPage() {
         if (filterOptions.sortBy === 'date') {
             filtered = filtered.sort((a, b) =>
                 filterOptions.order === 'asc'
-                    ? new Date(a.date) - new Date(b.date)
-                    : new Date(b.date) - new Date(a.date)
+                    ? new Date(a.date).getTime() - new Date(b.date).getTime()
+                    : new Date(b.date).getTime() - new Date(a.date).getTime()
             );
         } else if (filterOptions.sortBy === 'score') {
             filtered = filtered.sort((a, b) =>
                 filterOptions.order === 'asc'
-                    ? a.score - b.score
-                    : b.score - a.score
+                    ? (a.score ?? 0) - (b.score ?? 0)
+                    : (b.score ?? 0) - (a.score ?? 0)
             );
         }
         return filtered;
@@ -125,7 +125,9 @@ export default function ContestPage() {
                             Submit New Solution
                         </Button>
                         {isOwner && (
-                            <Button onClick={() => setIsOwner(true)}>
+                            <Button
+                                onClick={() => setIsEditEnabled(!isEditEnabled)}
+                            >
                                 Edit Contest
                             </Button>
                         )}
@@ -163,7 +165,7 @@ export default function ContestPage() {
                                 <p>{contest.prize}</p>
                             </div>
                         </div>
-                        {isOwner && (
+                        {isOwner && isEditEnabled && (
                             <div className='mt-8'>
                                 <h2 className='text-lg font-medium mb-4'>
                                     Edit Contest
@@ -249,12 +251,11 @@ export default function ContestPage() {
                                 Filter by status:
                             </Label>
                             <Select
-                                id='status'
                                 value={filterOptions.status}
-                                onValueChange={(e) =>
+                                onValueChange={(value) =>
                                     setFilterOptions({
                                         ...filterOptions,
-                                        status: e.target.value,
+                                        status: value,
                                     })
                                 }
                             >
@@ -280,12 +281,11 @@ export default function ContestPage() {
                                 Sort by:
                             </Label>
                             <Select
-                                id='sortBy'
                                 value={filterOptions.sortBy}
-                                onValueChange={(e) =>
+                                onValueChange={(value) =>
                                     setFilterOptions({
                                         ...filterOptions,
-                                        sortBy: e.target.value,
+                                        sortBy: value,
                                     })
                                 }
                             >
@@ -299,10 +299,10 @@ export default function ContestPage() {
                             </Select>
                             <Select
                                 value={filterOptions.order}
-                                onValueChange={(e) =>
+                                onValueChange={(value) =>
                                     setFilterOptions({
                                         ...filterOptions,
-                                        order: e.target.value,
+                                        order: value,
                                     })
                                 }
                             >
@@ -336,11 +336,11 @@ export default function ContestPage() {
                                                 variant={
                                                     submission.status ===
                                                     'Accepted'
-                                                        ? 'success'
+                                                        ? 'outline'
                                                         : submission.status ===
                                                           'Rejected'
-                                                        ? 'danger'
-                                                        : 'warning'
+                                                        ? 'destructive'
+                                                        : 'secondary'
                                                 }
                                             >
                                                 {submission.status}
