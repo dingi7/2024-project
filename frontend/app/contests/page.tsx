@@ -1,14 +1,7 @@
-import {
-    Select,
-    SelectTrigger,
-    SelectValue,
-    SelectContent,
-    SelectItem,
-} from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import Contest from './components/contest';
 import Header from '@/components/Header';
+import Filters from './components/filters';
+import Search from './components/search';
 
 const contests = [
     {
@@ -52,74 +45,9 @@ export default function ContestPage() {
             </section>
             <section className='container mx-auto px-4 md:px-6 py-8 md:py-12'>
                 <div className='flex flex-col md:flex-row items-start gap-8'>
-                    <div className='flex flex-col gap-6 md:w-1/4'>
-                        <div className='grid gap-2'>
-                            <label
-                                htmlFor='category'
-                                className='text-sm font-medium'
-                            >
-                                Category
-                            </label>
-                            <Select>
-                                <SelectTrigger>
-                                    <SelectValue placeholder='Select category' />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value='art'>Art</SelectItem>
-                                    <SelectItem value='design'>
-                                        Design
-                                    </SelectItem>
-                                    <SelectItem value='photography'>
-                                        Photography
-                                    </SelectItem>
-                                    <SelectItem value='writing'>
-                                        Writing
-                                    </SelectItem>
-                                    <SelectItem value='music'>Music</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className='grid gap-2'>
-                            <label
-                                htmlFor='start-date'
-                                className='text-sm font-medium'
-                            >
-                                Start Date
-                            </label>
-                            <Input type='date' id='start-date' />
-                        </div>
-                        <div className='grid gap-2'>
-                            <label
-                                htmlFor='end-date'
-                                className='text-sm font-medium'
-                            >
-                                End Date
-                            </label>
-                            <Input type='date' id='end-date' />
-                        </div>
-                        <div className='grid gap-2'>
-                            <label
-                                htmlFor='prize-amount'
-                                className='text-sm font-medium'
-                            >
-                                Prize Amount
-                            </label>
-                            <Input
-                                type='number'
-                                id='prize-amount'
-                                placeholder='$0'
-                            />
-                        </div>
-                    </div>
+                    {<Filters />}
                     <div className='flex-1'>
-                        <div className='flex items-center gap-4 mb-6'>
-                            <Input
-                                type='search'
-                                placeholder='Search contests...'
-                                className='flex-1'
-                            />
-                            <Button>Search</Button>
-                        </div>
+                        {<Search />}
                         <div className='grid gap-6'>
                             <div className='grid gap-4'>
                                 {contests.map(({ name, description, link }) => (
