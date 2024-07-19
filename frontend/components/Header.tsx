@@ -8,7 +8,7 @@ function Header({}: Props) {
   return (
     <header className="px-4 lg:px-6 h-14 flex items-center justify-between bg-primary text-primary-foreground">
       <div className="w-[200px]">
-        <Link href="#" className="flex items-center w-6" prefetch={false}>
+        <Link href="/" className="flex items-center w-6" prefetch={false}>
           <CodeIcon className="h-6 w-6 mx-auto" />
           <span className="sr-only">Coding Contest App</span>
         </Link>
