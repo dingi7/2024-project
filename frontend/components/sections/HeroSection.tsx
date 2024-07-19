@@ -1,11 +1,15 @@
 import Link from "next/link";
 import React from "react";
+import image from "@/public/heroImage.jpg";
 
 type Props = {};
 
 function HeroSection({}: Props) {
   return (
-    <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 flex items-center justify-center bg-[url('/placeholder.svg?height=310&width=600')] bg-cover bg-center">
+    <section
+      className="w-full py-12 md:py-24 lg:py-32 xl:py-48 flex items-center justify-center min-h-screen bg-gray-100"
+      style={{ backgroundImage: `url(${image.src})`, backgroundSize: "cover" }}
+    >
       <div className="container px-4 md:px-6 text-center">
         <div className="flex flex-col justify-center space-y-4">
           <div className="space-y-2">

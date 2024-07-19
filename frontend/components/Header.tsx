@@ -7,7 +7,7 @@ type Props = {};
 function Header({}: Props) {
   return (
     <header className="px-4 lg:px-6 h-14 flex items-center justify-between bg-primary text-primary-foreground">
-      <div className="">
+      <div className="w-[200px]">
         <Link href="#" className="flex items-center w-6" prefetch={false}>
           <CodeIcon className="h-6 w-6 mx-auto" />
           <span className="sr-only">Coding Contest App</span>
@@ -38,18 +38,18 @@ function Header({}: Props) {
       </nav>
       <nav className="flex gap-4 sm:gap-6">
         <Link
-          href="#"
-          className="inline-flex h-9 items-center justify-center rounded-md bg-primary-foreground px-4 py-2 text-sm font-medium text-primary shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+          href="/login"
+          className="inline-flex h-9 items-center justify-center rounded-md bg-primary-foreground px-4 py-2 text-sm font-medium text-primary shadow transition-colors hover:bg-gray-200"
           prefetch={false}
         >
-          Login
+          Sign In
         </Link>
         <Link
-          href="#"
-          className="inline-flex h-9 items-center justify-center rounded-md bg-primary-foreground px-4 py-2 text-sm font-medium text-primary shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+          href="/register"
+          className="inline-flex h-9 items-center justify-center rounded-md bg-primary-foreground px-4 py-2 text-sm font-medium text-primary shadow transition-colors hover:bg-gray-200"
           prefetch={false}
         >
-          Register
+          Sign Up
         </Link>
       </nav>
     </header>
