@@ -1,10 +1,10 @@
 import Image from "next/image";
-import Header from "../components/Header";
 import OverviewSection from "../components/sections/OverviewSection";
 import HeroSection from "../components/sections/HeroSection";
 import ContestSection from "../components/sections/ContestSection";
 import TestimonialsSection from "@/components/sections/TestimonialsSection";
 import Footer from "@/components/Footer";
+import Header from "@/components/Header";
 
 export default function Home() {
   return (
