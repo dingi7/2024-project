@@ -1,8 +1,3 @@
-/**
- * v0 by Vercel.
- * @see https://v0.dev/t/pIIb89vXFgn
- * Documentation: https://v0.dev/docs#integrating-generated-code-into-your-nextjs-app
- */
 import {
     Select,
     SelectTrigger,
@@ -12,10 +7,33 @@ import {
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import Link from 'next/link';
-import Header from '../Components/Header';
+import Contest from './components/contest';
+import Header from '@/components/Header';
 
-export default function Component() {
+const contests = [
+    {
+        name: 'Creative Logo Design Contest',
+        description: 'Design a unique and memorable logo for our company.',
+        link: '#',
+    },
+    {
+        name: 'Photography Contest: Capture the Essence of Nature',
+        description: 'Submit your best nature-inspired photographs.',
+        link: '#',
+    },
+    {
+        name: 'Short Story Writing Competition',
+        description: 'Showcase your storytelling skills and win big.',
+        link: '#',
+    },
+    {
+        name: 'Graphic Design Challenge: Redesign Our Website',
+        description: 'Revamp our website with a fresh, modern design.',
+        link: '#',
+    },
+];
+
+export default function ContestPage() {
     return (
         <div className='w-full'>
             <Header />
@@ -104,118 +122,13 @@ export default function Component() {
                         </div>
                         <div className='grid gap-6'>
                             <div className='grid gap-4'>
-                                <div className='flex items-center gap-4 bg-background p-4 rounded-lg shadow-sm'>
-                                    <div className='flex-1'>
-                                        <h3 className='text-lg font-semibold'>
-                                            Creative Logo Design Contest
-                                        </h3>
-                                        <p className='text-muted-foreground'>
-                                            Design a unique and memorable logo
-                                            for our company.
-                                        </p>
-                                    </div>
-                                    <Link
-                                        href='#'
-                                        className='inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50'
-                                        prefetch={false}
-                                    >
-                                        More Info
-                                    </Link>
-                                </div>
-                                <div className='flex items-center gap-4 bg-background p-4 rounded-lg shadow-sm'>
-                                    <div className='flex-1'>
-                                        <h3 className='text-lg font-semibold'>
-                                            Photography Contest: Capture the
-                                            Essence of Nature
-                                        </h3>
-                                        <p className='text-muted-foreground'>
-                                            Submit your best nature-inspired
-                                            photographs.
-                                        </p>
-                                    </div>
-                                    <Link
-                                        href='#'
-                                        className='inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50'
-                                        prefetch={false}
-                                    >
-                                        More Info
-                                    </Link>
-                                </div>
-                                <div className='flex items-center gap-4 bg-background p-4 rounded-lg shadow-sm'>
-                                    <div className='flex-1'>
-                                        <h3 className='text-lg font-semibold'>
-                                            Short Story Writing Competition
-                                        </h3>
-                                        <p className='text-muted-foreground'>
-                                            Showcase your storytelling skills
-                                            and win big.
-                                        </p>
-                                    </div>
-                                    <Link
-                                        href='#'
-                                        className='inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50'
-                                        prefetch={false}
-                                    >
-                                        More Info
-                                    </Link>
-                                </div>
-                            </div>
-                            <div className='grid gap-4'>
-                                <div className='flex items-center gap-4 bg-background p-4 rounded-lg shadow-sm'>
-                                    <div className='flex-1'>
-                                        <h3 className='text-lg font-semibold'>
-                                            Graphic Design Challenge: Redesign
-                                            Our Website
-                                        </h3>
-                                        <p className='text-muted-foreground'>
-                                            Revamp our website with a fresh,
-                                            modern design.
-                                        </p>
-                                    </div>
-                                    <Link
-                                        href='#'
-                                        className='inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50'
-                                        prefetch={false}
-                                    >
-                                        More Info
-                                    </Link>
-                                </div>
-                                <div className='flex items-center gap-4 bg-background p-4 rounded-lg shadow-sm'>
-                                    <div className='flex-1'>
-                                        <h3 className='text-lg font-semibold'>
-                                            Musical Composition Contest
-                                        </h3>
-                                        <p className='text-muted-foreground'>
-                                            Create an original musical
-                                            composition in any genre.
-                                        </p>
-                                    </div>
-                                    <Link
-                                        href='#'
-                                        className='inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50'
-                                        prefetch={false}
-                                    >
-                                        More Info
-                                    </Link>
-                                </div>
-                                <div className='flex items-center gap-4 bg-background p-4 rounded-lg shadow-sm'>
-                                    <div className='flex-1'>
-                                        <h3 className='text-lg font-semibold'>
-                                            Poetry Slam: Express Yourself
-                                        </h3>
-                                        <p className='text-muted-foreground'>
-                                            Share your poetic talents and
-                                            compete for the grand prize.
-                                        </p>
-                                    </div>
-                                    <Link
-                                        href='#'
-                                        className='inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50'
-                                        prefetch={false}
-                                    >
-                                        More Info
-                                    </Link>
-                                </div>
+                                {contests.map(({ name, description, link }) => (
+                                    <Contest
+                                        name={name}
+                                        description={description}
+                                        link={link}
+                                    />
+                                ))}
                             </div>
                         </div>
                     </div>
