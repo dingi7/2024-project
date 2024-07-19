@@ -15,11 +15,11 @@ function Header({}: Props) {
       </div>
       <nav className="flex gap-4 sm:gap-6">
         <Link
-          href="#"
+          href="/contests"
           className="text-sm font-bold hover:underline underline-offset-4"
           prefetch={false}
         >
-          Practice
+          Explore Contests
         </Link>
         <Link
           href="#"
