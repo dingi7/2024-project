@@ -1,11 +1,16 @@
 import Image from "next/image";
+import Header from "./Components/Header";
+import OverviewSection from "./Components/OverviewSection";
+import HeroSection from "./Components/HeroSection";
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col ">
-      <header className="flex justify-center items-center h-20 bg-gray-800 text-white">
-        <h1 className="text-2xl">Welcome to Next.js</h1>
-      </header>
+    <main className="flex min-h-screen flex-col">
+      <Header />
+      <main className="flex-1">
+        <HeroSection />
+        <OverviewSection />
+      </main>
     </main>
   );
 }
