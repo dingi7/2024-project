@@ -1,6 +1,9 @@
 import type { Metadata } from 'next';
 import { Inter as FontSans } from 'next/font/google';
 import './globals.css';
+import { getServerSession } from 'next-auth';
+
+import SessionProvider from '@/components/SessionProvider';
 
 import { cn } from '@/lib/utils';
 
@@ -15,11 +18,13 @@ export const metadata: Metadata = {
         "Revolutionize your coding competitions with Contestify! Our platform allows organizers to effortlessly create, manage, and automate code contests, providing a seamless environment for testing and verifying competitors' solutions. Experience hassle-free submissions and accurate, real-time evaluations with Contestify.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
     children,
 }: Readonly<{
     children: React.ReactNode;
 }>) {
+    const session = await getServerSession();
+
     return (
         <html lang='en'>
             <body
@@ -28,7 +33,7 @@ export default function RootLayout({
                     fontSans.variable
                 )}
             >
-                {children}
+                <SessionProvider session={session}>{children}</SessionProvider>
             </body>
         </html>
     );
