@@ -30,6 +30,17 @@ export const authOptions: NextAuthOptions = {
                 // return '/unauthorized'
             }
         },
+        async jwt({ token, account }) {
+            if (account?.access_token) {
+                token.accessToken = account.access_token as string;
+            }
+            return token;
+        },
+        async session({ session, token, user }) {
+            // Add property to session, like an access_token from a provider.
+            session.accessToken = token.accessToken as string | undefined;
+            return session;
+        },
     },
 };
 

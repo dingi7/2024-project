@@ -11,11 +11,10 @@ function HeroSection({}: Props) {
       <Image
         src={heroImage}
         alt="Hero Image"
-        layout="fill"
-        objectFit="cover"
+        fill
         quality={75}
         priority
-        className="z-[-999]"
+        style={{ objectFit: 'cover', zIndex: -999 }}
       />
       <div className="container px-4 md:px-6 text-center">
         <div className="flex flex-col justify-center space-y-4">
