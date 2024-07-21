@@ -1,31 +1,37 @@
 "use client"
 
 import { signOut } from '@/lib/auth';
-import { CodeIcon } from 'lucide-react';
+import { CodeIcon, MenuIcon, XIcon } from 'lucide-react'; // Ensure you have the MenuIcon and XIcon
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-import React from 'react';
+import React, { useState } from 'react';
 
 type Props = {};
 
 function Header({}: Props) {
     const { data: session } = useSession();
-    console.log(session);
-    
+    const [menuOpen, setMenuOpen] = useState(false);
+
+    const toggleMenu = () => {
+        setMenuOpen(!menuOpen);
+    };
 
     return (
-        <header className='px-4 lg:px-6 h-14 flex items-center justify-between bg-primary text-primary-foreground'>
-            <div className='w-[200px]'>
+        <header className='px-4 lg:px-6 h-14 flex items-center justify-between bg-primary text-primary-foreground relative'>
+            <div className='flex items-center justify-between w-full lg:w-auto'>
                 <Link
                     href='/'
-                    className='flex items-center w-6'
+                    className='flex items-center'
                     prefetch={false}
                 >
                     <CodeIcon className='h-6 w-6 mx-auto' />
                     <span className='sr-only'>Contestify</span>
                 </Link>
+                <button className='lg:hidden ml-auto' onClick={toggleMenu}>
+                    {menuOpen ? <XIcon className='h-6 w-6' /> : <MenuIcon className='h-6 w-6' />}
+                </button>
             </div>
-            <nav className='flex gap-4 sm:gap-6'>
+            <nav className={`lg:flex gap-4 sm:gap-6 ${menuOpen ? 'flex' : 'hidden'} flex-col lg:flex-row absolute lg:relative top-14 left-0 lg:top-0 lg:left-0 w-full lg:w-auto bg-primary lg:bg-transparent p-4 lg:p-0 lg:items-center`}>
                 <Link
                     href='/contests'
                     className='text-sm font-bold hover:underline underline-offset-4'
@@ -47,8 +53,6 @@ function Header({}: Props) {
                 >
                     Leaderboard
                 </Link>
-            </nav>
-            <nav className='flex gap-4 sm:gap-6'>
                 {session?.user ? (
                     <Link
                         href='#'
