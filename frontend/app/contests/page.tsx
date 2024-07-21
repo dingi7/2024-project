@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import Contest from './components/contest';
-import Header from '@/components/Header';
 import Filters from './components/filters';
 import Search from './components/search';
 
@@ -78,8 +77,7 @@ export default function ContestPage() {
     }, [filters, searchQuery]);
 
     return (
-        <div className='w-full'>
-            <Header />
+        <div className='w-full flex-1'>
             <section className='bg-background py-12 md:py-16 lg:py-20'>
                 <div className='container mx-auto px-4 md:px-6'>
                     <div className='max-w-3xl'>
