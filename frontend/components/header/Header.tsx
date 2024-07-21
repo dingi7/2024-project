@@ -4,6 +4,7 @@ import { CodeIcon, MenuIcon, XIcon } from "lucide-react"; // Ensure you have the
 import Link from "next/link";
 import React, { useState } from "react";
 import ProfileAvatar from "./Avatar";
+import SignOutButton from "./SignOutButton";
 
 type Props = {};
 
@@ -55,9 +56,19 @@ function Header({}: Props) {
         >
           Leaderboard
         </Link>
+        <div className="lg:hidden flex flex-col gap-4 sm:gap-6">
+          <Link
+            href="/profile"
+            className="text-sm font-bold hover:underline underline-offset-4"
+            prefetch={false}
+          >
+            Profile
+          </Link>
+          <SignOutButton classProp="text-sm font-bold hover:underline underline-offset-4" />
+        </div>
       </nav>
 
-      <nav className="flex gap-4">
+      <nav className="hidden lg:flex gap-4">
         <ProfileAvatar />
       </nav>
     </header>

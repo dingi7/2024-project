@@ -9,6 +9,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import Link from "next/link";
 import { signOut, useSession } from "next-auth/react";
+import SignOutButton from "./SignOutButton";
 
 type Props = {};
 
@@ -30,7 +31,7 @@ function ProfileAvatar({}: Props) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Avatar className="h-9 w-9">
+        <Avatar className="h-9 w-9 shadow-md">
           <AvatarImage src={session?.user?.image || ""} />
           <AvatarFallback>JP</AvatarFallback>
           <span className="sr-only">Toggle user menu</span>
@@ -45,17 +46,9 @@ function ProfileAvatar({}: Props) {
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem>
-          <Link
-            href="#"
-            className="flex items-center gap-2"
-            prefetch={false}
-            onClick={async (e) => {
-              await signOut();
-            }}
-          >
+          <SignOutButton classProp="flex items-center gap-2">
             <div className="h-4 w-4" />
-            <span>Logout</span>
-          </Link>
+          </SignOutButton>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
