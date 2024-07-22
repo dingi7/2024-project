@@ -1,12 +1,8 @@
 "use client";
 
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { JSX, SVGProps } from "react";
-import { signIn, useSession } from "next-auth/react";
+import { signIn } from "next-auth/react";
 import { GithubIcon } from "lucide-react";
-import { redirect } from "next/navigation";
 
 export default function Component() {
   return (

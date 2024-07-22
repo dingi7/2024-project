@@ -4,7 +4,7 @@ import (
     "backend/config"
     "backend/handlers"
     "backend/routes"
-    "github.com/gofiber/fiber/v3"
+    "github.com/gofiber/fiber/v2"
     "log"
 )
 

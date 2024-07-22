@@ -4,3 +4,12 @@ export interface ContestFilters {
     endDate: string | null;
     prizeAmount: string | null;
 }
+
+export interface User {
+    provider: string | undefined;
+    id: string | undefined;
+    email: string | undefined | null;
+    name: string | undefined | null;
+    image: string | undefined | null;
+    accessToken: string | undefined;
+}
