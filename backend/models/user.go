@@ -6,6 +6,7 @@ type User struct {
 	Email string `json:"email"`
 	Provider string `json:"provider"`
 	Image string `json:"image"`
+	GitHubAccessToken string `json:"githubAccessToken"`
 }
 
 

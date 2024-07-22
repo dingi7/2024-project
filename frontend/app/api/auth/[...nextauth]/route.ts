@@ -20,40 +20,17 @@ export const authOptions: NextAuthOptions = {
                 email: user.email?.toLowerCase(),
                 name: user.name,
                 image: user.image,
-                accessToken: account?.access_token,
+                GitHubAccessToken: account?.access_token,
             };
+            console.log('payload', serverPayload);
+            
             try {
-                console.log('serverPayload', serverPayload);
-                
                 const result = await userSignIn(serverPayload);
                 user.accessToken = result.accessToken;
-                console.log('result', result);
                 return true;
             } catch (e : any) {
                 console.log('error', e.error);
-                console.table('error', e);
-
-                return true;
-            }
-
-            // // account?.access_token = getTokenFromServer(serverPayload);
-
-            // console.log('signIn', {
-            //     user,
-            //     account,
-            //     profile,
-            //     email,
-            //     credentials,
-            // });
-
-            const isAllowedToSignIn = true;
-            if (isAllowedToSignIn) {
-                return true;
-            } else {
-                // Return false to display a default error message
                 return false;
-                // Or you can return a URL to redirect to:
-                // return '/unauthorized'
             }
         },
         async jwt({ token, account, user }) {

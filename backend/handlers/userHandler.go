@@ -4,6 +4,7 @@ import (
 	"backend/models"
 	"context"
 	"log"
+	"net/http"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -39,14 +40,20 @@ func UserSignIn(c *fiber.Ctx) error {
 		return err
 	}
 
+	// Validate GitHub access token
+	isValid, err := validateGitHubToken(user.GitHubAccessToken)
+	if !isValid || err != nil {
+		log.Printf("Invalid GitHub access token: %v", err)
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid GitHub access token"})
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	// Check if user exists
 	var existingUser models.User
-	err := userCollection.FindOne(ctx, bson.M{"_id": user.ID}).Decode(&existingUser)
+	err = userCollection.FindOne(ctx, bson.M{"_id": user.ID}).Decode(&existingUser)
 	if err != nil {
-		log.Printf("Error: %v", err)
 		if err == mongo.ErrNoDocuments {
 			// User doesn't exist, create new user
 			_, err = userCollection.InsertOne(ctx, user)
@@ -56,20 +63,42 @@ func UserSignIn(c *fiber.Ctx) error {
 			}
 		} else {
 			log.Printf("Database error: %v", err)
-            return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Database error", "details": err.Error()})
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Database error", "details": err.Error()})
 		}
-	}else{
+	} else {
 		// User exists
 		log.Printf("User already exists: %v", existingUser)
 	}
 
 	accessToken, err := CreateAccessToken(*user)
-    if err != nil {
-        log.Printf("Failed to create access token: %v", err)
-        return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to create access token", "details": err.Error()})
-    }
+	if err != nil {
+		log.Printf("Failed to create access token: %v", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to create access token", "details": err.Error()})
+	}
 
-    return c.JSON(fiber.Map{"accessToken": accessToken})
+	return c.JSON(fiber.Map{"accessToken": accessToken})
+}
+
+func validateGitHubToken(token string) (bool, error) {
+	// Validate the token with GitHub API
+	req, err := http.NewRequest("GET", "https://api.github.com/user", nil)
+	if err != nil {
+		return false, err
+	}
+	req.Header.Set("Authorization", "Bearer "+token)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return false, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return false, nil
+	}
+
+	return true, nil
 }
 
 func CreateAccessToken(user models.User) (string, error) {

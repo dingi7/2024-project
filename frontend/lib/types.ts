@@ -11,5 +11,5 @@ export interface User {
     email: string | undefined | null;
     name: string | undefined | null;
     image: string | undefined | null;
-    accessToken: string | undefined;
+    GitHubAccessToken: string | undefined;
 }
