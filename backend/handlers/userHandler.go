@@ -3,11 +3,13 @@ package handlers
 import (
 	"backend/models"
 	"context"
+	"log"
+	"time"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"time"
 )
 
 var userCollection *mongo.Collection
@@ -42,24 +44,32 @@ func UserSignIn(c *fiber.Ctx) error {
 
 	// Check if user exists
 	var existingUser models.User
-	err := userCollection.FindOne(ctx, bson.M{"id": user.ID}).Decode(&existingUser)
+	err := userCollection.FindOne(ctx, bson.M{"_id": user.ID}).Decode(&existingUser)
 	if err != nil {
+		log.Printf("Error: %v", err)
 		if err == mongo.ErrNoDocuments {
 			// User doesn't exist, create new user
 			_, err = userCollection.InsertOne(ctx, user)
 			if err != nil {
-				return c.Status(fiber.StatusInternalServerError).SendString("Failed to create user")
+				log.Printf("Failed to create user: %v", err)
+				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to create user", "details": err.Error()})
 			}
 		} else {
-			return c.Status(fiber.StatusInternalServerError).SendString("Database error")
+			log.Printf("Database error: %v", err)
+            return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Database error", "details": err.Error()})
 		}
+	}else{
+		// User exists
+		log.Printf("User already exists: %v", existingUser)
 	}
 
 	accessToken, err := CreateAccessToken(*user)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
-	}
-	return c.JSON(fiber.Map{"accessToken": accessToken})
+    if err != nil {
+        log.Printf("Failed to create access token: %v", err)
+        return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to create access token", "details": err.Error()})
+    }
+
+    return c.JSON(fiber.Map{"accessToken": accessToken})
 }
 
 func CreateAccessToken(user models.User) (string, error) {

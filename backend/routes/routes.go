@@ -8,6 +8,7 @@ import (
 )
 
 func Setup(app *fiber.App) {
+	app.Use(middlewares.Logger())
     api := app.Group("/api/v1")
 
 	// public routes

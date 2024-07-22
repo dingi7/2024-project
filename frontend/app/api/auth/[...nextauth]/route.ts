@@ -23,13 +23,17 @@ export const authOptions: NextAuthOptions = {
                 accessToken: account?.access_token,
             };
             try {
+                console.log('serverPayload', serverPayload);
+                
                 const result = await userSignIn(serverPayload);
-                account!.access_token = result.accessToken;
+                user.accessToken = result.accessToken;
                 console.log('result', result);
                 return true;
-            } catch (e) {
-                console.error('error', e);
-                return false;
+            } catch (e : any) {
+                console.log('error', e.error);
+                console.table('error', e);
+
+                return true;
             }
 
             // // account?.access_token = getTokenFromServer(serverPayload);
@@ -52,17 +56,32 @@ export const authOptions: NextAuthOptions = {
                 // return '/unauthorized'
             }
         },
-        async jwt({ token, account }) {
-            if (account?.access_token) {
-                token.accessToken = account.access_token as string;
+        async jwt({ token, account, user }) {
+            // Initial sign in
+            if ( user) {
+              return {
+                ...token,
+                accessToken: user.accessToken,
+                // userId: user.id,
+                // userEmail: user.email,
+                // userName: user.name,
+                // userImage: user.image,
+              }
             }
-            return token;
-        },
-        async session({ session, token, user }) {
-            session.accessToken = token.accessToken as string | undefined;
-            session.user = user;
-            return session;
-        },
+            console.log('jwt', { token, account, user });
+            // Return previous token if the access token has not expired yet
+            return token
+          },
+          async session({ session, token }) {
+            session.user = {
+              name: token.name,
+              email: token.email,
+              image: token.picture,
+            }
+            session.accessToken = token.accessToken as string
+            console.log('session', { session, token });
+            return session
+          },
     },
 };
 

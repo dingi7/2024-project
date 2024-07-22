@@ -1,8 +1,6 @@
-"use client"
+import { getServerSession } from 'next-auth';
 
-import { getServerSession } from "next-auth";
-
-const host = "http://localhost:3001/api/v1";
+const host = 'http://localhost:3001/api/v1';
 
 interface RequestOptions {
     method: string;
@@ -36,10 +34,10 @@ const request = async (
         options.body = JSON.stringify(data);
     }
 
-    if (session?.accessToken) {
-        const token = session.accessToken;
-        options.headers['x-authorization'] = token;
-    }
+    // if (session?.accessToken) {
+    //     const token = session.accessToken;
+    //     options.headers['x-authorization'] = token;
+    // }
 
     try {
         const res = await fetch(host + url, options);
