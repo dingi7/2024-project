@@ -5,14 +5,20 @@ import Link from "next/link";
 import React, { useState } from "react";
 import ProfileAvatar from "./Avatar";
 import SignOutButton from "./SignOutButton";
+import { useSession } from "next-auth/react";
 
 type Props = {};
 
 function Header({}: Props) {
+  const { data: session } = useSession();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
+  };
+
+  const closeMenu = () => {
+    setMenuOpen(false);
   };
 
   return (
@@ -32,13 +38,14 @@ function Header({}: Props) {
       </div>
       <nav
         className={`lg:flex gap-4 sm:gap-6 ${
-          menuOpen ? "flex" : "hidden"
+          menuOpen ? "flex z-50" : "hidden"
         } flex-col lg:flex-row absolute lg:relative top-14 left-0 lg:top-0 lg:left-0 w-full lg:w-auto bg-primary lg:bg-transparent p-4 lg:p-0 lg:items-center`}
       >
         <Link
           href="/contests"
           className="text-sm font-bold hover:underline underline-offset-4"
           prefetch={false}
+          onClick={closeMenu}
         >
           Explore Contests
         </Link>
@@ -46,6 +53,7 @@ function Header({}: Props) {
           href="#"
           className="text-sm font-bold hover:underline underline-offset-4"
           prefetch={false}
+          onClick={closeMenu}
         >
           Compete
         </Link>
@@ -53,19 +61,34 @@ function Header({}: Props) {
           href="#"
           className="text-sm font-bold hover:underline underline-offset-4"
           prefetch={false}
+          onClick={closeMenu}
         >
           Leaderboard
         </Link>
-        <div className="lg:hidden flex flex-col gap-4 sm:gap-6">
-          <Link
-            href="/profile"
-            className="text-sm font-bold hover:underline underline-offset-4"
-            prefetch={false}
-          >
-            Profile
-          </Link>
-          <SignOutButton classProp="text-sm font-bold hover:underline underline-offset-4" />
-        </div>
+        {session?.user ? (
+          <div className="lg:hidden flex flex-col gap-4 sm:gap-6">
+            <Link
+              href="/profile"
+              className="text-sm font-bold hover:underline underline-offset-4"
+              prefetch={false}
+              onClick={closeMenu}
+            >
+              Profile
+            </Link>
+            <SignOutButton classProp="text-sm font-bold hover:underline underline-offset-4" />
+          </div>
+        ) : (
+          <div className="lg:hidden flex flex-col gap-4 sm:gap-6">
+            <Link
+              href="/login"
+              className="text-sm font-bold hover:underline underline-offset-4"
+              prefetch={false}
+              onClick={closeMenu}
+            >
+              Login
+            </Link>
+          </div>
+        )}
       </nav>
 
       <nav className="hidden lg:flex gap-4">

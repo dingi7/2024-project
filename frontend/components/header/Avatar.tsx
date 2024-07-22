@@ -37,9 +37,9 @@ function ProfileAvatar({}: Props) {
           <span className="sr-only">Toggle user menu</span>
         </Avatar>
       </DropdownMenuTrigger>
-      <DropdownMenuContent>
+      <DropdownMenuContent className="z-50">
         <DropdownMenuItem>
-          <Link href="#" className="flex items-center gap-2" prefetch={false}>
+          <Link href="/profile" className="flex items-center gap-2" prefetch={false}>
             <div className="h-4 w-4" />
             <span>Profile</span>
           </Link>
