@@ -32,7 +32,7 @@ function Header({}: Props) {
       </div>
       <nav
         className={`lg:flex gap-4 sm:gap-6 ${
-          menuOpen ? "flex" : "hidden"
+          menuOpen ? "flex z-50" : "hidden"
         } flex-col lg:flex-row absolute lg:relative top-14 left-0 lg:top-0 lg:left-0 w-full lg:w-auto bg-primary lg:bg-transparent p-4 lg:p-0 lg:items-center`}
       >
         <Link
