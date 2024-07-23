@@ -50,15 +50,7 @@ function Header({}: Props) {
           Explore Contests
         </Link>
         <Link
-          href="#"
-          className="text-sm font-bold hover:underline underline-offset-4"
-          prefetch={false}
-          onClick={closeMenu}
-        >
-          Compete
-        </Link>
-        <Link
-          href="#"
+          href="/leaderboard"
           className="text-sm font-bold hover:underline underline-offset-4"
           prefetch={false}
           onClick={closeMenu}
