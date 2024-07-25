@@ -5,11 +5,11 @@ import ContestSection from "../components/sections/ContestSection";
 
 export default function Home() {
   return (
-      <div>
+    <div>
         <HeroSection />
         <OverviewSection />
         <ContestSection />
-        {/* <TestimonialsSection /> */}
-      </div>
+      {/* <TestimonialsSection /> */}
+    </div>
   );
 }

@@ -1,11 +1,12 @@
 "use client";
 
-import { CodeIcon, MenuIcon, XIcon } from "lucide-react"; // Ensure you have the MenuIcon and XIcon
+import { CodeIcon, MenuIcon, XIcon } from "lucide-react";
 import Link from "next/link";
 import React, { useState } from "react";
 import ProfileAvatar from "./Avatar";
 import SignOutButton from "./SignOutButton";
 import { useSession } from "next-auth/react";
+import { motion, AnimatePresence } from "framer-motion";
 
 type Props = {};
 
@@ -19,6 +20,11 @@ function Header({}: Props) {
 
   const closeMenu = () => {
     setMenuOpen(false);
+  };
+
+  const menuVariants = {
+    closed: { opacity: 0, y: -20 },
+    open: { opacity: 1, y: 0 }
   };
 
   return (
@@ -36,16 +42,13 @@ function Header({}: Props) {
           )}
         </button>
       </div>
-      <nav
-        className={`lg:flex gap-4 sm:gap-6 ${
-          menuOpen ? "flex z-50" : "hidden"
-        } flex-col lg:flex-row absolute lg:relative top-14 left-0 lg:top-0 lg:left-0 w-full lg:w-auto bg-primary lg:bg-transparent p-4 lg:p-0 lg:items-center`}
-      >
+      
+      {/* Desktop Navigation */}
+      <nav className="hidden lg:flex gap-4 sm:gap-6 items-center">
         <Link
           href="/contests"
           className="text-sm font-bold hover:underline underline-offset-4"
           prefetch={false}
-          onClick={closeMenu}
         >
           Explore Contests
         </Link>
@@ -53,39 +56,66 @@ function Header({}: Props) {
           href="/leaderboard"
           className="text-sm font-bold hover:underline underline-offset-4"
           prefetch={false}
-          onClick={closeMenu}
         >
           Leaderboard
         </Link>
-        {session?.user ? (
-          <div className="lg:hidden flex flex-col gap-4 sm:gap-6">
-            <Link
-              href="/profile"
-              className="text-sm font-bold hover:underline underline-offset-4"
-              prefetch={false}
-              onClick={closeMenu}
-            >
-              Profile
-            </Link>
-            <SignOutButton classProp="text-sm font-bold hover:underline underline-offset-4" />
-          </div>
-        ) : (
-          <div className="lg:hidden flex flex-col gap-4 sm:gap-6">
-            <Link
-              href="/login"
-              className="text-sm font-bold hover:underline underline-offset-4"
-              prefetch={false}
-              onClick={closeMenu}
-            >
-              Login
-            </Link>
-          </div>
-        )}
       </nav>
-
-      <nav className="hidden lg:flex gap-4">
+      <div className="lg:block sm:hidden">
         <ProfileAvatar />
-      </nav>
+      </div>
+
+      {/* Mobile Navigation */}
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.nav
+            initial="closed"
+            animate="open"
+            exit="closed"
+            variants={menuVariants}
+            transition={{ duration: 0.3 }}
+            className="lg:hidden flex flex-col gap-4 sm:gap-6 absolute top-14 left-0 w-full bg-primary p-4 z-50"
+          >
+            <Link
+              href="/contests"
+              className="text-sm font-bold hover:underline underline-offset-4"
+              prefetch={false}
+              onClick={closeMenu}
+            >
+              Explore Contests
+            </Link>
+            <Link
+              href="/leaderboard"
+              className="text-sm font-bold hover:underline underline-offset-4"
+              prefetch={false}
+              onClick={closeMenu}
+            >
+              Leaderboard
+            </Link>
+            {session?.user ? (
+              <>
+                <Link
+                  href="/profile"
+                  className="text-sm font-bold hover:underline underline-offset-4"
+                  prefetch={false}
+                  onClick={closeMenu}
+                >
+                  Profile
+                </Link>
+                <SignOutButton classProp="text-sm font-bold hover:underline underline-offset-4" />
+              </>
+            ) : (
+              <Link
+                href="/login"
+                className="text-sm font-bold hover:underline underline-offset-4"
+                prefetch={false}
+                onClick={closeMenu}
+              >
+                Login
+              </Link>
+            )}
+          </motion.nav>
+        )}
+      </AnimatePresence>
     </header>
   );
 }
