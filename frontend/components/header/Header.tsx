@@ -7,6 +7,7 @@ import ProfileAvatar from "./Avatar";
 import SignOutButton from "./SignOutButton";
 import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
+import { ModeToggle } from "./ModeToggle";
 
 type Props = {};
 
@@ -24,11 +25,11 @@ function Header({}: Props) {
 
   const menuVariants = {
     closed: { opacity: 0, y: -20 },
-    open: { opacity: 1, y: 0 }
+    open: { opacity: 1, y: 0 },
   };
 
   return (
-    <header className="px-4 lg:px-6 h-14 flex items-center justify-between bg-primary text-primary-foreground relative">
+    <header className="px-4 lg:px-6 h-14 flex items-center justify-between bg-primary text-primary-foreground relative dark:bg-black dark:text-foreground">
       <div className="flex items-center justify-between w-full lg:w-auto">
         <Link href="/" className="flex items-center" prefetch={false}>
           <CodeIcon className="h-6 w-6 mx-auto" />
@@ -42,7 +43,7 @@ function Header({}: Props) {
           )}
         </button>
       </div>
-      
+
       {/* Desktop Navigation */}
       <nav className="hidden lg:flex gap-4 sm:gap-6 items-center">
         <Link
@@ -60,7 +61,8 @@ function Header({}: Props) {
           Leaderboard
         </Link>
       </nav>
-      <div className="lg:block sm:hidden">
+      <div className="lg:flex gap-4 flex sm:hidden">
+        <ModeToggle />
         <ProfileAvatar />
       </div>
 

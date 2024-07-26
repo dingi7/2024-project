@@ -11,7 +11,7 @@ function HeroSection({}: Props) {
 
   return (
     <AnimationOnScroll>
-      <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 flex items-center justify-center min-h-screen bg-primary-foreground">
+      <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 flex items-center justify-center min-h-screen dark:hero_gradient">
         {/* <Image
           src={heroImage}
           alt="Hero Image"

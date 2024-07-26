@@ -8,6 +8,7 @@ import SessionProvider from "@/components/SessionProvider";
 import { cn } from "@/lib/utils";
 import Footer from "@/components/Footer";
 import Header from "@/components/header/Header";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const fontSans = FontSans({
   subsets: ["latin"],
@@ -35,13 +36,19 @@ export default async function RootLayout({
           fontSans.variable
         )}
       >
-        <SessionProvider session={session}>
-          <main className="flex min-h-screen flex-col">
-            <Header />
-            {children}
-            <Footer />
-          </main>
-        </SessionProvider>
+        <ThemeProvider
+        attribute="class"
+        defaultTheme="system"
+        enableSystem
+        disableTransitionOnChange>
+          <SessionProvider session={session}>
+            <main className="flex min-h-screen flex-col">
+              <Header />
+              {children}
+              <Footer />
+            </main>
+          </SessionProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
