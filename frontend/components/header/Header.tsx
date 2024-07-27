@@ -61,7 +61,7 @@ function Header({}: Props) {
           Leaderboard
         </Link>
       </nav>
-      <div className="lg:flex gap-4 flex sm:hidden">
+      <div className="lg:flex items-center gap-4 sm:hidden">
         <ModeToggle />
         <ProfileAvatar />
       </div>
