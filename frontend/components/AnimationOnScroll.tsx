@@ -13,9 +13,9 @@ const AnimateOnScroll: React.FC<AnimateOnScrollProps> = ({ children, delay = 0.2
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: 30 }}
-      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-      transition={{ duration: 0.2, delay }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+      transition={{ duration: 0.1, delay }}
     >
       {children}
     </motion.div>

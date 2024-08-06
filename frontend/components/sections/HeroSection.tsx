@@ -10,8 +10,8 @@ function HeroSection({}: Props) {
   const { data: session } = useSession();
 
   return (
-    <AnimationOnScroll>
-      <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 flex items-center justify-center min-h-screen dark:hero_gradient">
+    <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 flex items-center justify-center min-h-screen dark:hero_gradient">
+        <AnimationOnScroll>
         {/* <Image
           src={heroImage}
           alt="Hero Image"
@@ -53,8 +53,8 @@ function HeroSection({}: Props) {
             </div>
           </div>
         </div>
-      </section>
     </AnimationOnScroll>
+      </section>
   );
 }
 
