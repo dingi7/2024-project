@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -13,13 +13,34 @@ type Props = {
 };
 
 const ContestDetails = ({ contest, isOwner, isEditEnabled, onEdit }: Props) => {
+  const [rulesFile, setRulesFile] = useState<File | null>(null);
+  const [otherFiles, setOtherFiles] = useState<FileList | null>(null);
+
   const handleEditContest = (e: any) => {
     e.preventDefault();
     onEdit({
       ...contest,
-      title: "Updated Contest Title",
-      description: "Updated contest description",
+      title: e.target.title.value,
+      description: e.target.description.value,
+      startDate: e.target.startDate.value,
+      endDate: e.target.endDate.value,
+      prize: e.target.prize.value,
+      rulesFile,
+      otherFiles,
     });
+  };
+  console.log(contest);
+
+  const handleRulesFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setRulesFile(e.target.files[0]);
+    }
+  };
+
+  const handleOtherFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setOtherFiles(e.target.files);
+    }
   };
 
   return (
@@ -81,6 +102,24 @@ const ContestDetails = ({ contest, isOwner, isEditEnabled, onEdit }: Props) => {
             <div>
               <Label htmlFor="prize">Prize</Label>
               <Input id="prize" defaultValue={contest.prize} required />
+            </div>
+            <div className="mt-4">
+              <Label htmlFor="rulesFile">Contest Rules (PDF)</Label>
+              <Input
+                id="rulesFile"
+                type="file"
+                onChange={handleRulesFileChange}
+                required
+              />
+            </div>
+            <div className="mt-4">
+              <Label htmlFor="otherFiles">Other Files</Label>
+              <Input
+                id="otherFiles"
+                type="file"
+                multiple
+                onChange={handleOtherFilesChange}
+              />
             </div>
             <ContestTestCases />
             <Button type="submit" className="mt-4">

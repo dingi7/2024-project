@@ -17,6 +17,8 @@ export default function ContestPage() {
         startDate: '2023-06-01',
         endDate: '2023-06-30',
         prize: '$5,000',
+        rulesFile: null,
+        otherFiles: null,
     });
     const [submissions, setSubmissions] = useState([
         { id: 1, date: '2023-06-15', status: 'Accepted', score: 95 },
