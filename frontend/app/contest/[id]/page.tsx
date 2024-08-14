@@ -21,9 +21,30 @@ export default function ContestPage() {
         otherFiles: null,
     });
     const [submissions, setSubmissions] = useState([
-        { id: 1, date: '2023-06-15', status: 'Accepted', score: 95 },
-        { id: 2, date: '2023-06-20', status: 'Rejected', score: 80 },
-        { id: 3, date: '2023-06-25', status: 'Pending', score: null },
+        {
+            id: 1,
+            date: '2023-06-15',
+            status: 'Accepted',
+            score: 95,
+            language: 'JavaScript',
+            code: 'function sortArray(arr) { /* optimized sorting algorithm */ }',
+        },
+        {
+            id: 2,
+            date: '2023-06-20',
+            status: 'Rejected',
+            score: 80,
+            language: 'Python',
+            code: 'def sort_array(arr): # optimized sorting algorithm',
+        },
+        {
+            id: 3,
+            date: '2023-06-25',
+            status: 'Pending',
+            score: null,
+            language: 'Java',
+            code: 'public static void sortArray(int[] arr) { /* optimized sorting algorithm */ }',
+        },
     ]);
     const [filterOptions, setFilterOptions] = useState({
         status: 'all',
@@ -39,7 +60,7 @@ export default function ContestPage() {
         setFilterOptions(filters);
     };
 
-    const handleSubmit = (solution: any) => {
+    const handleSubmit = (solution : any) => {
         setSubmissions([
             ...submissions,
             {
@@ -47,6 +68,8 @@ export default function ContestPage() {
                 date: new Date().toISOString().slice(0, 10),
                 status: 'Pending',
                 score: null,
+                language: solution.language,
+                code: solution.code,
             },
         ]);
     };

@@ -16,4 +16,6 @@ func Setup(app *fiber.App) {
 
 	// private routes
 	api.Use(middlewares.AuthMiddleware)
+	api.Post("/submit", handlers)
+
 }
