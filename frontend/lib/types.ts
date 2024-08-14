@@ -13,3 +13,10 @@ export interface User {
     image: string | undefined | null;
     GitHubAccessToken: string | undefined;
 }
+
+export interface ContestSubmission {
+    id: string | undefined;
+    ownerId: string
+    code: string;
+    language: string;
+}

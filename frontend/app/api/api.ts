@@ -1,43 +1,41 @@
-import { getServerSession } from 'next-auth';
+import { getSession } from 'next-auth/react';
 
-const host = 'http://localhost:3001/api/v1';
+const host =
+    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3001/api/v1';
 
 interface RequestOptions {
     method: string;
     headers: {
         'Access-Control-Allow-Origin': string;
-        'content-type'?: string;
-        'x-authorization'?: string;
+        'Content-Type'?: string;
+        Authorization?: string;
     };
     body?: string;
 }
-
-// const auth = useAuthUser();
-// const user = auth()!;
 
 const request = async (
     method: string,
     url: string,
     data?: any
 ): Promise<any> => {
-    const session = await getServerSession();
-
+    
+    const session = await getSession();
     const options: RequestOptions = {
         method,
         headers: {
+            'Content-Type': 'application/json',
             'Access-Control-Allow-Origin': '*',
         },
     };
 
     if (data) {
-        options.headers['content-type'] = 'application/json';
+        options.headers['Content-Type'] = 'application/json';
         options.body = JSON.stringify(data);
     }
 
-    // if (session?.accessToken) {
-    //     const token = session.accessToken;
-    //     options.headers['x-authorization'] = token;
-    // }
+    if (session?.accessToken) {
+        options.headers['Authorization'] = `Bearer ${session.accessToken}`;
+    }
 
     try {
         const res = await fetch(host + url, options);

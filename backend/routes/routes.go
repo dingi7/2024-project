@@ -9,13 +9,13 @@ import (
 
 func Setup(app *fiber.App) {
 	app.Use(middlewares.Logger())
-    api := app.Group("/api/v1")
+	api := app.Group("/api/v1")
 
 	// public routes
-    api.Post("/auth/signIn", handlers.UserSignIn)
+	api.Post("/auth/signIn", handlers.UserSignIn)
 
 	// private routes
 	api.Use(middlewares.AuthMiddleware)
-	api.Post("/submit", handlers)
+	api.Post("/codeSubmit", handlers.CreateSubmition)
 
 }

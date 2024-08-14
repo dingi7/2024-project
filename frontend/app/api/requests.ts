@@ -1,4 +1,4 @@
-import { User } from '@/lib/types';
+import { ContestSubmission, User } from '@/lib/types';
 import * as api from './api';
 
 export const endpoints = {
@@ -12,3 +12,6 @@ export const userSignIn = async (payload : User) => {
     return api.post(endpoints.userSingIn, payload);
 };
 
+export const codeSubmit = async (payload : ContestSubmission) => {
+    return api.post('/codeSubmit', payload);
+}

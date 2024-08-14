@@ -20,7 +20,6 @@ export const authOptions: NextAuthOptions = {
                 image: user.image,
                 GitHubAccessToken: account?.access_token,
             };
-            console.log('payload', serverPayload);
 
             try {
                 const result = await userSignIn(serverPayload);
@@ -38,7 +37,6 @@ export const authOptions: NextAuthOptions = {
                     accessToken: user.accessToken,
                 };
             }
-            console.log('jwt', { token, account, user });
             return token;
         },
         async session({ session, token }) {
@@ -48,9 +46,9 @@ export const authOptions: NextAuthOptions = {
                 image: token.picture,
             };
             session.accessToken = token.accessToken as string;
-            console.log('session', { session, token });
             return session;
         },
+        
     },
 };
 

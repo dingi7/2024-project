@@ -13,8 +13,8 @@ func InitSubmissionsCollection(client *mongo.Client) {
 	submissionsCollection = client.Database("contestify").Collection("submissions")
 }
 
-func createSubmition(c *fiber.Ctx) error {
+func CreateSubmition(c *fiber.Ctx) error {
 	payload := c.Body()
-	fmt.Println("Request Payload:", payload)
+	fmt.Println("Request Payload:", string(payload))
 	return c.SendString("Create submission")
 }

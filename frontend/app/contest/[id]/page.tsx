@@ -6,8 +6,11 @@ import { RefreshCcwIcon } from 'lucide-react';
 import ContestDetails from './components/ContestDetails';
 import SubmissionForm from './components/SubmissionForm';
 import SubmissionTable from './components/SubmissionTable';
+import { useSession } from 'next-auth/react';
+import { codeSubmit } from '@/app/api/requests';
 
 export default function ContestPage() {
+    const { data: session } = useSession();
     const [isOwner, setIsOwner] = useState(true);
     const [isEditEnabled, setIsEditEnabled] = useState(false);
     const [contest, setContest] = useState({
@@ -60,18 +63,24 @@ export default function ContestPage() {
         setFilterOptions(filters);
     };
 
-    const handleSubmit = (solution : any) => {
-        setSubmissions([
-            ...submissions,
-            {
-                id: submissions.length + 1,
-                date: new Date().toISOString().slice(0, 10),
-                status: 'Pending',
-                score: null,
-                language: solution.language,
-                code: solution.code,
-            },
-        ]);
+    const handleSubmit = async(solution: any) => {
+        // here
+        const submission = {
+            ...solution,
+            // ownerId: session!.user!.id,
+        };
+        await codeSubmit(submission);
+        // setSubmissions([
+        //     ...submissions,
+        //     {
+        //         id: submissions.length + 1,
+        //         date: new Date().toISOString().slice(0, 10),
+        //         status: 'Pending',
+        //         score: null,
+        //         language: solution.language,
+        //         code: solution.code,
+        //     },
+        // ]);
     };
 
     const filteredSubmissions = useMemo(() => {
