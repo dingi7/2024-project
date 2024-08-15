@@ -44,6 +44,7 @@ func (h *ContestHandler) UserSignIn(c *fiber.Ctx) error {
 	// if err := util.ValidateStructFields(user); err != nil {
 	// 	return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	// }
+	// TODO: Validate user fields
 
 	// Validate GitHub access token
 	isValid, err := validateGitHubToken(user.GitHubAccessToken)

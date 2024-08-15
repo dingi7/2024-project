@@ -29,8 +29,12 @@ func (h *ContestHandler) CreateContest(c *fiber.Ctx) error {
 	// if err := util.ValidateStructFields(contest); err != nil {
 	// 	return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	// }
+
+	// TODO: Validate contest fields
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+
+
 
 	if err := h.ContestService.CreateContest(ctx, contest); err != nil {
 		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())

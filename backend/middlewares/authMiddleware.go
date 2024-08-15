@@ -4,8 +4,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 	"strings"
-	"fmt"
-    "time"
 )
 
 func AuthMiddleware(c *fiber.Ctx) error {
@@ -53,26 +51,4 @@ func AuthMiddleware(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 		"error": "Invalid token",
 	})
-}
-
-
-func Logger() fiber.Handler {
-    return func(c *fiber.Ctx) error {
-        start := time.Now()
-
-        // Process request
-        err := c.Next()
-
-        // Log details after request is processed
-        fmt.Printf(
-            "[%s] %s - %s %s - %v\n",
-            time.Now().Format("2006-01-02 15:04:05"),
-            c.IP(),
-            c.Method(),
-            c.Path(),
-            time.Since(start),
-        )
-
-        return err
-    }
 }
