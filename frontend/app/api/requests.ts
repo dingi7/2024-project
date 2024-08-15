@@ -3,9 +3,7 @@ import * as api from './api';
 
 export const endpoints = {
     userSingIn: '/auth/signIn',
-//   registerUser: '/auth/register',
-//   joinOrg: (orgId: string) => `/auth/joinOrg/${orgId}`,
-
+    codeSubmit: '/codeSubmit',
 };
 
 export const userSignIn = async (payload : User) => {
@@ -13,5 +11,5 @@ export const userSignIn = async (payload : User) => {
 };
 
 export const codeSubmit = async (payload : ContestSubmission) => {
-    return api.post('/codeSubmit', payload);
+    return api.post(endpoints.codeSubmit, payload);
 }

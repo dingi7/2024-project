@@ -1,7 +1,8 @@
 import { getSession } from 'next-auth/react';
 
-const host =
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3001/api/v1';
+// const host =
+//     process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3001/api/v1';
+const host = 'http://127.0.0.1:3001/api/v1';
 
 interface RequestOptions {
     method: string;
@@ -18,7 +19,6 @@ const request = async (
     url: string,
     data?: any
 ): Promise<any> => {
-    
     const session = await getSession();
     const options: RequestOptions = {
         method,
