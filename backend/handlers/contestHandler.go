@@ -63,6 +63,21 @@ func (h *ContestHandler) GetContests(c *fiber.Ctx) error {
 	return c.JSON(contests)
 }
 
+func (h *ContestHandler) GetContestById(c *fiber.Ctx) error {
+	id := c.Params("id")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	contest, err := h.ContestService.FindContestByID(ctx, id)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+	}
+	// exclude the contest test cases
+	contest.TestCases = nil
+
+	return c.JSON(contest)
+}
+
 func ValidateContest(contest *models.Contest) error {
 	validate := validator.New()
 	validate.RegisterValidation("datetime", func(fl validator.FieldLevel) bool {

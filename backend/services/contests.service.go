@@ -3,8 +3,10 @@ package services
 import (
 	"backend/models"
 	"context"
+	"fmt"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -32,9 +34,18 @@ func (s *ContestService) GetContests(ctx context.Context) ([]models.Contest, err
 }
 
 func (s *ContestService) FindContestByID(ctx context.Context, id string) (*models.Contest, error) {
-	var contest models.Contest
-	err := s.ContestCollection.FindOne(ctx, bson.M{"_id": id}).Decode(&contest)
+	fmt.Printf("ID: %s\n", id)
+	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
+		fmt.Printf("Error converting ID to ObjectID: %v\n", err)
+		return nil, err
+	}
+	query := bson.M{"_id": objectID}
+	fmt.Printf("Query: %v\n", query)
+	var contest models.Contest
+	err = s.ContestCollection.FindOne(ctx, query).Decode(&contest)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
 		return nil, err
 	}
 	return &contest, nil

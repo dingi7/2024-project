@@ -18,10 +18,11 @@ func Setup(app *fiber.App, client *mongo.Client) {
 
 	// public routes
 	api.Post("/auth/signIn", userHandler.UserSignIn)
-	api.Get("/getContests", contestHandler.GetContests)
+	api.Get("/contest", contestHandler.GetContests)
 
 	// private routes
 	api.Use(middlewares.AuthMiddleware)
 	api.Post("/codeSubmit", handlers.CreateSubmition)
-	api.Post("/createContest", contestHandler.CreateContest)
+	api.Post("/contest", contestHandler.CreateContest)
+	api.Get("/contest/:id", contestHandler.GetContestById)
 }
