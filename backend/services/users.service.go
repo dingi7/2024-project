@@ -14,15 +14,15 @@ type UserService struct {
 	UserCollection *mongo.Collection
 }
 
-func NewUserService(client *mongo.Client) *ContestService {
-	return &ContestService{
-		ContestCollection: client.Database("contestify").Collection("users"),
+func NewUserService(client *mongo.Client) *UserService {
+	return &UserService{
+		UserCollection: client.Database("contestify").Collection("users"),
 	}
 }
 
-func (s *ContestService) GetUsers(ctx context.Context) ([]models.User, error) {
+func (s *UserService) GetUsers(ctx context.Context) ([]models.User, error) {
 	var users []models.User
-	cursor, err := s.ContestCollection.Find(ctx, bson.M{})
+	cursor, err := s.UserCollection.Find(ctx, bson.M{})
 	if err != nil {
 		return nil, err
 	}
@@ -33,21 +33,21 @@ func (s *ContestService) GetUsers(ctx context.Context) ([]models.User, error) {
 	return users, nil
 }
 
-func (s *ContestService) FindUserByID(ctx context.Context, id string) (*models.User, error) {
+func (s *UserService) FindUserByID(ctx context.Context, id string) (*models.User, error) {
 	var user models.User
-	err := s.ContestCollection.FindOne(ctx, bson.M{"_id": id}).Decode(&user)
+	err := s.UserCollection.FindOne(ctx, bson.M{"_id": id}).Decode(&user)
 	if err != nil {
 		return nil, err
 	}
 	return &user, nil
 }
 
-func (s *ContestService) CreateUser(ctx context.Context, user *models.User) error {
-	_, err := s.ContestCollection.InsertOne(ctx, user)
+func (s *UserService) CreateUser(ctx context.Context, user *models.User) error {
+	_, err := s.UserCollection.InsertOne(ctx, user)
 	return err
 }
 
-func (s *ContestService) CreateAccessToken(user models.User) (string, error) {
+func (s *UserService) CreateAccessToken(user models.User) (string, error) {
 	claims := jwt.MapClaims{
 		"id":  user.ID,
 		"exp": time.Now().Add(time.Hour * 24).Unix(), // Token expires in 24 hours

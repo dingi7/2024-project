@@ -34,8 +34,6 @@ func (h *ContestHandler) CreateContest(c *fiber.Ctx) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-
-
 	if err := h.ContestService.CreateContest(ctx, contest); err != nil {
 		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
 	}

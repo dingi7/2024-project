@@ -13,21 +13,21 @@ import (
 )
 
 type UserHandler struct {
-	UserService *services.ContestService
+	UserService *services.UserService
 }
 
-func NewUserHandler(client *mongo.Client) *ContestHandler {
-	userService := services.NewContestService(client)
-	return &ContestHandler{
-		ContestService: userService,
+func NewUserHandler(client *mongo.Client) *UserHandler {
+	userService := services.NewUserService(client)
+	return &UserHandler{
+		UserService: userService,
 	}
 }
 
-func (h *ContestHandler) GetUsers(c *fiber.Ctx) error {
+func (h *UserHandler) GetUsers(c *fiber.Ctx) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	users, err := h.ContestService.GetUsers(ctx)
+	users, err := h.UserService.GetUsers(ctx)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
 	}
@@ -35,16 +35,11 @@ func (h *ContestHandler) GetUsers(c *fiber.Ctx) error {
 	return c.JSON(users)
 }
 
-func (h *ContestHandler) UserSignIn(c *fiber.Ctx) error {
+func (h *UserHandler) UserSignIn(c *fiber.Ctx) error {
 	user := new(models.User)
 	if err := c.BodyParser(user); err != nil {
 		return err
 	}
-
-	// if err := util.ValidateStructFields(user); err != nil {
-	// 	return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
-	// }
-	// TODO: Validate user fields
 
 	// Validate GitHub access token
 	isValid, err := validateGitHubToken(user.GitHubAccessToken)
@@ -57,11 +52,11 @@ func (h *ContestHandler) UserSignIn(c *fiber.Ctx) error {
 	defer cancel()
 
 	// Check if user exists
-	existingUser, err := h.ContestService.FindUserByID(ctx, user.ID)
+	existingUser, err := h.UserService.FindUserByID(ctx, user.ID)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			// User doesn't exist, create new user
-			if err := h.ContestService.CreateUser(ctx, user); err != nil {
+			if err := h.UserService.CreateUser(ctx, user); err != nil {
 				log.Printf("Failed to create user: %v", err)
 				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to create user", "details": err.Error()})
 			}
@@ -74,7 +69,7 @@ func (h *ContestHandler) UserSignIn(c *fiber.Ctx) error {
 		log.Printf("User already exists: %v", existingUser)
 	}
 
-	accessToken, err := h.ContestService.CreateAccessToken(*user)
+	accessToken, err := h.UserService.CreateAccessToken(*user)
 	if err != nil {
 		log.Printf("Failed to create access token: %v", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to create access token", "details": err.Error()})

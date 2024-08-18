@@ -13,8 +13,8 @@ func Setup(app *fiber.App, client *mongo.Client) {
 	// app.Use(middlewares.Logger())
 	api := app.Group("/api/v1")
 
-	userHandler := handlers.NewContestHandler(client)
-	// contestHandler := handlers.NewContestHandler(client)
+	userHandler := handlers.NewUserHandler(client)
+	contestHandler := handlers.NewContestHandler(client)
 
 	// public routes
 	api.Post("/auth/signIn", userHandler.UserSignIn)
@@ -22,6 +22,6 @@ func Setup(app *fiber.App, client *mongo.Client) {
 	// private routes
 	api.Use(middlewares.AuthMiddleware)
 	api.Post("/codeSubmit", handlers.CreateSubmition)
-	api.Post("/createContest", userHandler.CreateContest)
+	api.Post("/createContest", contestHandler.CreateContest)
 
 }
