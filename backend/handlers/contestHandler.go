@@ -6,9 +6,12 @@ import (
 	"context"
 	"time"
 
+	"github.com/go-playground/validator"
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/mongo"
 )
+
+var validate *validator.Validate
 
 type ContestHandler struct {
 	ContestService *services.ContestService
@@ -31,6 +34,9 @@ func (h *ContestHandler) CreateContest(c *fiber.Ctx) error {
 	// }
 
 	// TODO: Validate contest fields
+	if err := ValidateContest(contest); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -39,4 +45,25 @@ func (h *ContestHandler) CreateContest(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(contest)
+}
+
+func (h *ContestHandler) GetContests(c *fiber.Ctx) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	contests, err := h.ContestService.GetContests(ctx)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+	}
+
+	return c.JSON(contests)
+}
+
+func ValidateContest(contest *models.Contest) error {
+	validate := validator.New()
+	validate.RegisterValidation("datetime", func(fl validator.FieldLevel) bool {
+		_, err := time.Parse(time.RFC3339, fl.Field().String())
+		return err == nil
+	})
+	return validate.Struct(contest)
 }
