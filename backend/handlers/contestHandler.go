@@ -72,9 +72,6 @@ func (h *ContestHandler) GetContestById(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
 	}
-	// exclude the contest test cases
-	contest.TestCases = nil
-
 	return c.JSON(contest)
 }
 
