@@ -55,6 +55,10 @@ func (h *ContestHandler) GetContests(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
 	}
+	// exclude the contest test cases
+	for i := range contests {
+		contests[i].TestCases = nil
+	}
 
 	return c.JSON(contests)
 }
