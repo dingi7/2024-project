@@ -4,15 +4,16 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import ContestTestCases from "./ContestTestCases";
+import { formatDate } from "@/lib/utils";
+import { Contest } from "@/lib/types";
 
-type Props = {
-  contest: any;
+const ContestDetails = ({ contest, isOwner, isEditEnabled, onEdit }: {
+  contest: Contest;
   isOwner: boolean;
   isEditEnabled: boolean;
   onEdit: (updatedContest: any) => void;
-};
-
-const ContestDetails = ({ contest, isOwner, isEditEnabled, onEdit }: Props) => {
+}) => {
+  
   const [rulesFile, setRulesFile] = useState<File | null>(null);
   const [otherFiles, setOtherFiles] = useState<FileList | null>(null);
 
@@ -29,7 +30,6 @@ const ContestDetails = ({ contest, isOwner, isEditEnabled, onEdit }: Props) => {
       otherFiles,
     });
   };
-  console.log(contest);
 
   const handleRulesFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -50,11 +50,11 @@ const ContestDetails = ({ contest, isOwner, isEditEnabled, onEdit }: Props) => {
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div>
           <h3 className="text-sm font-medium mb-1">Start Date</h3>
-          <p>{contest.startDate}</p>
+          <p>{formatDate(contest.startDate)}</p>
         </div>
         <div>
           <h3 className="text-sm font-medium mb-1">End Date</h3>
-          <p>{contest.endDate}</p>
+          <p>{formatDate(contest.endDate)}</p>
         </div>
         <div>
           <h3 className="text-sm font-medium mb-1">Prize</h3>

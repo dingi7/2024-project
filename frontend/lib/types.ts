@@ -9,7 +9,7 @@ export interface User {
     provider: string | undefined;
     id: string | undefined;
     email: string | undefined | null;
-    title: string | undefined | null;
+    name: string | undefined | null;
     image: string | undefined | null;
     GitHubAccessToken: string | undefined;
 }

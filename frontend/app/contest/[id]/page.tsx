@@ -1,59 +1,71 @@
-'use client';
+"use client";
 
-import { useState, useMemo } from 'react';
-import { Button } from '@/components/ui/button';
-import { RefreshCcwIcon } from 'lucide-react';
-import ContestDetails from './components/ContestDetails';
-import SubmissionForm from './components/SubmissionForm';
-import SubmissionTable from './components/SubmissionTable';
-import { useSession } from 'next-auth/react';
-import { codeSubmit } from '@/app/api/requests';
+import { useState, useMemo, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { RefreshCcwIcon } from "lucide-react";
+import ContestDetails from "./components/ContestDetails";
+import SubmissionForm from "./components/SubmissionForm";
+import SubmissionTable from "./components/SubmissionTable";
+import { useSession } from "next-auth/react";
+import { codeSubmit, getContestById } from "@/app/api/requests";
+import { useParams } from "next/navigation";
+import { Contest } from "@/lib/types";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ContestPage() {
     const { data: session } = useSession();
+    const [loading, setLoading] = useState(true);
+    const params = useParams<{ id: string }>();
     const [isOwner, setIsOwner] = useState(true);
     const [isEditEnabled, setIsEditEnabled] = useState(false);
-    const [contest, setContest] = useState({
-        title: 'Code Challenge: Optimize Sorting Algorithm',
-        description:
-            'Design and implement an optimized sorting algorithm that can handle large datasets efficiently.',
-        startDate: '2023-06-01',
-        endDate: '2023-06-30',
-        prize: '$5,000',
-        rulesFile: null,
-        otherFiles: null,
-    });
+    const [contest, setContest] = useState<Contest | null>(null);
     const [submissions, setSubmissions] = useState([
         {
             id: 1,
-            date: '2023-06-15',
-            status: 'Accepted',
+            date: "2023-06-15",
+            status: "Accepted",
             score: 95,
-            language: 'JavaScript',
-            code: 'function sortArray(arr) { /* optimized sorting algorithm */ }',
+            language: "JavaScript",
+            code: "function sortArray(arr) { /* optimized sorting algorithm */ }",
         },
         {
             id: 2,
-            date: '2023-06-20',
-            status: 'Rejected',
+            date: "2023-06-20",
+            status: "Rejected",
             score: 80,
-            language: 'Python',
-            code: 'def sort_array(arr): # optimized sorting algorithm',
+            language: "Python",
+            code: "def sort_array(arr): # optimized sorting algorithm",
         },
         {
             id: 3,
-            date: '2023-06-25',
-            status: 'Pending',
+            date: "2023-06-25",
+            status: "Pending",
             score: null,
-            language: 'Java',
-            code: 'public static void sortArray(int[] arr) { /* optimized sorting algorithm */ }',
+            language: "Java",
+            code: "public static void sortArray(int[] arr) { /* optimized sorting algorithm */ }",
         },
     ]);
     const [filterOptions, setFilterOptions] = useState({
-        status: 'all',
-        sortBy: 'date',
-        order: 'desc',
+        status: "all",
+        sortBy: "date",
+        order: "desc",
     });
+
+    useEffect(() => {
+        const fetchContest = async () => {
+            try {
+                const response = await getContestById(params.id);
+                setContest(response);
+                setIsOwner(response.ownerID === session?.user?.id);
+            } catch (error) {
+                console.error("Failed to fetch contest:", error);
+                // Handle error (e.g., show error message to user)
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchContest();
+    }, [params, session]);
 
     const handleEditContest = (updatedContest: any) => {
         setContest(updatedContest);
@@ -63,7 +75,7 @@ export default function ContestPage() {
         setFilterOptions(filters);
     };
 
-    const handleSubmit = async(solution: any) => {
+    const handleSubmit = async (solution: any) => {
         // here
         const submission = {
             ...solution,
@@ -85,20 +97,20 @@ export default function ContestPage() {
 
     const filteredSubmissions = useMemo(() => {
         let filtered = submissions;
-        if (filterOptions.status !== 'all') {
+        if (filterOptions.status !== "all") {
             filtered = filtered.filter(
                 (s) => s.status === filterOptions.status
             );
         }
-        if (filterOptions.sortBy === 'date') {
+        if (filterOptions.sortBy === "date") {
             filtered = filtered.sort((a, b) =>
-                filterOptions.order === 'asc'
+                filterOptions.order === "asc"
                     ? new Date(a.date).getTime() - new Date(b.date).getTime()
                     : new Date(b.date).getTime() - new Date(a.date).getTime()
             );
-        } else if (filterOptions.sortBy === 'score') {
+        } else if (filterOptions.sortBy === "score") {
             filtered = filtered.sort((a, b) =>
-                filterOptions.order === 'asc'
+                filterOptions.order === "asc"
                     ? (a.score ?? 0) - (b.score ?? 0)
                     : (b.score ?? 0) - (a.score ?? 0)
             );
@@ -108,10 +120,10 @@ export default function ContestPage() {
 
     const handleRefresh = () => {
         const updatedSubmissions = submissions.map((submission) => {
-            if (submission.status === 'Pending') {
+            if (submission.status === "Pending") {
                 return {
                     ...submission,
-                    status: 'Accepted',
+                    status: "Accepted",
                     score: Math.floor(Math.random() * 100),
                 };
             }
@@ -120,12 +132,34 @@ export default function ContestPage() {
         setSubmissions(updatedSubmissions);
     };
 
+    if (loading) {
+        return (
+            <div className="flex flex-col flex-1">
+                <div className="container mx-auto py-8 px-4 md:px-6 flex-row flex gap-5">
+                    <Skeleton className="w-[50%] h-[300px] mb-4" />
+                    <Skeleton className="w-[50%] h-[500px]" />
+                </div>
+            </div>
+        );
+    }
+
+    if (!contest) {
+        return (
+            <div className="flex flex-col flex-1">
+                <div className="container mx-auto py-8 px-4 md:px-6">
+                    <h1 className="text-2xl font-bold mb-4">
+                        Contest not found
+                    </h1>
+                </div>
+            </div>
+        );
+    }
     return (
-        <div className='flex flex-col flex-1'>
-            <div className='container mx-auto py-8 px-4 md:px-6'>
-                <div className='flex items-center justify-between mb-6'>
-                    <h1 className='text-2xl font-bold'>Code Challenge</h1>
-                    <div className='flex gap-2'>
+        <div className="flex flex-col flex-1">
+            <div className="container mx-auto py-8 px-4 md:px-6">
+                <div className="flex items-center justify-between mb-6">
+                    <h1 className="text-2xl font-bold">Code Challenge</h1>
+                    <div className="flex gap-2">
                         <SubmissionForm onSubmit={handleSubmit} />
                         {isOwner && (
                             <Button
@@ -134,15 +168,15 @@ export default function ContestPage() {
                                 Edit Contest
                             </Button>
                         )}
-                        <Button variant='outline' onClick={handleRefresh}>
-                            <RefreshCcwIcon className='w-4 h-4 mr-2' />
+                        <Button variant="outline" onClick={handleRefresh}>
+                            <RefreshCcwIcon className="w-4 h-4 mr-2" />
                             Refresh
                         </Button>
                     </div>
                 </div>
-                <div className='grid grid-cols-1 md:grid-cols-2 gap-8'>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <ContestDetails
-                        contest={contest}
+                        contest={contest!}
                         isOwner={isOwner}
                         isEditEnabled={isEditEnabled}
                         onEdit={handleEditContest}

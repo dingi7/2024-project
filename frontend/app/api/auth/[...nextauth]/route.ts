@@ -35,12 +35,14 @@ export const authOptions: NextAuthOptions = {
                 return {
                     ...token,
                     accessToken: user.accessToken,
+                    id: user.id,
                 };
             }
             return token;
         },
         async session({ session, token }) {
             session.user = {
+                id: token.id as string,
                 name: token.name,
                 email: token.email,
                 image: token.picture,

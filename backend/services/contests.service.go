@@ -48,6 +48,8 @@ func (s *ContestService) FindContestByID(ctx context.Context, id string) (*model
 		fmt.Printf("Error: %v\n", err)
 		return nil, err
 	}
+	// log the contest
+	fmt.Printf("Contest: %v\n", contest.StartDate)
 	return &contest, nil
 }
 

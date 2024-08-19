@@ -20,3 +20,11 @@ export const codeSubmit = async (payload : ContestSubmission) => {
 export const getContests = async () => {
     return api.get(endpoints.getContests);
 }
+
+export const createContest = async (payload : any) => {
+    return api.post(endpoints.createContest, payload);
+}
+
+export const getContestById = async (id: string) => {
+    return api.get(endpoints.getContestById(id));
+}

@@ -1,9 +1,5 @@
 package models
 
-import (
-	"time"
-)
-
 type TestCase struct {
 	Input  string `json:"input"`
 	Output string `json:"output"`
@@ -14,8 +10,8 @@ type Contest struct {
 	Title       string     `json:"title" validate:"required"`
 	Description string     `json:"description" validate:"required"`
 	Language    string     `json:"language" validate:"required"`
-	StartDate   time.Time  `json:"startDate" validate:"required"`
-	EndDate     time.Time  `json:"endDate" validate:"required,gtfield=startDate"`
+	StartDate   string     `json:"startDate" validate:"required"`
+	EndDate     string     `json:"endDate" validate:"required"`
 	Prize       string     `json:"prize,omitempty" bson:"prize,omitempty"`
 	OwnerID     string     `json:"ownerID" validate:"required"`
 	TestCases   []TestCase `json:"testCases" validate:"dive,required"`
