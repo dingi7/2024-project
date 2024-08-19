@@ -1,15 +1,15 @@
 export interface ContestFilters {
-    category: string | null;
+    language: string | null;
     startDate: string | null;
     endDate: string | null;
-    prizeAmount: string | null;
+    prize: string | null;
 }
 
 export interface User {
     provider: string | undefined;
     id: string | undefined;
     email: string | undefined | null;
-    name: string | undefined | null;
+    title: string | undefined | null;
     image: string | undefined | null;
     GitHubAccessToken: string | undefined;
 }
@@ -19,4 +19,16 @@ export interface ContestSubmission {
     ownerId: string
     code: string;
     language: string;
+}
+
+export interface Contest {
+    id: string;
+    title: string;
+    description: string;
+    language: string;
+    category: string;
+    startDate: string;
+    endDate: string;
+    prize: number;
+    ownerId: string;
 }

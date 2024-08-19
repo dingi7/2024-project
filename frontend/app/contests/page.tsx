@@ -1,80 +1,53 @@
 "use client"
 
-import React, { useState } from 'react';
-import Contest from './components/contest';
-import Filters from './components/filters';
-import Search from './components/search';
-
-const contests = [
-    {
-        name: 'Creative Logo Design Contest',
-        description: 'Design a unique and memorable logo for our company.',
-        link: '#',
-        category: 'design',
-        startDate: '2023-07-01',
-        endDate: '2023-07-31',
-        prizeAmount: 500,
-    },
-    {
-        name: 'Photography Contest: Capture the Essence of Nature',
-        description: 'Submit your best nature-inspired photographs.',
-        link: '#',
-        category: 'photography',
-        startDate: '2023-08-01',
-        endDate: '2023-08-31',
-        prizeAmount: 1000,
-    },
-    {
-        name: 'Short Story Writing Competition',
-        description: 'Showcase your storytelling skills and win big.',
-        link: '#',
-        category: 'writing',
-        startDate: '2023-09-01',
-        endDate: '2023-09-30',
-        prizeAmount: 300,
-    },
-    {
-        name: 'Graphic Design Challenge: Redesign Our Website',
-        description: 'Revamp our website with a fresh, modern design.',
-        link: '#',
-        category: 'design',
-        startDate: '2023-10-01',
-        endDate: '2023-10-31',
-        prizeAmount: 700,
-    },
-];
-
-export default function ContestPage() {
-    const [filteredContests, setFilteredContests] = useState(contests);
-    const [filters, setFilters] = useState({
-        category: '',
+import { useEffect, useState } from "react";
+import Contest from "./components/contest";
+import Filters from "./components/filters";
+import Search from "./components/search";
+import {Contest as ContestType, ContestFilters} from "@/lib/types";
+import { getContests } from "../api/requests";
+const ContestPage = () => {
+    const [contests, setContests] = useState<ContestType[]>([]);
+    const [filteredContests, setFilteredContests] = useState<ContestType[]>([]);
+    const [filters, setFilters] = useState<ContestFilters>({
+        language: '',
         startDate: '',
         endDate: '',
-        prizeAmount: '',
+        prize: '',
     });
     const [searchQuery, setSearchQuery] = useState('');
 
-    const handleFilterChange = (newFilters: any) => {
+    useEffect(() => {
+        const fetchContests = async () => {
+            const fetchedContests = await getContests();
+            setContests(fetchedContests);
+            setFilteredContests(fetchedContests);
+        };
+        fetchContests();
+    }, []);
+
+    useEffect(() => {
+        const filtered = contests.filter((contest) => {
+            const matchesLanguage = filters.language ? filters.language === "all" || contest.language === filters.language : true;
+            const matchesStartDate = filters.startDate ? new Date(contest.startDate) >= new Date(filters.startDate) : true;
+            const matchesEndDate = filters.endDate ? new Date(contest.endDate) <= new Date(filters.endDate) : true;
+            const matchesPrize = filters.prize ? contest.prize >= parseInt(filters.prize, 10) : true;
+            const matchesSearchQuery = searchQuery ? contest.title.toLowerCase().includes(searchQuery.toLowerCase()) : true;
+
+            return matchesLanguage && matchesStartDate && matchesEndDate && matchesPrize && matchesSearchQuery;
+        });
+
+        setFilteredContests(filtered);
+    }, [filters, searchQuery, contests]);
+
+    const handleFilterChange = (newFilters: ContestFilters) => {
+        console.log(newFilters);
         setFilters(newFilters);
     };
 
     const handleSearch = (query: string) => {
         setSearchQuery(query);
     };
-
-    React.useEffect(() => {
-        const filtered = contests.filter((contest) => {
-            const matchesCategory = filters.category ? filters.category === "all" || contest.category === filters.category : true;
-            const matchesStartDate = filters.startDate ? new Date(contest.startDate) >= new Date(filters.startDate) : true;
-            const matchesEndDate = filters.endDate ? new Date(contest.endDate) <= new Date(filters.endDate) : true;
-            const matchesPrizeAmount = filters.prizeAmount ? contest.prizeAmount >= parseInt(filters.prizeAmount, 10) : true;
-            const matchesSearchQuery = searchQuery ? contest.name.toLowerCase().includes(searchQuery.toLowerCase()) : true;
-
-            return matchesCategory && matchesStartDate && matchesEndDate && matchesPrizeAmount && matchesSearchQuery;
-        });
-
-        setFilteredContests(filtered);
-    }, [filters, searchQuery]);
 
     return (
         <div className='w-full flex-1'>
@@ -98,12 +71,12 @@ export default function ContestPage() {
                         <Search onSearch={handleSearch} />
                         <div className='grid gap-6'>
                             <div className='grid gap-4'>
-                                {filteredContests.map(({ name, description, link }) => (
+                                {filteredContests.map((contest) => (
                                     <Contest
-                                        key={name}
-                                        name={name}
-                                        description={description}
-                                        link={link}
+                                        key={contest.id}
+                                        id={contest.id}
+                                        title={contest.title}
+                                        description={contest.description}
                                     />
                                 ))}
                             </div>
@@ -113,4 +86,6 @@ export default function ContestPage() {
             </section>
         </div>
     );
-}
+};
+
+export default ContestPage;

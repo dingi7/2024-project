@@ -1,96 +1,91 @@
-import React, { useEffect, useState } from 'react';
-import { Input } from '@/components/ui/input';
+import React, { useEffect, useState } from "react";
+import { Input } from "@/components/ui/input";
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from '@/components/ui/select';
-import { ContestFilters } from '@/lib/types';
+} from "@/components/ui/select";
+import { ContestFilters } from "@/lib/types";
 
-type Props = {
+const Filters = ({
+    onFilterChange,
+}: {
     onFilterChange: (filters: ContestFilters) => void;
-};
+}) => {
+    const [filters, setFilters] = useState<ContestFilters>({
+        language: "",
+        startDate: "",
+        endDate: "",
+        prize: "",
+    });
 
-function Filters({ onFilterChange }: Props) {
-    const [category, setCategory] = useState('');
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
-    const [prizeAmount, setPrizeAmount] = useState('');
-
-    useEffect(() => {
-        handleFilterChange();
-    }, [category, startDate, endDate, prizeAmount]);
-
-    const handleFilterChange = () => {
-        onFilterChange({
-            category,
-            startDate,
-            endDate,
-            prizeAmount,
-        });
+    const handleChange = (key: keyof ContestFilters, value: string) => {
+        const newFilters = { ...filters, [key]: value };
+        setFilters(newFilters);
+        onFilterChange(newFilters);
     };
 
     return (
-        <div className='flex flex-col gap-6 md:w-1/4'>
-            <div className='grid gap-2'>
-                <label htmlFor='category' className='text-sm font-medium'>
-                    Category
+        <div className="flex flex-col gap-6 md:w-1/4">
+            <div className="grid gap-2">
+                <label htmlFor="language" className="text-sm font-medium">
+                    Language
                 </label>
                 <Select
-                    value={category}
-                    onValueChange={(value) => setCategory(value)}
+                    value={filters.language ?? ""}
+                    onValueChange={(value) => handleChange("language", value)}
                 >
                     <SelectTrigger>
-                        <SelectValue placeholder='Select category' />
+                        <SelectValue placeholder="Select language" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value='all'>All</SelectItem>
-                        <SelectItem value='art'>Art</SelectItem>
-                        <SelectItem value='design'>Design</SelectItem>
-                        <SelectItem value='photography'>Photography</SelectItem>
-                        <SelectItem value='writing'>Writing</SelectItem>
-                        <SelectItem value='music'>Music</SelectItem>
+                        <SelectItem value="all">All</SelectItem>
+                        <SelectItem value="javascript">javascript</SelectItem>
+                        <SelectItem value="python">python</SelectItem>
+                        <SelectItem value="c#">c#</SelectItem>
+                        <SelectItem value="java">java</SelectItem>
+                        <SelectItem value="go">go</SelectItem>
                     </SelectContent>
                 </Select>
             </div>
-            <div className='grid gap-2'>
-                <label htmlFor='start-date' className='text-sm font-medium'>
+            <div className="grid gap-2">
+                <label htmlFor="start-date" className="text-sm font-medium">
                     Start Date
                 </label>
                 <Input
-                    type='date'
-                    id='start-date'
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
+                    type="date"
+                    id="start-date"
+                    value={filters.startDate ?? ""}
+                    onChange={(e) => handleChange("startDate", e.target.value)}
                 />
             </div>
-            <div className='grid gap-2'>
-                <label htmlFor='end-date' className='text-sm font-medium'>
+            <div className="grid gap-2">
+                <label htmlFor="end-date" className="text-sm font-medium">
                     End Date
                 </label>
                 <Input
-                    type='date'
-                    id='end-date'
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
+                    type="date"
+                    id="end-date"
+                    value={filters.endDate ?? ""}
+                    onChange={(e) => handleChange("endDate", e.target.value)}
                 />
             </div>
-            <div className='grid gap-2'>
-                <label htmlFor='prize-amount' className='text-sm font-medium'>
+            <div className="grid gap-2">
+                <label htmlFor="prize-amount" className="text-sm font-medium">
                     Prize Amount
                 </label>
                 <Input
-                    type='number'
-                    id='prize-amount'
-                    value={prizeAmount}
-                    onChange={(e) => setPrizeAmount(e.target.value)}
-                    placeholder='$0'
+                    type="number"
+                    id="prize-amount"
+                    value={filters.prize ?? ""}
+                    onChange={(e) => handleChange("prize", e.target.value)}
+                    placeholder="$0"
                 />
             </div>
         </div>
     );
-}
+};
 
 export default Filters;

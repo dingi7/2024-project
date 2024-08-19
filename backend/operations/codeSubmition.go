@@ -69,12 +69,14 @@ func executeCode(solution Solution) (string, error) {
 	}
 
 	cmd := exec.Command("docker", cmdArgs...)
+	fmt.Printf("Running command: %v\n", cmd.Args)
 	var out bytes.Buffer
 	cmd.Stdout = &out
 	cmd.Stderr = &out
 
 	err = cmd.Run()
 	if err != nil {
+		fmt.Printf("Output: %s\n", out.String())
 		return "", fmt.Errorf("failed to execute code: %v", err)
 	}
 

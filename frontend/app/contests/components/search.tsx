@@ -2,11 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-type Props = {
-    onSearch: (query: string) => void;
-};
-
-function Search({ onSearch }: Props) {
+const Search = ({ onSearch }: { onSearch: (query: string) => void }) => {
     const [searchQuery, setSearchQuery] = useState('');
 
     const handleSearch = () => {
@@ -25,6 +21,6 @@ function Search({ onSearch }: Props) {
             <Button onClick={handleSearch}>Search</Button>
         </div>
     );
-}
+};
 
 export default Search;

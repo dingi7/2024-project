@@ -11,8 +11,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-var validate *validator.Validate
-
 type ContestHandler struct {
 	ContestService *services.ContestService
 }
