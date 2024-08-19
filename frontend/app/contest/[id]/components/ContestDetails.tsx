@@ -15,7 +15,6 @@ const ContestDetails = ({ contest, isOwner, isEditEnabled, onEdit }: {
 }) => {
   
   const [rulesFile, setRulesFile] = useState<File | null>(null);
-  const [otherFiles, setOtherFiles] = useState<FileList | null>(null);
 
   const handleEditContest = (e: any) => {
     e.preventDefault();
@@ -27,19 +26,12 @@ const ContestDetails = ({ contest, isOwner, isEditEnabled, onEdit }: {
       endDate: e.target.endDate.value,
       prize: e.target.prize.value,
       rulesFile,
-      otherFiles,
     });
   };
 
   const handleRulesFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       setRulesFile(e.target.files[0]);
-    }
-  };
-
-  const handleOtherFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setOtherFiles(e.target.files);
     }
   };
 
@@ -110,15 +102,6 @@ const ContestDetails = ({ contest, isOwner, isEditEnabled, onEdit }: {
                 type="file"
                 onChange={handleRulesFileChange}
                 required
-              />
-            </div>
-            <div className="mt-4">
-              <Label htmlFor="otherFiles">Other Files</Label>
-              <Input
-                id="otherFiles"
-                type="file"
-                multiple
-                onChange={handleOtherFilesChange}
               />
             </div>
             <ContestTestCases />
