@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/select";
 import { createContest } from "@/app/api/requests";
 import { useSession } from "next-auth/react";
+import { useToast } from "@/components/ui/use-toast";
 
 const ContestScheme = z.object({
     title: z.string().min(3).max(32),
@@ -74,7 +75,8 @@ const ContestScheme = z.object({
 type ContestType = z.infer<typeof ContestScheme>;
 
 export default function Component() {
-    const {data : session} = useSession();
+    const { toast } = useToast();
+    const { data: session } = useSession();
     const {
         register,
         control,
@@ -93,11 +95,19 @@ export default function Component() {
             ownerId: session?.user.id,
             testCases: [], // TestCases will be added separately
         };
-        const response = await createContest(payload);
-        if (response.status === 200) {
-            console.log("Contest created successfully");
-        } else {
-            console.error("Failed to create contest");
+        try {
+            const response = await createContest(payload);
+            toast({
+                title: "Contest created successfully",
+                description: "Contest created successfully",
+                variant: "success",
+            });
+        } catch (error) {
+            toast({
+                title: "Failed to create contest",
+                description: "Failed to create contest",
+                variant: "destructive",
+            });
         }
     };
 

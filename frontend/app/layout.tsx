@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import Footer from "@/components/Footer";
 import Header from "@/components/header/Header";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/toaster";
 
 const fontSans = FontSans({
   subsets: ["latin"],
@@ -45,6 +46,7 @@ export default async function RootLayout({
             <main className="flex min-h-screen flex-col">
               <Header />
               {children}
+              <Toaster />
               <Footer />
             </main>
           </SessionProvider>
