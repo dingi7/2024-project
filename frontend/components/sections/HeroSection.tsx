@@ -9,7 +9,8 @@ function HeroSection() {
   const { data: session } = useSession();
 
   return (
-    <section className="w-full py-16 md:py-24 lg:py-32 xl:py-48 flex items-center justify-center min-h-screen bg-gradient-to-b from-background to-secondary/10 dark:from-background dark:to-secondary/10">
+    <section className="w-full py-16 md:py-24 lg:py-32 xl:py-48 flex items-center justify-center min-h-screen relative overflow-hidden">
+      <div className="absolute inset-0 bg-dotted-pattern opacity-10 pointer-events-none"></div>
       <AnimationOnScroll>
         <div className="container px-4 md:px-6 text-center">
           <div className="flex flex-col justify-center space-y-8">
