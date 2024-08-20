@@ -3,10 +3,13 @@ package operations
 import (
 	"backend/util"
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
 	"os/exec"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 type Solution struct {
@@ -83,7 +86,7 @@ func executeCode(solution Solution) (string, error) {
 	return out.String(), nil
 }
 
-func RunTestCases(language string, code string) (string, error) {
+func RunTestCases(language string, code string) (int, string, error) {
 	solution := Solution{
 		Language: language,
 		Code:     code,
@@ -91,7 +94,8 @@ func RunTestCases(language string, code string) (string, error) {
 
 	output, err := executeCode(solution)
 	if err != nil {
-		log.Fatalf("Error executing code: %v", err)
+		log.Printf("Error executing code: %v", err)
+		return fiber.StatusInternalServerError, "", err
 	}
 
 	fmt.Printf("Output: %s\n", output)
@@ -99,15 +103,24 @@ func RunTestCases(language string, code string) (string, error) {
 	expectedOutput := "Hello, World!"
 	trimmedExpected := bytes.TrimSpace([]byte(expectedOutput))
 	trimmedOutput := bytes.TrimSpace([]byte(output))
-	result := ""
-	if bytes.Equal(trimmedOutput, trimmedExpected) {
-		fmt.Println("Test passed")
-		result = "Test passed"
-	} else {
-		fmt.Println("Test failed")
-		fmt.Printf("Expected: %q\n", expectedOutput)
-		fmt.Printf("Got: %q\n", output)
-		result = "Test failed"
+
+	passed := bytes.Equal(trimmedOutput, trimmedExpected)
+
+	result := map[string]interface{}{
+		"passed":   passed,
+		"expected": expectedOutput,
+		"got":      output,
 	}
-	return string(result), nil
+
+	jsonResult, err := json.Marshal(result)
+	if err != nil {
+		log.Printf("Error marshaling result to JSON: %v", err)
+		return fiber.StatusInternalServerError, "", err
+	}
+
+	if passed {
+		return fiber.StatusOK, string(jsonResult), nil
+	} else {
+		return fiber.StatusBadRequest, string(jsonResult), nil
+	}
 }

@@ -1,6 +1,14 @@
 import React, { useState } from 'react';
+import AceEditor from "react-ace";
+
+import "ace-builds/src-noconflict/mode-javascript";
+import "ace-builds/src-noconflict/mode-python";
+import "ace-builds/src-noconflict/mode-java";
+import "ace-builds/src-noconflict/mode-c_cpp";
+import "ace-builds/src-noconflict/mode-csharp";
+import "ace-builds/src-noconflict/theme-monokai";
+
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import {
     Popover,
@@ -20,15 +28,26 @@ type Props = {
 };
 
 const SubmissionForm = ({ onSubmit }: Props) => {
-    const [code, setCode] = useState('');
-    const [language, setLanguage] = useState('JavaScript');
+    const [code, setCode] = useState("");
+    const [language, setLanguage] = useState("javascript");
+
+    const getLanguageMode = (lang: string) => {
+        switch (lang) {
+            case 'JavaScript': return 'javascript';
+            case 'Python': return 'python';
+            case 'Java': return 'java';
+            case 'C++': return 'c_cpp';
+            case 'C#': return 'csharp';
+            default: return 'javascript';
+        }
+    };
 
     return (
         <Popover>
             <PopoverTrigger asChild>
                 <Button>Submit New Solution</Button>
             </PopoverTrigger>
-            <PopoverContent className='w-[400px] p-4'>
+            <PopoverContent className='w-[600px] p-4'>
                 <h2 className='text-lg font-medium mb-4'>Submit Solution</h2>
                 <form
                     onSubmit={(e) => {
@@ -63,14 +82,26 @@ const SubmissionForm = ({ onSubmit }: Props) => {
                     </div>
                     <div className='mb-4'>
                         <Label htmlFor='code'>Code</Label>
-
-                        <Textarea
-                            id='code'
-                            name='code'
-                            rows={10}
-                            className='resize-none'
+                        <AceEditor
+                            mode={getLanguageMode(language)}
+                            theme="monokai"
+                            onChange={setCode}
+                            name="code-editor"
+                            editorProps={{ $blockScrolling: true }}
                             value={code}
-                            onChange={(e) => setCode(e.target.value)}
+                            width="100%"
+                            height="300px"
+                            fontSize={14}
+                            showPrintMargin={false}
+                            showGutter={true}
+                            highlightActiveLine={true}
+                            setOptions={{
+                                enableBasicAutocompletion: true,
+                                enableLiveAutocompletion: true,
+                                enableSnippets: false,
+                                showLineNumbers: true,
+                                tabSize: 2,
+                            }}
                         />
                     </div>
 

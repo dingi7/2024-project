@@ -11,6 +11,7 @@ import { codeSubmit, getContestById } from "@/app/api/requests";
 import { useParams } from "next/navigation";
 import { Contest } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "@/components/ui/use-toast";
 
 export default function ContestPage() {
     const { data: session } = useSession();
@@ -81,7 +82,24 @@ export default function ContestPage() {
             ...solution,
             // ownerId: session!.user!.id,
         };
-        await codeSubmit(submission);
+        console.log(submission);
+        try {
+            await codeSubmit(submission);
+            toast({
+                title: "Submission successful",
+                description: "Your code has been submitted successfully.",
+                variant: "success",
+                duration: 2000,
+            });
+        } catch (error) {
+            console.error("Submission failed:", error);
+            toast({
+                title: "Submission failed",
+                description: "There was an error submitting your code. Please try again.",
+                variant: "destructive",
+                duration: 2000,
+            });
+        }
         // setSubmissions([
         //     ...submissions,
         //     {

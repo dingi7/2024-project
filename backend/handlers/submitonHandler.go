@@ -11,10 +11,10 @@ import (
 )
 
 type Submission struct {
-	Language string `json:"language"`
-	Code     string `json:"code"`
-	Input  []string `json:"input"`
-	Output []string `json:"output"`
+	Language string   `json:"language"`
+	Code     string   `json:"code"`
+	Input    []string `json:"input"`
+	Output   []string `json:"output"`
 }
 
 var submissionsCollection *mongo.Collection
@@ -29,7 +29,15 @@ func CreateSubmition(c *fiber.Ctx) error {
 	if err != nil {
 		// handle error
 		fmt.Println("Error:", err)
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid payload",
+		})
 	}
-	var output, _ = operations.RunTestCases(payload.Language, payload.Code)
-	return c.SendString(output)
+	statusCode, output, err := operations.RunTestCases(payload.Language, payload.Code)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Error running test cases",
+		})
+	}
+	return c.Status(statusCode).SendString(output)
 }
