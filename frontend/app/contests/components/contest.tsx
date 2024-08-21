@@ -1,23 +1,35 @@
 import Link from 'next/link';
 
-function Contest({ title, description, id }: {
+function Contest({ title, description, id, language, startDate, endDate, prize }: {
     title: string;
     description: string;
     id: string;
+    language: string;
+    startDate: string;
+    endDate: string;
+    prize: number;
 }) {
     return (
-        <div className='flex items-center gap-4 bg-background p-4 rounded-lg shadow-sm'>
-            <div className='flex-1'>
-                <h3 className='text-lg font-semibold'>{title}</h3>
-                <p className='text-muted-foreground'>{description}</p>
+        <div className='bg-background p-6 rounded-lg border border-border'>
+            <div className='flex justify-between items-center mb-2'>
+                <h3 className='text-xl font-semibold text-primary'>{title}</h3>
+                <span className='text-sm font-medium text-foreground bg-primary px-2 py-1 rounded-full'>{language}</span>
             </div>
-            <Link
-                href={`/contest/${id}`}
-                className='inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50'
-                prefetch={false}
-            >
-                More Info
-            </Link>
+            <p className='text-foreground mb-4'>{description}</p>
+            <div className='flex justify-between text-sm text-foreground mb-4'>
+                <span>Starts: {new Date(startDate).toLocaleDateString()}</span>
+                <span>Ends: {new Date(endDate).toLocaleDateString()}</span>
+            </div>
+            <div className='flex justify-between items-center'>
+                <span className='text-lg font-semibold text-primary'>${prize.toLocaleString()}</span>
+                <Link
+                    href={`/contest/${id}`}
+                    className='px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors'
+                    prefetch={false}
+                >
+                    View Details
+                </Link>
+            </div>
         </div>
     );
 }

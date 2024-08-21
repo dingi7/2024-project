@@ -119,6 +119,10 @@ const ContestPage = () => {
                                             id={contest.id}
                                             title={contest.title}
                                             description={contest.description}
+                                            language={contest.language}
+                                            startDate={contest.startDate}
+                                            endDate={contest.endDate}
+                                            prize={contest.prize}
                                         />
                                     ))
                                 )}
