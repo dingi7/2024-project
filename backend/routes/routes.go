@@ -25,4 +25,6 @@ func Setup(app *fiber.App, client *mongo.Client) {
 	api.Post("/codeSubmit", handlers.CreateSubmition)
 	api.Post("/contest", contestHandler.CreateContest)
 	api.Get("/contest/:id", contestHandler.GetContestById)
+	api.Delete("/contest/:id", contestHandler.DeleteContest)
+	api.Post("/contest/:id/TestCases", contestHandler.AddTestCase)
 }

@@ -21,14 +21,22 @@ export interface ContestSubmission {
     language: string;
 }
 
+export interface TestCase {
+    id: number;
+    input: string;
+    output: string;
+    timeLimit: string;
+}
+
 export interface Contest {
     id: string;
     title: string;
     description: string;
-    language: string;
+    languages: string[];
     category: string;
     startDate: string;
     endDate: string;
     prize: number;
     ownerId: string;
+    testCases: TestCase[];
 }

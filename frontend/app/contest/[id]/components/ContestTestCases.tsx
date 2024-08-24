@@ -10,19 +10,20 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Pencil, Trash2, Plus } from "lucide-react";
+import { TestCase } from "@/lib/types";
+import { addTestCase } from "@/app/api/requests";
 
-interface TestCase {
-  id: number;
-  input: string;
-  output: string;
-  timeLimit: string;
+interface ContestTestCasesProps {
+  contestId: string;
+  dbTestCases: any[];
 }
 
-const ContestTestCases = () => {
-  const [testCases, setTestCases] = useState<TestCase[]>([
-    { id: 1, input: "5 3", output: "8", timeLimit: "1000" },
-    { id: 2, input: "10 7", output: "17", timeLimit: "1000" },
-  ]);
+const ContestTestCases: React.FC<ContestTestCasesProps> = ({ contestId, dbTestCases }) => {
+  dbTestCases = dbTestCases.map((tc: any) => {
+    tc.id = Math.max(...dbTestCases.map((tc) => tc.id), 0) + 1;
+    return tc;
+  });
+  const [testCases, setTestCases] = useState<TestCase[]>(dbTestCases);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [newTestCase, setNewTestCase] = useState<TestCase>({
     id: 0,
@@ -70,6 +71,10 @@ const ContestTestCases = () => {
         timeLimit: newTestCase.timeLimit,
       },
     ]);
+    addTestCase(contestId, {
+      input: newTestCase.input,
+      output: newTestCase.output,
+    });
   };
 
   return (

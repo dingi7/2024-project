@@ -27,7 +27,6 @@ func (h *ContestHandler) CreateContest(c *fiber.Ctx) error {
 	if err := c.BodyParser(contest); err != nil {
 		return err
 	}
-
 	if err := validateContest(contest); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -49,7 +48,6 @@ func (h *ContestHandler) GetContests(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
 	}
-	// exclude the contest test cases
 	for i := range contests {
 		contests[i].TestCases = nil
 	}
@@ -75,6 +73,52 @@ func (h *ContestHandler) GetContestById(c *fiber.Ctx) error {
 		return c.JSON(contest)
 	}
 }
+
+func (h *ContestHandler) DeleteContest(c *fiber.Ctx) error {
+	userId := c.Locals("userID").(string)
+	id := c.Params("id")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	contest, err := h.ContestService.FindContestByID(ctx, id)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+	}
+	if userId != contest.OwnerID {
+		return c.Status(fiber.StatusUnauthorized).SendString("Unauthorized")
+	}
+	if err := h.ContestService.DeleteContest(ctx, id); err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+	}
+
+	return c.SendString("Contest deleted successfully")
+}
+
+func (h *ContestHandler) AddTestCase(c *fiber.Ctx) error {
+	userId := c.Locals("userID").(string)
+	id := c.Params("id")
+	testCase := new(models.TestCase)
+	if err := c.BodyParser(testCase); err != nil {
+		return err
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	contest, err := h.ContestService.FindContestByID(ctx, id)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+	}
+	if userId != contest.OwnerID {
+		return c.Status(fiber.StatusUnauthorized).SendString("Unauthorized")
+	}
+	if err := h.ContestService.AddTestCase(ctx, id, testCase); err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+	}
+
+	return c.JSON(testCase)
+}
+
+
 
 func validateContest(contest *models.Contest) error { // test this
 	validate := validator.New()

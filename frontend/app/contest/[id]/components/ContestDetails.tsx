@@ -104,7 +104,7 @@ const ContestDetails = ({ contest, isOwner, isEditEnabled, onEdit }: {
                 required
               />
             </div>
-            <ContestTestCases />
+            <ContestTestCases contestId={contest.id} dbTestCases={contest.testCases}/>
             <Button type="submit" className="mt-4">
               Save Changes
             </Button>

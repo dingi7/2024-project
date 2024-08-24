@@ -6,7 +6,9 @@ export const endpoints = {
     codeSubmit: '/codeSubmit',
     getContests: '/contest',
     createContest: '/contest',
+    addTestCase: (id: string) => `/contest/${id}/TestCases`,
     getContestById: (id: string) => `/contest/${id}`,
+    deleteContest: (id: string) => `/contest/${id}`,
 };
 
 export const userSignIn = async (payload : User) => {
@@ -27,4 +29,12 @@ export const createContest = async (payload : any) => {
 
 export const getContestById = async (id: string) => {
     return api.get(endpoints.getContestById(id));
+}
+
+export const deleteContest = async (id: string) => {
+    return api.del(endpoints.deleteContest(id));
+}
+
+export const addTestCase = async (id: string, payload : any) => {
+    return api.post(endpoints.addTestCase(id), payload);
 }
