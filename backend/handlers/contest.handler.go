@@ -27,12 +27,8 @@ func (h *ContestHandler) CreateContest(c *fiber.Ctx) error {
 	if err := c.BodyParser(contest); err != nil {
 		return err
 	}
-	// if err := util.ValidateStructFields(contest); err != nil {
-	// 	return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
-	// }
 
-	// TODO: Validate contest fields
-	if err := ValidateContest(contest); err != nil {
+	if err := validateContest(contest); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -62,6 +58,7 @@ func (h *ContestHandler) GetContests(c *fiber.Ctx) error {
 }
 
 func (h *ContestHandler) GetContestById(c *fiber.Ctx) error {
+	userId := c.Locals("userID").(string)
 	id := c.Params("id")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -70,10 +67,16 @@ func (h *ContestHandler) GetContestById(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
 	}
-	return c.JSON(contest)
+
+	if userId == contest.OwnerID {
+		return c.JSON(contest)
+	} else {
+		contest.TestCases = nil
+		return c.JSON(contest)
+	}
 }
 
-func ValidateContest(contest *models.Contest) error {
+func validateContest(contest *models.Contest) error { // test this
 	validate := validator.New()
 	validate.RegisterValidation("datetime", func(fl validator.FieldLevel) bool {
 		_, err := time.Parse(time.RFC3339, fl.Field().String())
