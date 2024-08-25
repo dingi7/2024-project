@@ -84,7 +84,7 @@ export default function ContestPage() {
         };
         console.log(submission);
         try {
-            await codeSubmit(submission);
+            await codeSubmit(submission, params.id);
             toast({
                 title: "Submission successful",
                 description: "Your code has been submitted successfully.",

@@ -3,9 +3,9 @@ import * as api from './api';
 
 export const endpoints = {
     userSingIn: '/auth/signIn',
-    codeSubmit: '/codeSubmit',
     getContests: '/contest',
     createContest: '/contest',
+    codeSubmit: (id: string) => `/codeSubmit/${id}`,
     addTestCase: (id: string) => `/contest/${id}/TestCases`,
     getContestById: (id: string) => `/contest/${id}`,
     deleteContest: (id: string) => `/contest/${id}`,
@@ -15,8 +15,8 @@ export const userSignIn = async (payload : User) => {
     return api.post(endpoints.userSingIn, payload);
 };
 
-export const codeSubmit = async (payload : ContestSubmission) => {
-    return api.post(endpoints.codeSubmit, payload);
+export const codeSubmit = async (payload : ContestSubmission, id: string) => {
+    return api.post(endpoints.codeSubmit(id), payload);
 }
 
 export const getContests = async () => {

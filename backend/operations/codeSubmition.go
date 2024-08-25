@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -32,7 +33,7 @@ func createTempFile(content string, extension string) (string, error) {
 	return tmpfile.Name(), nil
 }
 
-func executeCode(solution Solution) (string, error) {
+func executeCode(solution Solution, inputs []string) (string, error) {
 	extension := ""
 	modifiedCode := solution.Code
 	switch solution.Language {
@@ -56,20 +57,23 @@ func executeCode(solution Solution) (string, error) {
 	defer exec.Command("rm", codeFile).Run() // Cleanup temp file
 
 	// Docker command to run the code inside a container
-	input := "Hello, World!" // Example inputs, adjust as necessary
+	var inputArgs []string
+    for _, input := range inputs {
+        inputArgs = append(inputArgs, fmt.Sprintf("'%s'", input))
+    }
+    inputString := strings.Join(inputArgs, " ")
 
-	cmdArgs := []string{"run", "--rm", "-v", codeFile + ":/app/code." + extension, "python:3.8", "bash", "-c", "echo '" + input + "' | python /app/code.py"}
+	cmdArgs := []string{"run", "--rm", "-v", codeFile + ":/app/code." + extension, "python:3.8", "bash", "-c", fmt.Sprintf("python /app/code.py %s", inputString)}
 	switch solution.Language {
 	case "JavaScript":
-		// cmdArgs = []string{"run", "--rm", "-v", codeFile + ":/app/code.js", "node:14", "bash", "-c", "echo '" + input + "' | node /app/code.js"}
-		cmdArgs = []string{"run", "--rm", "-v", codeFile + ":/app/code.js", "node:14", "node", "/app/code.js", input}
-	case "Java":
-		cmdArgs = []string{"run", "--rm", "-v", codeFile + ":/app/code.java", "openjdk:11", "bash", "-c", "javac /app/code.java && echo '" + input + "' | java -cp /app/ code"}
-	case "C++":
-		cmdArgs = []string{"run", "--rm", "-v", codeFile + ":/app/code.cpp", "gcc:latest", "bash", "-c", "g++ /app/code.cpp -o /app/a.out && echo '" + input + "' | /app/a.out"}
-	case "C#":
-		cmdArgs = []string{"run", "--rm", "-v", codeFile + ":/app/code.cs", "mcr.microsoft.com/dotnet/sdk:latest", "bash", "-c", "echo '" + input + "' | dotnet run /app/code.cs"}
-	}
+        cmdArgs = []string{"run", "--rm", "-v", codeFile + ":/app/code.js", "node:14", "bash", "-c", fmt.Sprintf("node /app/code.js %s", inputString)}
+    case "Java":
+        cmdArgs = []string{"run", "--rm", "-v", codeFile + ":/app/code.java", "openjdk:11", "bash", "-c", fmt.Sprintf("javac /app/code.java && java -cp /app/ code %s", inputString)}
+    case "C++":
+        cmdArgs = []string{"run", "--rm", "-v", codeFile + ":/app/code.cpp", "gcc:latest", "bash", "-c", fmt.Sprintf("g++ /app/code.cpp -o /app/a.out && ./app/a.out %s", inputString)}
+    case "C#":
+        cmdArgs = []string{"run", "--rm", "-v", codeFile + ":/app/code.cs", "mcr.microsoft.com/dotnet/sdk:latest", "bash", "-c", fmt.Sprintf("dotnet run /app/code.cs %s", inputString)}
+    }
 
 	cmd := exec.Command("docker", cmdArgs...)
 	fmt.Printf("Running command: %v\n", cmd.Args)
@@ -86,16 +90,18 @@ func executeCode(solution Solution) (string, error) {
 	return out.String(), nil
 }
 
-func RunTestCases(language string, code string) (int, string, error) {
+func RunTestCases(language string, code string) (int, []byte, error) {
 	solution := Solution{
 		Language: language,
 		Code:     code,
 	}
 
-	output, err := executeCode(solution)
+	// inputs := []string{"John", "12"}
+
+	output, err := executeCode(solution, []string{"Alice", "25", "man"})
 	if err != nil {
 		log.Printf("Error executing code: %v", err)
-		return fiber.StatusInternalServerError, "", err
+		return fiber.StatusInternalServerError, nil, err
 	}
 
 	fmt.Printf("Output: %s\n", output)
@@ -115,12 +121,12 @@ func RunTestCases(language string, code string) (int, string, error) {
 	jsonResult, err := json.Marshal(result)
 	if err != nil {
 		log.Printf("Error marshaling result to JSON: %v", err)
-		return fiber.StatusInternalServerError, "", err
+		return fiber.StatusInternalServerError, nil, err
 	}
 
 	if passed {
-		return fiber.StatusOK, string(jsonResult), nil
+		return fiber.StatusOK, jsonResult, nil
 	} else {
-		return fiber.StatusBadRequest, string(jsonResult), nil
+		return fiber.StatusOK, jsonResult, nil
 	}
 }
