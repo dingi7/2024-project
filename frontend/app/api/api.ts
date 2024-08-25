@@ -1,4 +1,5 @@
 import { getSession } from 'next-auth/react';
+import { toast } from '@/components/ui/use-toast';
 
 // const host =
 //     process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:3001/api/v1';
@@ -41,13 +42,34 @@ const request = async (
         const res = await fetch(host + url, options);
         const responseData = await res.json();
 
+        if (res.status === 401) {
+            const { signOut } = await import('next-auth/react');
+            await signOut({ callbackUrl: '/login' });
+            toast({
+                title: "Unauthorized",
+                description: "You have been logged out.",
+                variant: "destructive",
+            });
+            return;
+        }
+
         if (!res.ok) {
-            throw new Error(responseData.message);
+            toast({
+                title: "Error",
+                description: responseData.message,
+                variant: "destructive",
+            });
+            return;
         }
 
         return responseData;
     } catch (error: any) {
-        throw new Error(error.message);
+        toast({
+            title: "Error",
+            description: error.message,
+            variant: "destructive",
+        });
+        return;
     }
 };
 

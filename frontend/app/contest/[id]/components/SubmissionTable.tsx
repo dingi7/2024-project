@@ -24,6 +24,7 @@ type Props = {
 };
 
 const SubmissionTable = ({ submissions, filterOptions, onFilterChange }: Props) => {
+    console.log(submissions);
     return (
         <div>
             <h2 className='text-lg font-medium mb-4'>Your Submissions</h2>
@@ -88,18 +89,18 @@ const SubmissionTable = ({ submissions, filterOptions, onFilterChange }: Props) 
                 <TableBody>
                     {submissions.map((submission) => (
                         <TableRow key={submission.id}>
-                            <TableCell>{submission.date}</TableCell>
+                            <TableCell>{new Date(submission.createdAt).toLocaleDateString()}</TableCell>
                             <TableCell>
                                 <Badge
                                     variant={
-                                        submission.status === 'Accepted'
+                                        submission.status === true
                                             ? 'outline'
-                                            : submission.status === 'Rejected'
+                                            : submission.status === false
                                             ? 'destructive'
                                             : 'secondary'
                                     }
                                 >
-                                    {submission.status}
+                                    {submission.status ? 'Accepted' : 'Rejected'}
                                 </Badge>
                             </TableCell>
                             <TableCell>
