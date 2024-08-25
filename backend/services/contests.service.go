@@ -104,3 +104,4 @@ func (s *ContestService) AddTestCase(ctx context.Context, id string, testCase *m
 	_, err = s.ContestCollection.UpdateOne(ctx, query, update)
 	return err
 }
+

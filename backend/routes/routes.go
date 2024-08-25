@@ -10,7 +10,7 @@ import (
 
 func Setup(app *fiber.App, client *mongo.Client) {
 
-	// app.Use(middlewares.Logger())
+
 	api := app.Group("/api/v1")
 
 	userHandler := handlers.NewUserHandler(client)

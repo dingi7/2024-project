@@ -3,6 +3,7 @@ package services
 import (
 	"backend/models"
 	"context"
+	"fmt"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -11,11 +12,13 @@ import (
 
 type SubmissionService struct {
 	SubmissionCollection *mongo.Collection
+	ContestCollection    *mongo.Collection
 }
 
 func NewSubmissionService(client *mongo.Client) *SubmissionService {
 	return &SubmissionService{
 		SubmissionCollection: client.Database("contestify").Collection("submissions"),
+		ContestCollection:    client.Database("contestify").Collection("contests"),
 	}
 }
 
@@ -46,6 +49,8 @@ func (s *SubmissionService) FindSubmissionByID(ctx context.Context, id string) (
 }
 
 func (s *SubmissionService) CreateSubmission(ctx context.Context, submission *models.Submission) error {
+
+
 	_, err := s.SubmissionCollection.InsertOne(ctx, submission)
 	return err
 }
@@ -104,14 +109,38 @@ func (s *SubmissionService) GetSubmissionsByOwnerID(ctx context.Context, ownerID
 }
 
 func (s *SubmissionService) GetSubmissionsByContestIDAndOwnerID(ctx context.Context, contestID, ownerID string) ([]models.Submission, error) {
+	fmt.Printf("Querying for contestID: %s, ownerID: %s\n", contestID, ownerID)
+
+	filter := bson.M{
+        "ownerid":   ownerID,
+        "contestid": contestID,
+    }
 	var submissions []models.Submission
-	cursor, err := s.SubmissionCollection.Find(ctx, bson.M{"contestID": contestID, "ownerID": ownerID})
+	cursor, err := s.SubmissionCollection.Find(ctx, filter)
+
 	if err != nil {
+		fmt.Printf("Error in Find: %v\n", err)
 		return nil, err
 	}
 	defer cursor.Close(ctx)
 	if err := cursor.All(ctx, &submissions); err != nil {
+		fmt.Printf("Error in cursor.All: %v\n", err)
 		return nil, err
 	}
+	fmt.Printf("Found %d submissions\n", len(submissions))
 	return submissions, nil
 }	
+
+func (s *SubmissionService) GetContestTestCases(ctx context.Context, contestID string) ([]models.TestCase, error) {
+	objectID, err := primitive.ObjectIDFromHex(contestID)
+	if err != nil {
+		return nil, err
+	}
+	query := bson.M{"_id": objectID}
+	var contest models.Contest
+	err = s.ContestCollection.FindOne(ctx, query).Decode(&contest)
+	if err != nil {
+		return nil, err
+	}
+	return contest.TestCases, nil
+}

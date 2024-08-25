@@ -33,33 +33,51 @@ func (h *SubmissionHandler) CreateSubmission(c *fiber.Ctx) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	statusCode, output, err := operations.RunTestCases(submission.Language, submission.Code)
+	// Get contest ID from params
+	contestID := c.Params("contestId")
+
+	// Fetch test cases for the contest
+	testCases, err := h.SubmissionService.GetContestTestCases(ctx, contestID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error fetching test cases"})
+	}
+
+	statusCode, output, score, passed, err := operations.RunTestCases(submission.Language, submission.Code, testCases)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error running test cases"})
 	}
 
-	var result map[string]interface{}
+	var result []map[string]interface{}
 	if err := json.Unmarshal(output, &result); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error parsing test results"})
 	}
 
-	submission.ContestID = c.Params("contestId")
+	submission.ContestID = contestID
 	submission.OwnerID = c.Locals("userID").(string)
-	submission.Status = fmt.Sprintf("%v", result["passed"])
+	submission.Status = fmt.Sprintf("%v", passed)
+	submission.Score = float64(score)
 	submission.CreatedAt = time.Now().Format(time.RFC3339)
 
 	if err := h.SubmissionService.CreateSubmission(ctx, submission); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error saving submission"})
 	}
 
-	return c.Status(statusCode).JSON(result)
+	response := fiber.Map{
+		"score":  score,
+		"passed": passed,
+		"result": result,
+	}
+
+	return c.Status(statusCode).JSON(response)
+
 }
 
 func (h *SubmissionHandler) GetSubmissions(c *fiber.Ctx) error {
 	userID := c.Locals("userID").(string)
 	contestID := c.Params("contestId")
 
-	submissions, err := h.SubmissionService.GetSubmissionsByContestIDAndOwnerID(c.Context(), userID, contestID)
+	submissions, err := h.SubmissionService.GetSubmissionsByContestIDAndOwnerID(c.Context(), contestID, userID)
+
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error fetching submissions"})
 	}

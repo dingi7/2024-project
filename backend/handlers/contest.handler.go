@@ -120,7 +120,7 @@ func (h *ContestHandler) AddTestCase(c *fiber.Ctx) error {
 
 
 
-func validateContest(contest *models.Contest) error { // test this
+func validateContest(contest *models.Contest) error { 
 	validate := validator.New()
 	validate.RegisterValidation("datetime", func(fl validator.FieldLevel) bool {
 		_, err := time.Parse(time.RFC3339, fl.Field().String())
