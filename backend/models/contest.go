@@ -1,8 +1,11 @@
 package models
 
+import "go.mongodb.org/mongo-driver/bson/primitive"
+
 type TestCase struct {
-	Input  string `json:"input"`
-	Output string `json:"output"`
+	ID     primitive.ObjectID `json:"id" bson:"_id"`
+	Input  string             `json:"input"`
+	Output string             `json:"output"`
 }
 
 type Contest struct {

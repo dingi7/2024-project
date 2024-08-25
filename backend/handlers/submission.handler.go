@@ -6,7 +6,6 @@ import (
 	"backend/services"
 	"context"
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/gofiber/fiber/v2"

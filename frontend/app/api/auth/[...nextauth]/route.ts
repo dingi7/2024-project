@@ -1,3 +1,4 @@
+
 import { User } from '@/lib/types';
 import NextAuth, { NextAuthOptions } from 'next-auth';
 import GitHubProvider from 'next-auth/providers/github';
