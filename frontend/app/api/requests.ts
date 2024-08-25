@@ -9,6 +9,7 @@ export const endpoints = {
     addTestCase: (id: string) => `/contest/${id}/TestCases`,
     getContestById: (id: string) => `/contest/${id}`,
     deleteContest: (id: string) => `/contest/${id}`,
+    getSubmissions: (id: string) => `/submissions/${id}`,
 };
 
 export const userSignIn = async (payload : User) => {
@@ -37,4 +38,8 @@ export const deleteContest = async (id: string) => {
 
 export const addTestCase = async (id: string, payload : any) => {
     return api.post(endpoints.addTestCase(id), payload);
+}
+
+export const getSubmissions = async (contestId: string) => {
+    return api.get(endpoints.getSubmissions(contestId));
 }

@@ -7,7 +7,7 @@ import ContestDetails from "./components/ContestDetails";
 import SubmissionForm from "./components/SubmissionForm";
 import SubmissionTable from "./components/SubmissionTable";
 import { useSession } from "next-auth/react";
-import { codeSubmit, getContestById } from "@/app/api/requests";
+import { codeSubmit, getContestById, getSubmissions } from "@/app/api/requests";
 import { useParams } from "next/navigation";
 import { Contest } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -17,35 +17,10 @@ export default function ContestPage() {
     const { data: session } = useSession();
     const [loading, setLoading] = useState(true);
     const params = useParams<{ id: string }>();
-    const [isOwner, setIsOwner] = useState(true);
+    const [isOwner, setIsOwner] = useState(false);
     const [isEditEnabled, setIsEditEnabled] = useState(false);
     const [contest, setContest] = useState<Contest | null>(null);
-    const [submissions, setSubmissions] = useState([
-        {
-            id: 1,
-            date: "2023-06-15",
-            status: "Accepted",
-            score: 95,
-            language: "JavaScript",
-            code: "function sortArray(arr) { /* optimized sorting algorithm */ }",
-        },
-        {
-            id: 2,
-            date: "2023-06-20",
-            status: "Rejected",
-            score: 80,
-            language: "Python",
-            code: "def sort_array(arr): # optimized sorting algorithm",
-        },
-        {
-            id: 3,
-            date: "2023-06-25",
-            status: "Pending",
-            score: null,
-            language: "Java",
-            code: "public static void sortArray(int[] arr) { /* optimized sorting algorithm */ }",
-        },
-    ]);
+    const [submissions, setSubmissions] = useState<any[]>([]);
     const [filterOptions, setFilterOptions] = useState({
         status: "all",
         sortBy: "date",
@@ -53,19 +28,22 @@ export default function ContestPage() {
     });
 
     useEffect(() => {
-        const fetchContest = async () => {
+        const fetchContestAndSubmissions = async () => {
             try {
-                const response = await getContestById(params.id);
-                setContest(response);
-                setIsOwner(response.ownerID === session?.user?.id);
+                const contestResponse = await getContestById(params.id);
+                setContest(contestResponse);
+                setIsOwner(contestResponse.ownerID === session?.user?.id);
+
+                const submissionsResponse = await getSubmissions(params.id);
+                setSubmissions(submissionsResponse);
             } catch (error) {
-                console.error("Failed to fetch contest:", error);
+                console.error("Failed to fetch contest or submissions:", error);
                 // Handle error (e.g., show error message to user)
             } finally {
                 setLoading(false);
             }
         };
-        fetchContest();
+        fetchContestAndSubmissions();
     }, [params, session]);
 
     const handleEditContest = (updatedContest: any) => {
@@ -77,12 +55,11 @@ export default function ContestPage() {
     };
 
     const handleSubmit = async (solution: any) => {
-        // here
         const submission = {
             ...solution,
-            // ownerId: session!.user!.id,
+            contestId: params.id,
+            userId: session?.user?.id,
         };
-        console.log(submission);
         try {
             await codeSubmit(submission, params.id);
             toast({
@@ -91,6 +68,9 @@ export default function ContestPage() {
                 variant: "success",
                 duration: 2000,
             });
+            // Refresh submissions
+            const updatedSubmissions = await getSubmissions(params.id);
+            setSubmissions(updatedSubmissions);
         } catch (error) {
             console.error("Submission failed:", error);
             toast({
@@ -100,34 +80,27 @@ export default function ContestPage() {
                 duration: 2000,
             });
         }
-        // setSubmissions([
-        //     ...submissions,
-        //     {
-        //         id: submissions.length + 1,
-        //         date: new Date().toISOString().slice(0, 10),
-        //         status: 'Pending',
-        //         score: null,
-        //         language: solution.language,
-        //         code: solution.code,
-        //     },
-        // ]);
     };
 
     const filteredSubmissions = useMemo(() => {
-        let filtered = submissions;
+        if (!submissions || submissions.length === 0) {
+            return [];
+        }
+
+        let filtered = [...submissions];
         if (filterOptions.status !== "all") {
             filtered = filtered.filter(
                 (s) => s.status === filterOptions.status
             );
         }
         if (filterOptions.sortBy === "date") {
-            filtered = filtered.sort((a, b) =>
+            filtered.sort((a, b) =>
                 filterOptions.order === "asc"
                     ? new Date(a.date).getTime() - new Date(b.date).getTime()
                     : new Date(b.date).getTime() - new Date(a.date).getTime()
             );
         } else if (filterOptions.sortBy === "score") {
-            filtered = filtered.sort((a, b) =>
+            filtered.sort((a, b) =>
                 filterOptions.order === "asc"
                     ? (a.score ?? 0) - (b.score ?? 0)
                     : (b.score ?? 0) - (a.score ?? 0)
@@ -135,20 +108,6 @@ export default function ContestPage() {
         }
         return filtered;
     }, [submissions, filterOptions]);
-
-    const handleRefresh = () => {
-        const updatedSubmissions = submissions.map((submission) => {
-            if (submission.status === "Pending") {
-                return {
-                    ...submission,
-                    status: "Accepted",
-                    score: Math.floor(Math.random() * 100),
-                };
-            }
-            return submission;
-        });
-        setSubmissions(updatedSubmissions);
-    };
 
     if (loading) {
         return (
@@ -186,10 +145,6 @@ export default function ContestPage() {
                                 Edit Contest
                             </Button>
                         )}
-                        <Button variant="outline" onClick={handleRefresh}>
-                            <RefreshCcwIcon className="w-4 h-4 mr-2" />
-                            Refresh
-                        </Button>
                     </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
