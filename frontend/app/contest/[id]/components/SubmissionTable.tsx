@@ -24,7 +24,6 @@ type Props = {
 };
 
 const SubmissionTable = ({ submissions, filterOptions, onFilterChange }: Props) => {
-    console.log(submissions);
     return (
         <div>
             <h2 className='text-lg font-medium mb-4'>Your Submissions</h2>

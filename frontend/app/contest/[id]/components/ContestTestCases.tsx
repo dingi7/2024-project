@@ -22,7 +22,6 @@ const ContestTestCases: React.FC<ContestTestCasesProps> = ({
     contestId,
     dbTestCases,
 }) => {
-    console.log(dbTestCases);
     const [testCases, setTestCases] = useState<TestCase[] | []>(dbTestCases || []);
     const [editingId, setEditingId] = useState<number | null>(null);
     const [newTestCase, setNewTestCase] = useState<TestCase>({
