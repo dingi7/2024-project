@@ -54,21 +54,16 @@ func (h *SubmissionHandler) CreateSubmission(c *fiber.Ctx) error {
 
 	submission.ContestID = contestID
 	submission.OwnerID = c.Locals("userID").(string)
-	submission.Status = fmt.Sprintf("%v", passed)
+	submission.Status = passed
 	submission.Score = float64(score)
 	submission.CreatedAt = time.Now().Format(time.RFC3339)
 
-	if err := h.SubmissionService.CreateSubmission(ctx, submission); err != nil {
+	record, err := h.SubmissionService.CreateSubmission(ctx, submission)
+	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error saving submission"})
 	}
 
-	response := fiber.Map{
-		"score":  score,
-		"passed": passed,
-		"result": result,
-	}
-
-	return c.Status(statusCode).JSON(response)
+	return c.Status(statusCode).JSON(record)
 
 }
 

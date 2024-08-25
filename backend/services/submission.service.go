@@ -48,11 +48,11 @@ func (s *SubmissionService) FindSubmissionByID(ctx context.Context, id string) (
 	return &submission, nil
 }
 
-func (s *SubmissionService) CreateSubmission(ctx context.Context, submission *models.Submission) error {
+func (s *SubmissionService) CreateSubmission(ctx context.Context, submission *models.Submission) (*models.Submission, error) {
 
 
 	_, err := s.SubmissionCollection.InsertOne(ctx, submission)
-	return err
+	return submission, err
 }
 
 func (s *SubmissionService) DeleteSubmission(ctx context.Context, id string) error {
