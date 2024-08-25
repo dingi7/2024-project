@@ -92,14 +92,10 @@ const SubmissionTable = ({ submissions, filterOptions, onFilterChange }: Props) 
                             <TableCell>
                                 <Badge
                                     variant={
-                                        submission.status === 'Accepted'
-                                            ? 'outline'
-                                            : submission.status === 'Rejected'
-                                            ? 'destructive'
-                                            : 'secondary'
+                                        submission.status ? 'success' : 'failure'
                                     }
                                 >
-                                    {submission.status}
+                                    {submission.status ? 'Accepted' : 'Rejected'}
                                 </Badge>
                             </TableCell>
                             <TableCell>

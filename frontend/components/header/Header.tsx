@@ -53,6 +53,15 @@ function Header({}: Props) {
         >
           Leaderboard
         </Link>
+        {session?.user && (
+          <Link
+            href="/contest/create"
+            className="text-sm font-bold hover:underline underline-offset-4"
+            prefetch={false}
+          >
+            Create
+          </Link>
+        )}
       </nav>
 
       <div className="flex items-center gap-4">

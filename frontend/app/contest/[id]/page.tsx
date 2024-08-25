@@ -61,16 +61,14 @@ export default function ContestPage() {
             userId: session?.user?.id,
         };
         try {
-            await codeSubmit(submission, params.id);
+            const response = await codeSubmit(submission, params.id);
             toast({
                 title: "Submission successful",
                 description: "Your code has been submitted successfully.",
                 variant: "success",
                 duration: 2000,
             });
-            // Refresh submissions
-            const updatedSubmissions = await getSubmissions(params.id);
-            setSubmissions(updatedSubmissions);
+            setSubmissions([...submissions, response]);
         } catch (error) {
             console.error("Submission failed:", error);
             toast({

@@ -133,7 +133,7 @@ const ContestTestCases: React.FC<ContestTestCasesProps> = ({ contestId, dbTestCa
                 )}
               </TableCell>
               <TableCell>
-                <div className="flex-col flex justify-center items-center">
+                <div className="flex-col flex justify-center items-center gap-2">
                   {editingId === testCase.id ? (
                     <Button onClick={() => handleSave(testCase.id)}>
                       Save
