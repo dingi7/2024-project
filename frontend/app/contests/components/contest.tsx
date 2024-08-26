@@ -13,7 +13,7 @@ function Contest({ title, description, id, language, startDate, endDate, prize }
         <div className='bg-background p-6 rounded-lg border border-border'>
             <div className='flex justify-between items-center mb-2'>
                 <h3 className='text-xl font-semibold text-primary'>{title}</h3>
-                <span className='text-sm font-medium text-foreground bg-primary px-2 py-1 rounded-full'>{language}</span>
+                <span className='text-base font-medium text-primary-foreground bg-primary px-3 py-1 rounded-md shadow-sm transition-all duration-200 hover:bg-primary/90 hover:shadow-md'>{language}</span>
             </div>
             <p className='text-foreground mb-4'>{description}</p>
             <div className='flex justify-between text-sm text-foreground mb-4'>

@@ -118,6 +118,53 @@ func (h *ContestHandler) AddTestCase(c *fiber.Ctx) error {
 	return c.JSON(testCase)
 }
 
+func (h *ContestHandler) UpdateTestCase(c *fiber.Ctx) error {
+	userId := c.Locals("userID").(string)
+	id := c.Params("id")
+	testCase := new(models.TestCase)
+	if err := c.BodyParser(testCase); err != nil {
+		return err
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	contest, err := h.ContestService.FindContestByID(ctx, id)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+	}
+	if userId != contest.OwnerID {
+		return c.Status(fiber.StatusUnauthorized).SendString("Unauthorized")
+	}
+	if err := h.ContestService.UpdateTestCase(ctx, id, testCase); err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+	}
+
+	return c.JSON(testCase)
+}
+
+func (h *ContestHandler) DeleteTestCase(c *fiber.Ctx) error {
+	userId := c.Locals("userID").(string)
+	contestId := c.Params("contestId")
+	testCaseId := c.Params("testCaseId")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	contest, err := h.ContestService.FindContestByID(ctx, contestId)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+	}
+	if userId != contest.OwnerID {
+		return c.Status(fiber.StatusUnauthorized).SendString("Unauthorized")
+	}
+	if err := h.ContestService.DeleteTestCase(ctx, contestId, testCaseId); err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "Test case deleted successfully",
+	})
+}
 
 
 func validateContest(contest *models.Contest) error { 

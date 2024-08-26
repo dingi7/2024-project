@@ -88,7 +88,7 @@ const SubmissionTable = ({ submissions, filterOptions, onFilterChange }: Props) 
                 <TableBody>
                     {submissions.map((submission) => (
                         <TableRow key={submission.id}>
-                            <TableCell>{submission.date}</TableCell>
+                            <TableCell>{new Date(submission.createdAt).toLocaleDateString()}</TableCell>
                             <TableCell>
                                 <Badge
                                     variant={

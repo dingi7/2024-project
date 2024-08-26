@@ -3,6 +3,7 @@ package services
 import (
 	"backend/models"
 	"context"
+	"errors"
 	"fmt"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -95,6 +96,7 @@ func (s *ContestService) AddTestCase(ctx context.Context, id string, testCase *m
 	if err != nil {
 		return err
 	}
+	testCase.ID = primitive.NewObjectID()
 	query := bson.M{"_id": objectID}
 	update := bson.M{
 		"$push": bson.M{
@@ -105,3 +107,43 @@ func (s *ContestService) AddTestCase(ctx context.Context, id string, testCase *m
 	return err
 }
 
+func (s *ContestService) UpdateTestCase(ctx context.Context, id string, testCase *models.TestCase) error {
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+	query := bson.M{"_id": objectID}
+	update := bson.M{
+		"$set": bson.M{
+			"testCases.$[testCase].input": testCase.Input,
+			"testCases.$[testCase].output": testCase.Output,
+		},
+	}
+	_, err = s.ContestCollection.UpdateOne(ctx, query, update)
+	return err
+}
+
+func (s *ContestService) DeleteTestCase(ctx context.Context, id string, testCaseId string) error {
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+	testCaseObjectID, err := primitive.ObjectIDFromHex(testCaseId)
+	if err != nil {
+		return err
+	}
+	query := bson.M{"_id": objectID}
+	update := bson.M{
+		"$pull": bson.M{
+			"testCases": bson.M{"_id": testCaseObjectID},
+		},
+	}
+	result, err := s.ContestCollection.UpdateOne(ctx, query, update)
+	if err != nil {
+		return err
+	}
+	if result.ModifiedCount == 0 {
+		return errors.New("test case not found or not deleted")
+	}
+	return nil
+}
