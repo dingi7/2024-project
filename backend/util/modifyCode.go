@@ -19,3 +19,21 @@ func ModifyJSCode(code string) string {
 
 	return modifiedCode
 }
+
+func ModifyPythonCode(code string) string {
+	// The Python code to inject
+	template := `
+%s
+if __name__ == "__main__":
+    import sys
+    if 'main' in globals():
+        main(sys.argv[1:])
+    else:
+        print("Function 'main' not found")
+`
+
+	// Replace the placeholder with the original code
+	modifiedCode := fmt.Sprintf(template, code)
+
+	return modifiedCode
+}

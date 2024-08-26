@@ -40,6 +40,7 @@ func executeCode(solution Solution, inputs []string) (string, error) {
 	switch solution.Language {
 	case "Python":
 		extension = "py"
+		modifiedCode = util.ModifyPythonCode(solution.Code)
 	case "JavaScript":
 		extension = "js"
 		modifiedCode = util.ModifyJSCode(solution.Code)
@@ -73,7 +74,18 @@ func executeCode(solution Solution, inputs []string) (string, error) {
 	case "C++":
 		cmdArgs = []string{"run", "--rm", "-v", codeFile + ":/app/code.cpp", "gcc:latest", "bash", "-c", fmt.Sprintf("g++ /app/code.cpp -o /app/a.out && ./app/a.out %s", inputString)}
 	case "C#":
-		cmdArgs = []string{"run", "--rm", "-v", codeFile + ":/app/code.cs", "mcr.microsoft.com/dotnet/sdk:latest", "bash", "-c", fmt.Sprintf("dotnet run /app/code.cs %s", inputString)}
+		cmdArgs = []string{
+			"run", "--rm",
+			"-v", codeFile + ":/code/Program.cs",
+			"mcr.microsoft.com/dotnet/sdk:6.0",
+			"bash", "-c",
+			fmt.Sprintf(
+				"mkdir /app && cd /app && dotnet new console -n MyProject && mv /code/Program.cs /app/MyProject/Program.cs && dotnet run --project /app/MyProject %s",
+				inputString,
+			),
+		}
+	case "Python":
+		cmdArgs = []string{"run", "--rm", "-v", codeFile + ":/app/code.py", "python:3.8", "bash", "-c", fmt.Sprintf("python /app/code.py %s", inputString)}
 	}
 
 	cmd := exec.Command("docker", cmdArgs...)
@@ -88,7 +100,15 @@ func executeCode(solution Solution, inputs []string) (string, error) {
 		return "", fmt.Errorf("failed to execute code: %v", err)
 	}
 
-	return out.String(), nil
+	switch solution.Language {
+	case "Python":
+		output := out.String()
+		output = strings.Trim(output, "[]'\"\n ")
+		return output, nil
+	default:
+		return out.String(), nil
+	}
+
 }
 
 func RunTestCases(language string, code string, testCases []models.TestCase) (int, []byte, int, bool, error) {
@@ -97,11 +117,9 @@ func RunTestCases(language string, code string, testCases []models.TestCase) (in
 		Code:     code,
 	}
 
-
 	var allResults []map[string]interface{}
 
 	for _, testCase := range testCases {
-		// Split the input string by commas and trim spaces
 		inputs := strings.Split(testCase.Input, ",")
 		for i, input := range inputs {
 			inputs[i] = strings.TrimSpace(input)
@@ -129,7 +147,7 @@ func RunTestCases(language string, code string, testCases []models.TestCase) (in
 	}
 
 	score := 0
-	
+
 	for _, result := range allResults {
 		if result["passed"].(bool) {
 			score++
