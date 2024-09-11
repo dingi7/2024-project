@@ -32,7 +32,8 @@ export interface Contest {
     id: string;
     title: string;
     description: string;
-    languages: string[];
+    // languages: string[];
+    language: string;
     category: string;
     startDate: string;
     endDate: string;
