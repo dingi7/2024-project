@@ -3,10 +3,11 @@ package main
 import (
 	"backend/config"
 	"backend/routes"
+	"log"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
-	"log"
 )
 
 func main() {
@@ -20,6 +21,18 @@ func main() {
 
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:     "http://localhost:3000",
+		AllowHeaders:     "Origin, Content-Type, Accept, Authorization, access-control-allow-origin, Access-Control-Allow-Headers",
+		AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH,OPTIONS",
+		AllowCredentials: true,
+	}))
+	app.Use(cors.New(cors.Config{
+		AllowOrigins:     "http://188.34.162.248:3000",
+		AllowHeaders:     "Origin, Content-Type, Accept, Authorization, access-control-allow-origin, Access-Control-Allow-Headers",
+		AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH,OPTIONS",
+		AllowCredentials: true,
+	}))
+	app.Use(cors.New(cors.Config{
+		AllowOrigins:     "http://188.34.162.248:80",
 		AllowHeaders:     "Origin, Content-Type, Accept, Authorization, access-control-allow-origin, Access-Control-Allow-Headers",
 		AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH,OPTIONS",
 		AllowCredentials: true,
