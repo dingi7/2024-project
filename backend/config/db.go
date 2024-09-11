@@ -12,10 +12,10 @@ import (
 var MongoClient *mongo.Client
 
 func InitDatabase() (*mongo.Client, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
 	defer cancel()
 
-	clientOptions := options.Client().ApplyURI("mongodb+srv://contestify:72riYo4qsQfE6BKs@boardocluster.ysfd69e.mongodb.net/?retryWrites=true&w=majority&appName=BoardoCluster")
+	clientOptions := options.Client().ApplyURI("mongodb+srv://contestify:rfvn66Irl0UYB1Sx@boardocluster.ysfd69e.mongodb.net/?retryWrites=true&w=majority&appName=BoardoCluster")
 	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
 		return nil, err
@@ -24,6 +24,7 @@ func InitDatabase() (*mongo.Client, error) {
 	// Ping the database
 	err = client.Ping(ctx, nil)
 	if err != nil {
+		log.Println("Error connected to MongoDB!")
 		return nil, err
 	}
 
