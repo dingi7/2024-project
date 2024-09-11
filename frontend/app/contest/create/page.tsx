@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import {
     Card,
     CardHeader,
@@ -21,7 +20,7 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover";
-import { CalendarIcon, Clock } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import { format, setHours, setMinutes } from "date-fns";
 import { cn } from "@/lib/utils";
 import {
@@ -57,19 +56,20 @@ const ContestScheme = z.object({
         "typescript",
     ]),
     prize: z.string(),
-    rulesFile: z
-        .instanceof(FileList)
-        .optional()
-        .refine(
-            (files) =>
-                !files ||
-                files.length === 0 ||
-                Array.from(files).every((file) => file.size < 5e6),
-            "Each file must be less than 5 MB"
-        )
-        .transform((files) =>
-            files && files.length > 0 ? Array.from(files) : null
-        ),
+    rulesFile: z.any().optional()
+    // rulesFile: z
+    //     .instanceof(FileList)
+    //     .optional()
+    //     .refine(
+    //         (files) =>
+    //             !files ||
+    //             files.length === 0 ||
+    //             Array.from(files).every((file) => file.size < 5e6),
+    //         "Each file must be less than 5 MB"
+    //     )
+    //     .transform((files) =>
+    //         files && files.length > 0 ? Array.from(files) : null
+    //     ),
 });
 
 type ContestType = z.infer<typeof ContestScheme>;
@@ -96,7 +96,7 @@ export default function Component() {
             testCases: [], // TestCases will be added separately
         };
         try {
-            const response = await createContest(payload);
+            await createContest(payload);
             toast({
                 title: "Contest created successfully",
                 description: "Contest created successfully",
@@ -494,9 +494,9 @@ export default function Component() {
                                 multiple={true}
                                 {...register("rulesFile")}
                             />
-                            {errors.rulesFile && (
+                            {errors.rulesFile?.message && (
                                 <p className="text-red-500">
-                                    {errors.rulesFile.message}
+                                    {errors.rulesFile.message as string}
                                 </p>
                             )}
                         </div>
