@@ -4,14 +4,23 @@ import GitHubProvider from 'next-auth/providers/github';
 import { userSignIn } from '../../requests';
 
 const authOptions: NextAuthOptions = {
+    // Add this console.log statement
     providers: [
         GitHubProvider({
-            clientId: process.env.NODE_ENV === 'production'
-                ? process.env.GITHUB_PRODUCTION_ID ?? ''
-                : process.env.GITHUB_DEVELOPMENT_ID ?? '',
-            clientSecret: process.env.NODE_ENV === 'production'
-                ? process.env.GITHUB_PRODUCTION_SECRET ?? ''
-                : process.env.GITHUB_DEVELOPMENT_SECRET ?? '',
+            clientId: (() => {
+                const clientId = process.env.ENVIRONMENT === 'production'
+                    ? process.env.GITHUB_PRODUCTION_ID ?? ''
+                    : process.env.GITHUB_DEVELOPMENT_ID ?? '';
+                console.log('GitHub OAuth ClientID:', clientId);
+                return clientId;
+            })(),
+            clientSecret: (() => {
+                const clientSecret = process.env.ENVIRONMENT === 'production'
+                    ? process.env.GITHUB_PRODUCTION_SECRET ?? ''
+                    : process.env.GITHUB_DEVELOPMENT_SECRET ?? '';
+                console.log('GitHub OAuth ClientSecret:', clientSecret);
+                return clientSecret;
+            })(),
         }),
     ],
     callbacks: {
