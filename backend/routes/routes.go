@@ -16,11 +16,13 @@ func Setup(app *fiber.App, client *mongo.Client) {
 	userHandler := handlers.NewUserHandler(client)
 	contestHandler := handlers.NewContestHandler(client)
 	submissionHandler := handlers.NewSubmissionHandler(client)
+	leaderboardHandler := handlers.NewLeaderboardHandler(client)
 
 	// public routes
 	api.Post("/auth/signIn", userHandler.UserSignIn)
 	api.Get("/contest", contestHandler.GetContests)
-
+	api.Get("/leaderboard", leaderboardHandler.GetLeaderboard)
+	
 	// private routes
 	api.Use(middlewares.AuthMiddleware)
 	api.Post("/codeSubmit/:contestId", submissionHandler.CreateSubmission)
