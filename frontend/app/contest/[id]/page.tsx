@@ -60,7 +60,16 @@ export default function ContestPage() {
             contestId: params.id,
             userId: session?.user?.id,
         };
+
+        const placeholderSubmission = {
+            ...submission,
+            status: 'pending',
+            score: null,
+            createdAt: new Date().toISOString(),
+        };
+
         try {
+            setSubmissions([...submissions, placeholderSubmission]);
             const submissionResponse = await codeSubmit(submission, params.id);
             toast({
                 title: 'Submission successful',
@@ -69,9 +78,17 @@ export default function ContestPage() {
                 duration: 2000,
             });
 
-            setSubmissions([...submissions, submissionResponse]);
+            setSubmissions(prevSubmissions => 
+                prevSubmissions.map(sub => 
+                    sub === placeholderSubmission ? submissionResponse : sub
+                )
+            );
         } catch (error) {
-
+            setSubmissions(prevSubmissions => 
+                prevSubmissions.map(sub => 
+                    sub === placeholderSubmission ? { ...sub, status: 'error' } : sub
+                )
+            );
             console.error('Submission failed:', error);
             toast({
                 title: 'Submission failed',
