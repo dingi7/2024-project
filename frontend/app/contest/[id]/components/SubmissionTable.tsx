@@ -86,22 +86,24 @@ const SubmissionTable = ({ submissions, filterOptions, onFilterChange }: Props) 
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {submissions.map((submission) => (
-                        <TableRow key={submission.id}>
-                            <TableCell>{new Date(submission.createdAt).toLocaleDateString()}</TableCell>
-                            <TableCell>
-                                <Badge
-                                    variant={
-                                        submission.status ? 'success' : 'failure'
-                                    }
-                                >
-                                    {submission.status ? 'Accepted' : 'Rejected'}
-                                </Badge>
-                            </TableCell>
-                            <TableCell>
-                                {submission.score !== null ? submission.score : '-'}
-                            </TableCell>
-                        </TableRow>
+                    {submissions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map((submission) => (
+                        submission ? (
+                            <TableRow key={submission.id}>
+                                <TableCell>{new Date(submission.createdAt).toISOString().split('T')[0]}</TableCell>
+                                <TableCell>
+                                    <Badge
+                                        variant={
+                                            submission.status ? 'success' : 'failure'
+                                        }
+                                    >
+                                        {submission.status ? 'Passed' : 'Failed'}
+                                    </Badge>
+                                </TableCell>
+                                <TableCell>
+                                    {submission.score !== null ? submission.score : '-'}
+                                </TableCell>
+                            </TableRow>
+                        ) : null
                     ))}
                 </TableBody>
             </Table>

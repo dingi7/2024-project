@@ -71,7 +71,7 @@ export default function ContestPage() {
 
             setSubmissions([...submissions, submissionResponse]);
         } catch (error) {
-            
+
             console.error('Submission failed:', error);
             toast({
                 title: 'Submission failed',
