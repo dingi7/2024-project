@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Card,
   CardHeader,
@@ -13,8 +15,20 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table";
+import { getLeaderboard } from "../api/requests";
+import { useEffect, useState } from "react";
 
-export default function Component() {
+function Leaderboard() {
+  const [leaderboardData, setLeaderboardData] = useState([]);
+  useEffect(() => {
+    const fetchLeaderboard = async () => {
+        const fetchedData = await getLeaderboard();
+        setLeaderboardData(fetchedData);
+    };
+    fetchLeaderboard();
+}, []);
+
+  console.log(leaderboardData);
   return (
     <div className="w-full max-w-6xl mx-auto py-10 px-4 md:px-6 flex flex-col flex-1">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -168,3 +182,5 @@ function TrophyIcon(props: React.SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
+export default Leaderboard;

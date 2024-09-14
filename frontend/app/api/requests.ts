@@ -11,6 +11,7 @@ export const endpoints = {
     getContestById: (id: string) => `/contest/${id}`,
     deleteContest: (id: string) => `/contest/${id}`,
     getSubmissions: (id: string) => `/submissions/${id}`,
+    getLeaderboard: '/leaderboard',
 };
 
 export const userSignIn = async (payload : User) => {
@@ -47,4 +48,8 @@ export const getSubmissions = async (contestId: string) => {
 
 export const deleteTestCase = async (contestId: string, testCaseId: string) => {
     return api.del(endpoints.deleteTestCase(contestId, testCaseId));
+}
+
+export const getLeaderboard = async () => {
+    return api.get(endpoints.getLeaderboard);
 }

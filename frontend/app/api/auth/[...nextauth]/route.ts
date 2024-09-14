@@ -1,4 +1,3 @@
-
 import { User } from '@/lib/types';
 import NextAuth, { NextAuthOptions } from 'next-auth';
 import GitHubProvider from 'next-auth/providers/github';
@@ -7,8 +6,12 @@ import { userSignIn } from '../../requests';
 const authOptions: NextAuthOptions = {
     providers: [
         GitHubProvider({
-            clientId: process.env.GITHUB_ID ?? '',
-            clientSecret: process.env.GITHUB_SECRET ?? '',
+            clientId: process.env.NODE_ENV === 'production'
+                ? process.env.GITHUB_PRODUCTION_ID ?? ''
+                : process.env.GITHUB_DEVELOPMENT_ID ?? '',
+            clientSecret: process.env.NODE_ENV === 'production'
+                ? process.env.GITHUB_PRODUCTION_SECRET ?? ''
+                : process.env.GITHUB_DEVELOPMENT_SECRET ?? '',
         }),
     ],
     callbacks: {
