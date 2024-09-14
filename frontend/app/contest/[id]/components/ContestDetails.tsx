@@ -35,6 +35,8 @@ const ContestDetails = ({ contest, isOwner, isEditEnabled, onEdit }: {
     }
   };
 
+  console.log(contest);
+
   return (
     <div>
       <h1 className="text-2xl font-bold mb-4">{contest.title}</h1>
@@ -77,7 +79,7 @@ const ContestDetails = ({ contest, isOwner, isEditEnabled, onEdit }: {
                 <Input
                   id="startDate"
                   type="date"
-                  defaultValue={contest.startDate}
+                  value={new Date(contest.startDate).toISOString().split('T')[0]}
                   required
                 />
               </div>
@@ -86,7 +88,7 @@ const ContestDetails = ({ contest, isOwner, isEditEnabled, onEdit }: {
                 <Input
                   id="endDate"
                   type="date"
-                  defaultValue={contest.endDate}
+                  value={new Date(contest.endDate).toISOString().split('T')[0]}
                   required
                 />
               </div>
@@ -101,7 +103,6 @@ const ContestDetails = ({ contest, isOwner, isEditEnabled, onEdit }: {
                 id="rulesFile"
                 type="file"
                 onChange={handleRulesFileChange}
-                required
               />
             </div>
             <ContestTestCases contestId={contest.id} dbTestCases={contest.testCases}/>

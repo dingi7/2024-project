@@ -24,7 +24,7 @@ import {
 } from '@/components/ui/select';
 
 type Props = {
-    onSubmit: (solution: any) => void;
+    onSubmit: (solution: { language: string; code: string }) => void;
 };
 
 const SubmissionForm = ({ onSubmit }: Props) => {
@@ -51,6 +51,16 @@ const SubmissionForm = ({ onSubmit }: Props) => {
         }
     };
 
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        const solution = {
+            language: language,
+            code: code,
+        };
+        onSubmit(solution);
+        setIsOpen(false);
+    };
+
     return (
         <Popover open={isOpen} onOpenChange={setIsOpen}>
             <PopoverTrigger asChild>
@@ -58,17 +68,7 @@ const SubmissionForm = ({ onSubmit }: Props) => {
             </PopoverTrigger>
             <PopoverContent className='w-[600px] p-4'>
                 <h2 className='text-lg font-medium mb-4'>Submit Solution</h2>
-                <form
-                    onSubmit={(e) => {
-                        e.preventDefault();
-                        const solution = {
-                            language: language,
-                            code: code,
-                        };
-                        onSubmit(solution);
-                        setIsOpen(false); // Close the popover after submission
-                    }}
-                >
+                <form onSubmit={handleSubmit}>
                     <div className='mb-4'>
                         <Label htmlFor='language'>Language</Label>
                         <Select
