@@ -5,12 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import ContestTestCases from "./ContestTestCases";
 import { formatDate } from "@/lib/utils";
-import { Contest } from "@/lib/types";
+import { Contest, TestCase } from "@/lib/types";
 
-const ContestDetails = ({ contest, isOwner, isEditEnabled, onEdit }: {
+const ContestDetails = ({ contest, isOwner, setContest, isEditEnabled, setIsEditEnabled, onEdit }: {
   contest: Contest;
+  setContest: (contest: Contest) => void;
   isOwner: boolean;
   isEditEnabled: boolean;
+  setIsEditEnabled: (isEditEnabled: boolean) => void;
   onEdit: (updatedContest: any) => void;
 }) => {
   
@@ -35,7 +37,16 @@ const ContestDetails = ({ contest, isOwner, isEditEnabled, onEdit }: {
     }
   };
 
-  console.log(contest);
+  const handleSaveChanges = () => {
+    setIsEditEnabled(false);
+  };
+
+  const addTestCase = (testCase: TestCase) => {
+    setContest({
+      ...contest,
+      testCases: [...contest.testCases, testCase],
+    });
+  };
 
   return (
     <div>
@@ -105,8 +116,8 @@ const ContestDetails = ({ contest, isOwner, isEditEnabled, onEdit }: {
                 onChange={handleRulesFileChange}
               />
             </div>
-            <ContestTestCases contestId={contest.id} dbTestCases={contest.testCases}/>
-            <Button type="submit" className="mt-4">
+            <ContestTestCases contestId={contest.id} dbTestCases={contest.testCases} saveContestTestCase={addTestCase}/>
+            <Button type="submit" className="mt-4" onClick={handleSaveChanges}>
               Save Changes
             </Button>
           </form>

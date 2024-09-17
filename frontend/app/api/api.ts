@@ -1,11 +1,7 @@
 import { getSession } from 'next-auth/react';
 import { toast } from '@/components/ui/use-toast';
 
-const host = process.env.ENVIRONMENT === 'production'
-    ? 'http://188.34.162.248/api/v1'
-    : 'http://127.0.0.1:3001/api/v1';
-
-
+const host = 'http://127.0.0.1:3001/api/v1';
 
 interface RequestOptions {
     method: string;
@@ -48,18 +44,26 @@ const request = async (
             const { signOut } = await import('next-auth/react');
             await signOut({ callbackUrl: '/login' });
             toast({
-                title: "Unauthorized",
-                description: "You have been logged out.",
-                variant: "destructive",
+                title: 'Unauthorized',
+                description: 'You have been logged out.',
+                variant: 'destructive',
+            });
+            return;
+        }
+        if (res.status === 500) {
+            toast({
+                title: 'Internal Server Error',
+                description: 'An error occurred while processing your request.',
+                variant: 'destructive',
             });
             return;
         }
 
         if (!res.ok) {
             toast({
-                title: "Error",
+                title: 'Error',
                 description: responseData.message,
-                variant: "destructive",
+                variant: 'destructive',
             });
             return;
         }
@@ -67,9 +71,9 @@ const request = async (
         return responseData;
     } catch (error: any) {
         toast({
-            title: "Error",
+            title: 'Error',
             description: error.message,
-            variant: "destructive",
+            variant: 'destructive',
         });
         return;
     }

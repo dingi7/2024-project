@@ -13,14 +13,18 @@ import { Pencil, Trash2, Plus } from "lucide-react";
 import { TestCase } from "@/lib/types";
 import { addTestCase, deleteTestCase } from "@/app/api/requests";
 
+// optimize test cases adding
+
 interface ContestTestCasesProps {
   contestId: string;
-  dbTestCases: any[];
+  dbTestCases: TestCase[];
+  saveContestTestCase: (testCase: TestCase) => void;
 }
 
 const ContestTestCases: React.FC<ContestTestCasesProps> = ({
   contestId,
   dbTestCases,
+  saveContestTestCase,
 }) => {
   const [testCases, setTestCases] = useState<TestCase[] | []>(
     dbTestCases || []
@@ -68,6 +72,13 @@ const ContestTestCases: React.FC<ContestTestCasesProps> = ({
       output: newTestCase.output,
     });
     setTestCases([...testCases, response]);
+    saveContestTestCase(response);
+    setNewTestCase({
+      id: 0,
+      input: "",
+      output: "",
+      timeLimit: "",
+    });
   };
 
   return (
@@ -146,7 +157,7 @@ const ContestTestCases: React.FC<ContestTestCasesProps> = ({
           <TableRow>
             <TableCell>
               <Input
-                placeholder="New input"
+                placeholder="New input - separated by commas"
                 value={newTestCase.input}
                 onChange={(e: ChangeEvent<HTMLInputElement>) =>
                   handleNewTestCaseChange("input", e.target.value)
@@ -155,7 +166,7 @@ const ContestTestCases: React.FC<ContestTestCasesProps> = ({
             </TableCell>
             <TableCell>
               <Input
-                placeholder="New output"
+                placeholder="New output - separated by commas"
                 value={newTestCase.output}
                 onChange={(e: ChangeEvent<HTMLInputElement>) =>
                   handleNewTestCaseChange("output", e.target.value)

@@ -32,7 +32,6 @@ function Leaderboard() {
         fetchLeaderboard();
     }, []);
 
-    console.log(leaderboardData);
     return (
         <div className='w-full max-w-6xl mx-auto py-10 px-4 md:px-6 flex flex-col flex-1'>
             <div className='grid grid-cols-1 md:grid-cols-3 gap-6 mb-8'>

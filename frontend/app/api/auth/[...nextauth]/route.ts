@@ -4,7 +4,6 @@ import GitHubProvider from 'next-auth/providers/github';
 import { userSignIn } from '../../requests';
 
 const authOptions: NextAuthOptions = {
-    // Add this console.log statement
     providers: [
         GitHubProvider({
             clientId: (() => {

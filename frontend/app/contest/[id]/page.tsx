@@ -27,22 +27,28 @@ export default function ContestPage() {
         order: 'desc',
     });
 
-    useEffect(() => {
-        const fetchContestAndSubmissions = async () => {
-            try {
-                const contestResponse = await getContestById(params.id);
-                setContest(contestResponse);
-                setIsOwner(contestResponse.ownerID === session?.user?.id);
+    const fetchContestAndSubmissions = async () => {
+        try {
+            const contestResponse = await getContestById(params.id);
+            setContest(contestResponse);
+            setIsOwner(contestResponse.ownerID === session?.user?.id);
 
-                const submissionsResponse = await getSubmissions(params.id);
-                setSubmissions(submissionsResponse);
-            } catch (error) {
-                console.error('Failed to fetch contest or submissions:', error);
-                // Handle error (e.g., show error message to user)
-            } finally {
-                setLoading(false);
-            }
-        };
+            const submissionsResponse = await getSubmissions(params.id);
+            setSubmissions(submissionsResponse);
+        } catch (error) {
+            console.error('Failed to fetch contest or submissions:', error);
+            toast({
+                title: 'Error',
+                description: 'Failed to fetch contest or submissions.',
+                variant: 'destructive',
+                duration: 2000,
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
         fetchContestAndSubmissions();
     }, [params, session]);
 
@@ -70,14 +76,14 @@ export default function ContestPage() {
 
         try {
             setSubmissions([...submissions, placeholderSubmission]);
-            const submissionResponse = await codeSubmit(submission, params.id);
             toast({
                 title: 'Submission successful',
-                description: 'Your code has been submitted successfully.',
+                description: 'Your code has been submitted successfully. Please wait for the results.',
                 variant: 'success',
-                duration: 2000,
+                duration: 1000,
             });
-
+            const submissionResponse = await codeSubmit(submission, params.id);
+            
             setSubmissions(prevSubmissions => 
                 prevSubmissions.map(sub => 
                     sub === placeholderSubmission ? submissionResponse : sub
@@ -128,8 +134,8 @@ export default function ContestPage() {
     }, [submissions, filterOptions]);
 
     const handleRefresh = async () => {
-        const updatedSubmissions = await getSubmissions(params.id);
-        setSubmissions(updatedSubmissions);
+        setLoading(true);
+        await fetchContestAndSubmissions();
     };
 
     if (loading) {
@@ -177,8 +183,10 @@ export default function ContestPage() {
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-8'>
                     <ContestDetails
                         contest={contest!}
+                        setContest={setContest}
                         isOwner={isOwner}
                         isEditEnabled={isEditEnabled}
+                        setIsEditEnabled={setIsEditEnabled}
                         onEdit={handleEditContest}
                     />
                     <SubmissionTable
