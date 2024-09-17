@@ -81,14 +81,16 @@ export default function Component() {
 
     useEffect(() => {
         // Ensure session is loaded before rendering anything dependent on it
-        if (status === 'loading') return;
-
-        if (!session) {
+        if (!session?.user.id) {
             // If session is missing, explicitly request it
             getSession().then((updatedSession: any) => {
                 console.log('Updated Session:', updatedSession);
             });
         }
+
+        if (status === 'unauthenticated' || !session || !session.user.id) return;
+
+        
     }, [status]);
 
     console.log('Session data:', session);
