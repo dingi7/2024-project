@@ -36,40 +36,33 @@ const authOptions: NextAuthOptions = {
             try {
                 const result = await userSignIn(serverPayload);
                 user.accessToken = result.accessToken;
+                console.log('SignIn callback - user:', user);
                 return true;
             } catch (e: any) {
-                console.log('error', e.error);
+                console.error('SignIn error:', e);
                 return false;
             }
         },
         async jwt({ token, account, user }) {
-            console.log("User data:", user);
+            console.log("JWT callback - input:", { token, account, user });
             if (user) {
-                return {
-                    ...token,
-                    accessToken: user.accessToken,
-                    id: user.id,
-                };
+                token.accessToken = user.accessToken;
+                token.id = user.id;
+            } else if (account) {
+                token.accessToken = account.access_token;
+                token.id = account.id;
             }
-            if (account) {
-                return {
-                    ...token,
-                    accessToken: account.access_token,
-                    id: account.id,
-                };
-            }
+            console.log("JWT callback - output token:", token);
             return token;
         },
         async session({ session, token }) {
-            console.log("Session data:", session);
-            console.log("Token data:", token);
+            console.log("Session callback - input:", { session, token });
             session.user = {
+                ...session.user,
                 id: token.id as string,
-                name: token.name,
-                email: token.email,
-                image: token.picture,
             };
             session.accessToken = token.accessToken as string;
+            console.log("Session callback - output session:", session);
             return session;
         },
         
