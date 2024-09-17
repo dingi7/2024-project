@@ -85,6 +85,17 @@ export default function Component() {
     } = useForm<ContestType>({ resolver: zodResolver(ContestScheme) });
 
     const handleCreateContest: SubmitHandler<ContestType> = async (data) => {
+        console.log("Form submitted", data);
+        console.log("Session data:", session);
+        if (!session!.user.id || !session) {
+            toast({
+                title: "Error",
+                description: "You must be logged in to create a contest",
+                variant: "destructive",
+            });
+            return;
+        }
+        console.log("Form submitted", data);
         const payload = {
             title: data.title,
             description: data.description,
@@ -92,7 +103,7 @@ export default function Component() {
             startDate: data.dateRange.from,
             endDate: data.dateRange.to,
             prize: data.prize,
-            ownerId: session?.user.id,
+            ownerId: session.user.id,
             testCases: [], // TestCases will be added separately
         };
         try {
@@ -126,7 +137,9 @@ export default function Component() {
                 <CardContent>
                     <form
                         className="grid gap-4"
-                        onSubmit={handleSubmit(handleCreateContest)}
+                        onSubmit={(e) => {
+                            handleSubmit(handleCreateContest)(e);
+                        }}
                     >
                         <div className="grid gap-2">
                             <Label htmlFor="title">Contest Title</Label>
