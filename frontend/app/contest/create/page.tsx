@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
     Card,
@@ -6,33 +6,34 @@ import {
     CardTitle,
     CardDescription,
     CardContent,
-} from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { SubmitHandler, useForm, Controller } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Calendar } from "@/components/ui/calendar";
+} from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { SubmitHandler, useForm, Controller } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Calendar } from '@/components/ui/calendar';
 import {
     Popover,
     PopoverContent,
     PopoverTrigger,
-} from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
-import { format, setHours, setMinutes } from "date-fns";
-import { cn } from "@/lib/utils";
+} from '@/components/ui/popover';
+import { CalendarIcon } from 'lucide-react';
+import { format, setHours, setMinutes } from 'date-fns';
+import { cn } from '@/lib/utils';
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select";
-import { createContest } from "@/app/api/requests";
-import { useSession } from "next-auth/react";
-import { useToast } from "@/components/ui/use-toast";
+} from '@/components/ui/select';
+import { createContest } from '@/app/api/requests';
+import { getSession, useSession } from 'next-auth/react';
+import { useToast } from '@/components/ui/use-toast';
+import { useEffect } from 'react';
 
 const ContestScheme = z.object({
     title: z.string().min(3).max(32),
@@ -42,21 +43,21 @@ const ContestScheme = z.object({
         to: z.date(),
     }),
     language: z.enum([
-        "python",
-        "java",
-        "javascript",
-        "c++",
-        "c#",
-        "ruby",
-        "php",
-        "swift",
-        "kotlin",
-        "go",
-        "rust",
-        "typescript",
+        'python',
+        'java',
+        'javascript',
+        'c++',
+        'c#',
+        'ruby',
+        'php',
+        'swift',
+        'kotlin',
+        'go',
+        'rust',
+        'typescript',
     ]),
     prize: z.string(),
-    rulesFile: z.any().optional()
+    rulesFile: z.any().optional(),
     // rulesFile: z
     //     .instanceof(FileList)
     //     .optional()
@@ -76,8 +77,21 @@ type ContestType = z.infer<typeof ContestScheme>;
 
 export default function Component() {
     const { toast } = useToast();
-    const { data: session } = useSession();
-    console.log("Session data:", session);
+    const { data: session, status } = useSession();
+
+    useEffect(() => {
+        // Ensure session is loaded before rendering anything dependent on it
+        if (status === 'loading') return;
+
+        if (!session) {
+            // If session is missing, explicitly request it
+            getSession().then((updatedSession: any) => {
+                console.log('Updated Session:', updatedSession);
+            });
+        }
+    }, [status]);
+
+    console.log('Session data:', session);
     const {
         register,
         control,
@@ -86,17 +100,17 @@ export default function Component() {
     } = useForm<ContestType>({ resolver: zodResolver(ContestScheme) });
 
     const handleCreateContest: SubmitHandler<ContestType> = async (data) => {
-        console.log("Form submitted", data);
-        console.log("Session data:", session);
+        console.log('Form submitted', data);
+        console.log('Session data:', session);
         if (!session!.user.id || !session) {
             toast({
-                title: "Error",
-                description: "You must be logged in to create a contest",
-                variant: "destructive",
+                title: 'Error',
+                description: 'You must be logged in to create a contest',
+                variant: 'destructive',
             });
             return;
         }
-        console.log("Form submitted", data);
+        console.log('Form submitted', data);
         const payload = {
             title: data.title,
             description: data.description,
@@ -110,24 +124,24 @@ export default function Component() {
         try {
             await createContest(payload);
             toast({
-                title: "Contest created successfully",
-                description: "Contest created successfully",
-                variant: "success",
+                title: 'Contest created successfully',
+                description: 'Contest created successfully',
+                variant: 'success',
             });
         } catch (error) {
             toast({
-                title: "Failed to create contest",
-                description: "Failed to create contest",
-                variant: "destructive",
+                title: 'Failed to create contest',
+                description: 'Failed to create contest',
+                variant: 'destructive',
             });
         }
     };
 
     return (
-        <div className="flex justify-center items-center min-h-screen bg-background p-4">
-            <Card className="w-full max-w-md">
+        <div className='flex justify-center items-center min-h-screen bg-background p-4'>
+            <Card className='w-full max-w-md'>
                 <CardHeader>
-                    <CardTitle className="text-2xl font-bold">
+                    <CardTitle className='text-2xl font-bold'>
                         Create a New Contest
                     </CardTitle>
                     <CardDescription>
@@ -137,87 +151,87 @@ export default function Component() {
                 </CardHeader>
                 <CardContent>
                     <form
-                        className="grid gap-4"
+                        className='grid gap-4'
                         onSubmit={(e) => {
                             handleSubmit(handleCreateContest)(e);
                         }}
                     >
-                        <div className="grid gap-2">
-                            <Label htmlFor="title">Contest Title</Label>
+                        <div className='grid gap-2'>
+                            <Label htmlFor='title'>Contest Title</Label>
                             <Input
-                                id="title"
-                                placeholder="Enter contest title"
-                                {...register("title")}
+                                id='title'
+                                placeholder='Enter contest title'
+                                {...register('title')}
                             />
                             {errors.title && (
-                                <p className="text-red-500">
+                                <p className='text-red-500'>
                                     {errors.title.message}
                                 </p>
                             )}
                         </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="description">Description</Label>
+                        <div className='grid gap-2'>
+                            <Label htmlFor='description'>Description</Label>
                             <Textarea
-                                id="description"
-                                placeholder="Enter contest description"
-                                {...register("description")}
+                                id='description'
+                                placeholder='Enter contest description'
+                                {...register('description')}
                             />
                             {errors.description && (
-                                <p className="text-red-500">
+                                <p className='text-red-500'>
                                     {errors.description.message}
                                 </p>
                             )}
                         </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="language">
+                        <div className='grid gap-2'>
+                            <Label htmlFor='language'>
                                 Programming Language
                             </Label>
                             <Controller
-                                name="language"
+                                name='language'
                                 control={control}
                                 render={({ field }) => (
                                     <Select
                                         onValueChange={field.onChange}
                                         defaultValue={field.value}
                                     >
-                                        <SelectTrigger id="language">
-                                            <SelectValue placeholder="Select programming language" />
+                                        <SelectTrigger id='language'>
+                                            <SelectValue placeholder='Select programming language' />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="python">
+                                            <SelectItem value='python'>
                                                 Python
                                             </SelectItem>
-                                            <SelectItem value="javascript">
+                                            <SelectItem value='javascript'>
                                                 JavaScript
                                             </SelectItem>
-                                            <SelectItem value="java">
+                                            <SelectItem value='java'>
                                                 Java
                                             </SelectItem>
-                                            <SelectItem value="c++">
+                                            <SelectItem value='c++'>
                                                 C++
                                             </SelectItem>
-                                            <SelectItem value="c#">
+                                            <SelectItem value='c#'>
                                                 C#
                                             </SelectItem>
-                                            <SelectItem value="ruby">
+                                            <SelectItem value='ruby'>
                                                 Ruby
                                             </SelectItem>
-                                            <SelectItem value="php">
+                                            <SelectItem value='php'>
                                                 PHP
                                             </SelectItem>
-                                            <SelectItem value="swift">
+                                            <SelectItem value='swift'>
                                                 Swift
                                             </SelectItem>
-                                            <SelectItem value="kotlin">
+                                            <SelectItem value='kotlin'>
                                                 Kotlin
                                             </SelectItem>
-                                            <SelectItem value="go">
+                                            <SelectItem value='go'>
                                                 Go
                                             </SelectItem>
-                                            <SelectItem value="rust">
+                                            <SelectItem value='rust'>
                                                 Rust
                                             </SelectItem>
-                                            <SelectItem value="typescript">
+                                            <SelectItem value='typescript'>
                                                 TypeScript
                                             </SelectItem>
                                         </SelectContent>
@@ -225,46 +239,46 @@ export default function Component() {
                                 )}
                             />
                             {errors.language && (
-                                <p className="text-red-500">
+                                <p className='text-red-500'>
                                     {errors.language.message}
                                 </p>
                             )}
                         </div>
-                        <div className="grid gap-2">
+                        <div className='grid gap-2'>
                             <Label>Contest Duration</Label>
                             <Controller
                                 control={control}
-                                name="dateRange"
+                                name='dateRange'
                                 render={({ field }) => (
                                     <Popover>
                                         <PopoverTrigger asChild>
                                             <Button
-                                                variant={"outline"}
+                                                variant={'outline'}
                                                 className={cn(
-                                                    "w-full justify-start text-left font-normal",
+                                                    'w-full justify-start text-left font-normal',
                                                     !field.value &&
-                                                        "text-muted-foreground"
+                                                        'text-muted-foreground'
                                                 )}
                                             >
-                                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                                <CalendarIcon className='mr-2 h-4 w-4' />
                                                 {field.value?.from ? (
                                                     field.value.to ? (
                                                         <>
                                                             {format(
                                                                 field.value
                                                                     .from,
-                                                                "LLL dd, y HH:mm"
-                                                            )}{" "}
-                                                            -{" "}
+                                                                'LLL dd, y HH:mm'
+                                                            )}{' '}
+                                                            -{' '}
                                                             {format(
                                                                 field.value.to,
-                                                                "LLL dd, y HH:mm"
+                                                                'LLL dd, y HH:mm'
                                                             )}
                                                         </>
                                                     ) : (
                                                         format(
                                                             field.value.from,
-                                                            "LLL dd, y HH:mm"
+                                                            'LLL dd, y HH:mm'
                                                         )
                                                     )
                                                 ) : (
@@ -275,21 +289,21 @@ export default function Component() {
                                             </Button>
                                         </PopoverTrigger>
                                         <PopoverContent
-                                            className="w-auto p-0"
-                                            align="start"
+                                            className='w-auto p-0'
+                                            align='start'
                                         >
                                             <Calendar
                                                 initialFocus
-                                                mode="range"
+                                                mode='range'
                                                 defaultMonth={field.value?.from}
                                                 selected={field.value}
                                                 onSelect={field.onChange}
                                                 numberOfMonths={2}
                                             />
-                                            <div className="grid grid-cols-2 gap-2 p-3 border-t border-border">
+                                            <div className='grid grid-cols-2 gap-2 p-3 border-t border-border'>
                                                 <div>
                                                     <Label>Start Time</Label>
-                                                    <div className="flex items-center mt-1">
+                                                    <div className='flex items-center mt-1'>
                                                         <Select
                                                             onValueChange={(
                                                                 value
@@ -299,7 +313,7 @@ export default function Component() {
                                                                     minutes,
                                                                 ] =
                                                                     value.split(
-                                                                        ":"
+                                                                        ':'
                                                                     );
                                                                 const newFrom =
                                                                     setMinutes(
@@ -323,7 +337,7 @@ export default function Component() {
                                                             }}
                                                         >
                                                             <SelectTrigger>
-                                                                <SelectValue placeholder="Start time" />
+                                                                <SelectValue placeholder='Start time' />
                                                             </SelectTrigger>
                                                             <SelectContent>
                                                                 {Array.from({
@@ -352,24 +366,24 @@ export default function Component() {
                                                                                     .toString()
                                                                                     .padStart(
                                                                                         2,
-                                                                                        "0"
+                                                                                        '0'
                                                                                     )}:${minutes
                                                                                     .toString()
                                                                                     .padStart(
                                                                                         2,
-                                                                                        "0"
+                                                                                        '0'
                                                                                     )}`}
                                                                             >
                                                                                 {`${hours
                                                                                     .toString()
                                                                                     .padStart(
                                                                                         2,
-                                                                                        "0"
+                                                                                        '0'
                                                                                     )}:${minutes
                                                                                     .toString()
                                                                                     .padStart(
                                                                                         2,
-                                                                                        "0"
+                                                                                        '0'
                                                                                     )}`}
                                                                             </SelectItem>
                                                                         );
@@ -381,7 +395,7 @@ export default function Component() {
                                                 </div>
                                                 <div>
                                                     <Label>End Time</Label>
-                                                    <div className="flex items-center mt-1">
+                                                    <div className='flex items-center mt-1'>
                                                         <Select
                                                             onValueChange={(
                                                                 value
@@ -391,7 +405,7 @@ export default function Component() {
                                                                     minutes,
                                                                 ] =
                                                                     value.split(
-                                                                        ":"
+                                                                        ':'
                                                                     );
                                                                 const newTo =
                                                                     setMinutes(
@@ -415,7 +429,7 @@ export default function Component() {
                                                             }}
                                                         >
                                                             <SelectTrigger>
-                                                                <SelectValue placeholder="End time" />
+                                                                <SelectValue placeholder='End time' />
                                                             </SelectTrigger>
                                                             <SelectContent>
                                                                 {Array.from({
@@ -444,24 +458,24 @@ export default function Component() {
                                                                                     .toString()
                                                                                     .padStart(
                                                                                         2,
-                                                                                        "0"
+                                                                                        '0'
                                                                                     )}:${minutes
                                                                                     .toString()
                                                                                     .padStart(
                                                                                         2,
-                                                                                        "0"
+                                                                                        '0'
                                                                                     )}`}
                                                                             >
                                                                                 {`${hours
                                                                                     .toString()
                                                                                     .padStart(
                                                                                         2,
-                                                                                        "0"
+                                                                                        '0'
                                                                                     )}:${minutes
                                                                                     .toString()
                                                                                     .padStart(
                                                                                         2,
-                                                                                        "0"
+                                                                                        '0'
                                                                                     )}`}
                                                                             </SelectItem>
                                                                         );
@@ -477,44 +491,44 @@ export default function Component() {
                                 )}
                             />
                             {errors.dateRange && (
-                                <p className="text-red-500">
+                                <p className='text-red-500'>
                                     {errors.dateRange.message}
                                 </p>
                             )}
                         </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="prize">Prize</Label>
+                        <div className='grid gap-2'>
+                            <Label htmlFor='prize'>Prize</Label>
                             <Input
-                                id="prize"
-                                placeholder="Enter prize"
-                                type="number"
+                                id='prize'
+                                placeholder='Enter prize'
+                                type='number'
                                 min={0}
-                                {...register("prize")}
+                                {...register('prize')}
                             />
                             {errors.prize && (
-                                <p className="text-red-500">
+                                <p className='text-red-500'>
                                     {errors.prize.message}
                                 </p>
                             )}
                         </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="rules-files">
+                        <div className='grid gap-2'>
+                            <Label htmlFor='rules-files'>
                                 Contest Rules (Optional)
                             </Label>
                             <Input
-                                id="rules-files"
-                                type="file"
-                                accept=".pdf, .doc, .docx, .txt"
+                                id='rules-files'
+                                type='file'
+                                accept='.pdf, .doc, .docx, .txt'
                                 multiple={true}
-                                {...register("rulesFile")}
+                                {...register('rulesFile')}
                             />
                             {errors.rulesFile?.message && (
-                                <p className="text-red-500">
+                                <p className='text-red-500'>
                                     {errors.rulesFile.message as string}
                                 </p>
                             )}
                         </div>
-                        <Button type="submit" className="w-full">
+                        <Button type='submit' className='w-full'>
                             Create Contest
                         </Button>
                     </form>
