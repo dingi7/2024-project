@@ -6,7 +6,7 @@ import { RefreshCcwIcon } from 'lucide-react';
 import ContestDetails from './components/ContestDetails';
 import SubmissionForm from './components/SubmissionForm';
 import SubmissionTable from './components/SubmissionTable';
-import { useSession } from 'next-auth/react';
+import { getSession, useSession } from 'next-auth/react';
 import { codeSubmit, getContestById, getSubmissions } from '@/app/api/requests';
 import { useParams } from 'next/navigation';
 import { Contest } from '@/lib/types';
@@ -14,7 +14,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/components/ui/use-toast';
 
 export default function ContestPage() {
-    const { data: session } = useSession();
+    let { data: session, status } = useSession();
     const [loading, setLoading] = useState(true);
     const params = useParams<{ id: string }>();
     const [isOwner, setIsOwner] = useState(false);
@@ -26,6 +26,17 @@ export default function ContestPage() {
         sortBy: 'date',
         order: 'desc',
     });
+
+    useEffect(() => {
+        if (!session?.user.id) {
+            getSession().then((updatedSession: any) => {
+                console.log('Updated Session:', updatedSession);
+                session = updatedSession;
+            });
+        }
+        if (status === 'unauthenticated' || !session || !session.user.id)
+            return;
+    }, [status]);
 
     const fetchContestAndSubmissions = async () => {
         try {
@@ -78,21 +89,24 @@ export default function ContestPage() {
             setSubmissions([...submissions, placeholderSubmission]);
             toast({
                 title: 'Submission successful',
-                description: 'Your code has been submitted successfully. Please wait for the results.',
+                description:
+                    'Your code has been submitted successfully. Please wait for the results.',
                 variant: 'success',
                 duration: 1000,
             });
             const submissionResponse = await codeSubmit(submission, params.id);
-            
-            setSubmissions(prevSubmissions => 
-                prevSubmissions.map(sub => 
+
+            setSubmissions((prevSubmissions) =>
+                prevSubmissions.map((sub) =>
                     sub === placeholderSubmission ? submissionResponse : sub
                 )
             );
         } catch (error) {
-            setSubmissions(prevSubmissions => 
-                prevSubmissions.map(sub => 
-                    sub === placeholderSubmission ? { ...sub, status: 'error' } : sub
+            setSubmissions((prevSubmissions) =>
+                prevSubmissions.map((sub) =>
+                    sub === placeholderSubmission
+                        ? { ...sub, status: 'error' }
+                        : sub
                 )
             );
             console.error('Submission failed:', error);

@@ -77,20 +77,17 @@ type ContestType = z.infer<typeof ContestScheme>;
 
 export default function Component() {
     const { toast } = useToast();
-    const { data: session, status } = useSession();
+    let { data: session, status } = useSession();
 
     useEffect(() => {
-        // Ensure session is loaded before rendering anything dependent on it
         if (!session?.user.id) {
-            // If session is missing, explicitly request it
             getSession().then((updatedSession: any) => {
                 console.log('Updated Session:', updatedSession);
+                session = updatedSession;
             });
         }
-
-        if (status === 'unauthenticated' || !session || !session.user.id) return;
-
-        
+        if (status === 'unauthenticated' || !session || !session.user.id)
+            return;
     }, [status]);
 
     console.log('Session data:', session);
