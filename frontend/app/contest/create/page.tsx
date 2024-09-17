@@ -77,6 +77,7 @@ type ContestType = z.infer<typeof ContestScheme>;
 export default function Component() {
     const { toast } = useToast();
     const { data: session } = useSession();
+    console.log("Session data:", session);
     const {
         register,
         control,
