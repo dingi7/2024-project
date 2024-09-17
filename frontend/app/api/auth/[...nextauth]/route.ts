@@ -43,6 +43,7 @@ const authOptions: NextAuthOptions = {
             }
         },
         async jwt({ token, account, user }) {
+            console.log("User data:", user);
             if (user) {
                 return {
                     ...token,
@@ -50,9 +51,18 @@ const authOptions: NextAuthOptions = {
                     id: user.id,
                 };
             }
+            if (account) {
+                return {
+                    ...token,
+                    accessToken: account.access_token,
+                    id: account.id,
+                };
+            }
             return token;
         },
         async session({ session, token }) {
+            console.log("Session data:", session);
+            console.log("Token data:", token);
             session.user = {
                 id: token.id as string,
                 name: token.name,
