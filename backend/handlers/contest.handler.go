@@ -32,7 +32,7 @@ func (h *ContestHandler) CreateContest(c *fiber.Ctx) error {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-
+	contest.CreatedAt = time.Now()
 	if err := h.ContestService.CreateContest(ctx, contest); err != nil {
 		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
 	}
@@ -166,8 +166,7 @@ func (h *ContestHandler) DeleteTestCase(c *fiber.Ctx) error {
 	})
 }
 
-
-func validateContest(contest *models.Contest) error { 
+func validateContest(contest *models.Contest) error {
 	validate := validator.New()
 	validate.RegisterValidation("datetime", func(fl validator.FieldLevel) bool {
 		_, err := time.Parse(time.RFC3339, fl.Field().String())

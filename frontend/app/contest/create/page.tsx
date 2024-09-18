@@ -34,7 +34,7 @@ import { createContest } from '@/app/api/requests';
 import { getSession, useSession } from 'next-auth/react';
 import { useToast } from '@/components/ui/use-toast';
 import { useEffect } from 'react';
-import router from 'next/router';
+import { useRouter } from 'next/navigation';
 
 const ContestScheme = z.object({
     title: z.string().min(3).max(32),
@@ -79,6 +79,7 @@ type ContestType = z.infer<typeof ContestScheme>;
 export default function Component() {
     const { toast } = useToast();
     let { data: session, status } = useSession();
+    const router = useRouter();
 
     useEffect(() => {
         if (!session?.user.id) {
@@ -127,6 +128,7 @@ export default function Component() {
             });
             reset()
             setValue('language', 'python'); 
+            router.push('/contests');
         } catch (error) {
             toast({
                 title: 'Failed to create contest',
