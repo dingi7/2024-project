@@ -34,6 +34,7 @@ import { createContest } from '@/app/api/requests';
 import { getSession, useSession } from 'next-auth/react';
 import { useToast } from '@/components/ui/use-toast';
 import { useEffect } from 'react';
+import router from 'next/router';
 
 const ContestScheme = z.object({
     title: z.string().min(3).max(32),
@@ -82,7 +83,6 @@ export default function Component() {
     useEffect(() => {
         if (!session?.user.id) {
             getSession().then((updatedSession: any) => {
-                console.log('Updated Session:', updatedSession);
                 session = updatedSession;
             });
         }
@@ -90,17 +90,16 @@ export default function Component() {
             return;
     }, [status]);
 
-    console.log('Session data:', session);
     const {
         register,
         control,
         handleSubmit,
         formState: { errors },
+        reset,
+        setValue,
     } = useForm<ContestType>({ resolver: zodResolver(ContestScheme) });
 
     const handleCreateContest: SubmitHandler<ContestType> = async (data) => {
-        console.log('Form submitted', data);
-        console.log('Session data:', session);
         if (!session!.user.id || !session) {
             toast({
                 title: 'Error',
@@ -109,7 +108,6 @@ export default function Component() {
             });
             return;
         }
-        console.log('Form submitted', data);
         const payload = {
             title: data.title,
             description: data.description,
@@ -127,6 +125,8 @@ export default function Component() {
                 description: 'Contest created successfully',
                 variant: 'success',
             });
+            reset()
+            setValue('language', 'python'); 
         } catch (error) {
             toast({
                 title: 'Failed to create contest',
