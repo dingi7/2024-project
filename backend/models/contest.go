@@ -1,6 +1,10 @@
 package models
 
-import "go.mongodb.org/mongo-driver/bson/primitive"
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
 
 type TestCase struct {
 	ID     primitive.ObjectID `json:"id" bson:"_id"`
@@ -16,6 +20,7 @@ type Contest struct {
 	StartDate   string     `json:"startDate" validate:"required"`
 	EndDate     string     `json:"endDate" validate:"required"`
 	Prize       string     `json:"prize,omitempty" bson:"prize,omitempty"`
-	OwnerID     string     `json:"ownerID" bson:"ownerid" validate:"required"` 
+	OwnerID     string     `json:"ownerID" bson:"ownerid" validate:"required"`
 	TestCases   []TestCase `json:"testCases" validate:"dive,required"`
+	CreatedAt   time.Time  `json:"createdAt" bson:"createdAt"`
 }

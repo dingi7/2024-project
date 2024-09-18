@@ -40,4 +40,5 @@ export interface Contest {
     prize: number;
     ownerId: string;
     testCases: TestCase[];
+    createdAt: string;
 }

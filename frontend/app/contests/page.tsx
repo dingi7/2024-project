@@ -25,6 +25,7 @@ const ContestPage = () => {
     useEffect(() => {
         const fetchContests = async () => {
             const fetchedContests = await getContests();
+            console.log(fetchedContests.sort((a: ContestType, b: ContestType) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
             if (fetchedContests) {
                 setContests(fetchedContests);
                 setFilteredContests(fetchedContests);
