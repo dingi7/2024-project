@@ -6,6 +6,9 @@ import { Textarea } from "@/components/ui/textarea";
 import ContestTestCases from "./ContestTestCases";
 import { formatDate } from "@/lib/utils";
 import { Contest, TestCase } from "@/lib/types";
+import { deleteContest } from "@/app/api/requests";
+import { useToast } from "@/components/ui/use-toast";
+import { useRouter } from "next/navigation";
 
 const ContestDetails = ({ contest, isOwner, setContest, isEditEnabled, setIsEditEnabled, onEdit }: {
   contest: Contest;
@@ -17,6 +20,9 @@ const ContestDetails = ({ contest, isOwner, setContest, isEditEnabled, setIsEdit
 }) => {
   
   const [rulesFile, setRulesFile] = useState<File | null>(null);
+
+  const { toast } = useToast();
+  const router = useRouter();
 
   const handleEditContest = (e: any) => {
     e.preventDefault();
@@ -48,6 +54,36 @@ const ContestDetails = ({ contest, isOwner, setContest, isEditEnabled, setIsEdit
     });
   };
 
+  const handleDeleteContest = async () => {
+    toast({
+      title: "Delete Contest",
+      description: "Are you sure you want to delete this contest?",
+      action: (
+        <Button variant="destructive" onClick={confirmDelete}>
+          Delete
+        </Button>
+      ),
+    });
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await deleteContest(contest.id);
+      toast({
+        title: "Contest deleted",
+        description: "The contest has been successfully deleted.",
+      });
+      router.push("/contests");
+    } catch (error) {
+      console.error("Failed to delete contest:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete contest. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div>
       <h1 className="text-2xl font-bold mb-4">{contest.title}</h1>
@@ -66,6 +102,16 @@ const ContestDetails = ({ contest, isOwner, setContest, isEditEnabled, setIsEdit
           <p>{contest.prize}</p>
         </div>
       </div>
+      {isOwner && (
+        <div className="mt-4 flex justify-between">
+          <Button onClick={() => setIsEditEnabled(!isEditEnabled)}>
+            {isEditEnabled ? "Cancel Edit" : "Edit Contest"}
+          </Button>
+          <Button variant="destructive" onClick={handleDeleteContest}>
+            Delete Contest
+          </Button>
+        </div>
+      )}
       {isOwner && isEditEnabled && (
         <div className="mt-8">
           <h2 className="text-lg font-medium mb-4">Edit Contest</h2>
