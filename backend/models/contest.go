@@ -21,6 +21,6 @@ type Contest struct {
 	EndDate     string     `json:"endDate" validate:"required"`
 	Prize       string     `json:"prize,omitempty" bson:"prize,omitempty"`
 	OwnerID     string     `json:"ownerID" bson:"ownerid" validate:"required"`
-	TestCases   []TestCase `json:"testCases" validate:"dive,required"`
+	TestCases   []TestCase `json:"testCases" bson:"testCases" validate:"dive,required"`
 	CreatedAt   time.Time  `json:"createdAt" bson:"createdAt"`
 }

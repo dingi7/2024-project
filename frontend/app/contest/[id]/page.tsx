@@ -95,19 +95,24 @@ export default function ContestPage() {
                 duration: 1000,
             });
             const submissionResponse = await codeSubmit(submission, params.id);
-
             setSubmissions((prevSubmissions) =>
-                prevSubmissions.map((sub) =>
-                    sub === placeholderSubmission ? submissionResponse : sub
-                )
+                prevSubmissions
+                    ? prevSubmissions.map((sub) =>
+                          sub === placeholderSubmission
+                              ? submissionResponse
+                              : sub
+                      )
+                    : [submissionResponse]
             );
         } catch (error) {
             setSubmissions((prevSubmissions) =>
-                prevSubmissions.map((sub) =>
-                    sub === placeholderSubmission
+                prevSubmissions
+                    ? prevSubmissions.map((sub) =>
+                          sub === placeholderSubmission
                         ? { ...sub, status: 'error' }
                         : sub
-                )
+                    )
+                : [{ ...placeholderSubmission, status: 'error' }]
             );
             console.error('Submission failed:', error);
             toast({
