@@ -18,7 +18,7 @@ import { addTestCase, deleteTestCase } from "@/app/api/requests";
 interface ContestTestCasesProps {
   contestId: string;
   dbTestCases: TestCase[];
-  saveContestTestCase: (testCase: TestCase) => void;
+  saveContestTestCase: (testCase: TestCase, action: "delete" | "add") => void;
 }
 
 const ContestTestCases: React.FC<ContestTestCasesProps> = ({
@@ -45,9 +45,10 @@ const ContestTestCases: React.FC<ContestTestCasesProps> = ({
     setEditingId(null);
   };
 
-  const handleDelete = (id: number) => {
-    deleteTestCase(contestId, id.toString());
-    setTestCases(testCases.filter((testCase) => testCase.id !== id));
+  const handleDelete = (testCase: TestCase) => {
+    deleteTestCase(contestId, testCase.id.toString());
+    setTestCases(testCases.filter((testCase) => testCase.id !== testCase.id));
+    saveContestTestCase(testCase, "delete");
   };
 
   const handleInputChange = (
@@ -72,7 +73,7 @@ const ContestTestCases: React.FC<ContestTestCasesProps> = ({
       output: newTestCase.output,
     });
     setTestCases([...testCases, response]);
-    saveContestTestCase(response);
+    saveContestTestCase(response, "add");
     setNewTestCase({
       id: 0,
       input: "",
@@ -147,7 +148,7 @@ const ContestTestCases: React.FC<ContestTestCasesProps> = ({
                       <Pencil className="h-4 w-4" />
                     </Button>
                   )}
-                  <Button onClick={() => handleDelete(testCase.id)}>
+                  <Button onClick={() => handleDelete(testCase)}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>

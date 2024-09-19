@@ -47,11 +47,19 @@ const ContestDetails = ({ contest, isOwner, setContest, isEditEnabled, setIsEdit
     setIsEditEnabled(false);
   };
 
-  const addTestCase = (testCase: TestCase) => {
-    setContest({
-      ...contest,
-      testCases: [...contest.testCases, testCase],
-    });
+
+  const updateTestCases = (testCase: TestCase, action: "delete" | "add") => {
+    if (action === "add") {
+      setContest({
+        ...contest,
+        testCases: [...contest.testCases, testCase],
+      });
+    } else if (action === "delete") {
+      setContest({
+        ...contest,
+        testCases: contest.testCases.filter((tc) => tc.id !== testCase.id),
+      });
+    }
   };
 
   const handleDeleteContest = async () => {
@@ -162,7 +170,7 @@ const ContestDetails = ({ contest, isOwner, setContest, isEditEnabled, setIsEdit
                 onChange={handleRulesFileChange}
               />
             </div>
-            <ContestTestCases contestId={contest.id} dbTestCases={contest.testCases} saveContestTestCase={addTestCase}/>
+            <ContestTestCases contestId={contest.id} dbTestCases={contest.testCases} saveContestTestCase={updateTestCases}/>
             <Button type="submit" className="mt-4" onClick={handleSaveChanges}>
               Save Changes
             </Button>
