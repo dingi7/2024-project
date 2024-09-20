@@ -112,6 +112,11 @@ func executeCode(solution Solution, inputs []string) (string, error) {
 }
 
 func RunTestCases(language string, code string, testCases []models.TestCase) (int, []byte, int, bool, error) {
+	// Handle case with no test cases
+	if len(testCases) == 0 {
+		return fiber.StatusOK, []byte("[]"), 100, true, nil
+	}
+
 	solution := Solution{
 		Language: language,
 		Code:     code,
