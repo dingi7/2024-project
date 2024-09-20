@@ -6,6 +6,7 @@ import (
 	"backend/services"
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -34,9 +35,13 @@ func (h *SubmissionHandler) CreateSubmission(c *fiber.Ctx) error {
 
 	// Get contest ID from params
 	contestID := c.Params("contestId")
+	// set the createdAt to the current time
+	submission.CreatedAt = time.Now().Format(time.RFC3339)
 
 	// Fetch test cases for the contest
 	testCases, err := h.SubmissionService.GetContestTestCases(ctx, contestID)
+	// Print test cases
+	fmt.Println("Test cases:", testCases)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error fetching test cases"})
 	}

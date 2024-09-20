@@ -50,7 +50,6 @@ func (s *SubmissionService) FindSubmissionByID(ctx context.Context, id string) (
 
 func (s *SubmissionService) CreateSubmission(ctx context.Context, submission *models.Submission) (*models.Submission, error) {
 
-
 	_, err := s.SubmissionCollection.InsertOne(ctx, submission)
 	return submission, err
 }
@@ -71,11 +70,11 @@ func (s *SubmissionService) UpdateSubmission(ctx context.Context, id string, sub
 	}
 	update := bson.M{
 		"$set": bson.M{
-			"contestID":  submission.ContestID,
-			"ownerID":    submission.OwnerID,
-			"language":   submission.Language,
-			"status":     submission.Status,
-			"createdAt":  submission.CreatedAt,
+			"contestID": submission.ContestID,
+			"ownerID":   submission.OwnerID,
+			"language":  submission.Language,
+			"status":    submission.Status,
+			"createdAt": submission.CreatedAt,
 		},
 	}
 	_, err = s.SubmissionCollection.UpdateOne(ctx, bson.M{"_id": objectID}, update)
@@ -112,9 +111,9 @@ func (s *SubmissionService) GetSubmissionsByContestIDAndOwnerID(ctx context.Cont
 	fmt.Printf("Querying for contestID: %s, ownerID: %s\n", contestID, ownerID)
 
 	filter := bson.M{
-        "ownerid":   ownerID,
-        "contestid": contestID,
-    }
+		"ownerid":   ownerID,
+		"contestid": contestID,
+	}
 	var submissions []models.Submission
 	cursor, err := s.SubmissionCollection.Find(ctx, filter)
 
@@ -129,7 +128,7 @@ func (s *SubmissionService) GetSubmissionsByContestIDAndOwnerID(ctx context.Cont
 	}
 	fmt.Printf("Found %d submissions\n", len(submissions))
 	return submissions, nil
-}	
+}
 
 func (s *SubmissionService) GetContestTestCases(ctx context.Context, contestID string) ([]models.TestCase, error) {
 	objectID, err := primitive.ObjectIDFromHex(contestID)

@@ -12,6 +12,7 @@ import { useParams } from 'next/navigation';
 import { Contest } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/components/ui/use-toast';
+import Link from 'next/link';
 
 export default function ContestPage() {
     let { data: session, status } = useSession();
@@ -197,6 +198,11 @@ export default function ContestPage() {
                             <RefreshCcwIcon className='w-4 h-4 mr-2' />
                             Refresh
                         </Button>
+                        <Link href={`/contest/${params.id}/submissions`} passHref>
+                            <Button variant='secondary'>
+                                See All Results
+                            </Button>
+                        </Link>
                     </div>
                 </div>
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-8'>

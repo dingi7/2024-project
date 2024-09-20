@@ -10,7 +10,6 @@ import (
 
 func Setup(app *fiber.App, client *mongo.Client) {
 
-
 	api := app.Group("/api/v1")
 
 	userHandler := handlers.NewUserHandler(client)
@@ -22,7 +21,7 @@ func Setup(app *fiber.App, client *mongo.Client) {
 	api.Post("/auth/signIn", userHandler.UserSignIn)
 	api.Get("/contest", contestHandler.GetContests)
 	api.Get("/leaderboard", leaderboardHandler.GetLeaderboard)
-	
+
 	// private routes
 	api.Use(middlewares.AuthMiddleware)
 	api.Post("/codeSubmit/:contestId", submissionHandler.CreateSubmission)
