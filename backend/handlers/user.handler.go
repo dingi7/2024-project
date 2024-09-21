@@ -56,6 +56,7 @@ func (h *UserHandler) UserSignIn(c *fiber.Ctx) error {
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			// User doesn't exist, create new user
+			user.CreatedAt = time.Now() // Set the CreatedAt field
 			if err := h.UserService.CreateUser(ctx, user); err != nil {
 				log.Printf("Failed to create user: %v", err)
 				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to create user", "details": err.Error()})

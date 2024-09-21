@@ -16,6 +16,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'; // Import Select components
 
 interface Submission {
   _id: number;
@@ -32,7 +33,7 @@ export default function AllSubmissionsPage() {
     const [loading, setLoading] = useState(true);
     const [contest, setContest] = useState<any>(null);
     const [submissions, setSubmissions] = useState<Submission[]>([]);
-    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+    const [sortOrder, setSortOrder] = useState<'score' | 'date' | 'status'>('score');
     const params = useParams<{ id: string }>();
 
     useEffect(() => {
@@ -61,67 +62,89 @@ export default function AllSubmissionsPage() {
             setLoading(false);
         }
     };
-
-    const sortedSubmissions = [...submissions].sort((a, b) => {
-        if (a.score !== b.score) {
-            return sortOrder === 'desc' ? b.score - a.score : a.score - b.score;
-        }
-        return new Date(b.createdat).getTime() - new Date(a.createdat).getTime();
-    });
-
-    const toggleSortOrder = () => {
-        setSortOrder(prevOrder => prevOrder === 'desc' ? 'asc' : 'desc');
+    const handleSortChange = (value: 'score' | 'date' | 'status') => {
+        setSortOrder(value);
     };
 
+    const sortedSubmissions = [...submissions].sort((a, b) => {
+        if (sortOrder === 'score') {
+            return b.score - a.score; // Sort by score descending
+        } else if (sortOrder === 'date') {
+            return new Date(b.createdat).getTime() - new Date(a.createdat).getTime(); // Sort by date descending
+        } else if (sortOrder === 'status') {
+            // Convert status to a comparable value
+            const statusOrder = { 'pending': 0, 'success': 1, 'failed': 2 };
+            const aStatus = statusOrder[a.status as keyof typeof statusOrder] ?? 3;
+            const bStatus = statusOrder[b.status as keyof typeof statusOrder] ?? 3;
+            return aStatus - bStatus;
+        }
+        return 0; // Default case
+    });
+
     return (
-        <div className="container mx-auto py-8">
-            <h1 className="text-2xl font-bold mb-4">All Submissions for {contest?.title}</h1>
-            {loading ? (
-                <p>Loading submissions...</p>
-            ) : sortedSubmissions.length > 0 ? (
-                <>
-                    <div className="flex justify-between items-center mb-4">
-                        <Button onClick={toggleSortOrder}>
-                            Sort by Score: {sortOrder === 'desc' ? 'Highest First' : 'Lowest First'}
-                        </Button>
-                        <p>Total Submissions: {sortedSubmissions.length}</p>
+        <div className="container mx-auto py-8 flex-1">
+            <div className="rounded-lg p-6">
+                <h1 className="text-3xl font-bold mb-6">All Submissions for {contest?.title}</h1>
+                {loading ? (
+                    <div className="flex justify-center items-center h-64">
+                        <Skeleton className="h-8 w-8 rounded-full" />
+                        <Skeleton className="h-8 w-8 rounded-full ml-4" />
+                        <Skeleton className="h-8 w-8 rounded-full ml-4" />
                     </div>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Submission Date</TableHead>
-                                <TableHead>Score</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead>Language</TableHead>
-                                <TableHead>User</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {sortedSubmissions.map((submission) => (
-                                <TableRow key={submission._id}>
-                                    <TableCell>{new Date(submission.createdat).toLocaleString()}</TableCell>
-                                    <TableCell>{submission.score !== null ? submission.score : '-'}</TableCell>
-                                    <TableCell>
-                                        <Badge
-                                            variant={
-                                                submission.status === "pending" ? "outline" :
-                                                submission.status ? 'success' : 'destructive'
-                                            }
-                                        >
-                                            {submission.status === "pending" ? "Pending" :
-                                             submission.status ? 'Passed' : 'Failed'}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell>{submission.language}</TableCell>
-                                    <TableCell>{submission.ownerName || 'Anonymous'}</TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </>
-            ) : (
-                <p>No submissions found for this contest.</p>
-            )}
+                ) : sortedSubmissions.length > 0 ? (
+                    <>
+                        <div className="flex justify-between items-center mb-6">
+                            <Select onValueChange={handleSortChange}>
+                                <SelectTrigger className="w-[180px]">
+                                    <SelectValue placeholder="Sort by" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="score">Score</SelectItem>
+                                    <SelectItem value="date">Submission Date</SelectItem>
+                                    <SelectItem value="status">Status</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <p className="text-sm">Total Submissions: {sortedSubmissions.length}</p>
+                        </div>
+                        <div className="overflow-x-auto">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Submission Date</TableHead>
+                                        <TableHead>Score</TableHead>
+                                        <TableHead>Status</TableHead>
+                                        <TableHead>Language</TableHead>
+                                        <TableHead>User</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {sortedSubmissions.map((submission) => (
+                                        <TableRow key={submission._id}>
+                                            <TableCell>{new Date(submission.createdat).toLocaleString()}</TableCell>
+                                            <TableCell>{submission.score !== null ? submission.score : '-'}</TableCell>
+                                            <TableCell>
+                                                <Badge
+                                                    variant={
+                                                        submission.status === "pending" ? "outline" :
+                                                        submission.status ? 'success' : 'destructive'
+                                                    }
+                                                >
+                                                    {submission.status === "pending" ? "Pending" :
+                                                     submission.status ? 'Passed' : 'Failed'}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell>{submission.language}</TableCell>
+                                            <TableCell>{submission.ownerName || 'Anonymous'}</TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </div>
+                    </>
+                ) : (
+                    <p className="text-center py-8">No submissions found for this contest.</p>
+                )}
+            </div>
         </div>
     );
 }
