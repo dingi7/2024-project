@@ -77,6 +77,7 @@ func (h *ContestHandler) CreateContest(c *fiber.Ctx) error {
 		Prize:       prize,
 		OwnerID:     ownerID,
 		CreatedAt:   time.Now(),
+		TestCases:   []models.TestCase{},
 	}
 
 	// Check if the "contestRules" field exists and has at least one file
