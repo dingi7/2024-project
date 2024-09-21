@@ -12,6 +12,7 @@ export const endpoints = {
     deleteContest: (id: string) => `/contest/${id}`,
     getSubmissions: (id: string) => `/submissions/${id}`,
     getLeaderboard: '/leaderboard',
+    editContest: (id: string) => `/contest/${id}`,
 };
 
 export const userSignIn = async (payload : User) => {
@@ -28,6 +29,10 @@ export const getContests = async () => {
 
 export const createContest = async (payload : any) => {
     return api.post(endpoints.createContest, payload, true);
+}
+
+export const editContest = async (payload : any, id: string) => {
+    return api.put(endpoints.editContest(id), payload, true);
 }
 
 export const getContestById = async (id: string) => {

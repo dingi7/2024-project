@@ -7,12 +7,16 @@ import ContestDetails from './components/ContestDetails';
 import SubmissionForm from './components/SubmissionForm';
 import SubmissionTable from './components/SubmissionTable';
 import { getSession, useSession } from 'next-auth/react';
-import { codeSubmit, getContestById, getSubmissions } from '@/app/api/requests';
+import {
+    codeSubmit,
+    editContest,
+    getContestById,
+    getSubmissions,
+} from '@/app/api/requests';
 import { useParams } from 'next/navigation';
 import { Contest } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/components/ui/use-toast';
-import Link from 'next/link';
 import { decodeBase64ToBlobUrl } from '@/lib/utils';
 
 export default function ContestPage() {
@@ -31,11 +35,9 @@ export default function ContestPage() {
 
     const [contestRules, setContestRules] = useState<string | null>(null);
 
-
     useEffect(() => {
         if (!session?.user.id) {
             getSession().then((updatedSession: any) => {
-                console.log('Updated Session:', updatedSession);
                 session = updatedSession;
             });
         }
@@ -48,8 +50,12 @@ export default function ContestPage() {
             const contestResponse = await getContestById(params.id);
             setContest(contestResponse);
             setIsOwner(contestResponse.ownerID === session?.user?.id);
-            const blobUrl = decodeBase64ToBlobUrl(contestResponse.contestRules);
-            setContestRules(blobUrl);
+            if (contestResponse.contestRules) {
+                const blobUrl = decodeBase64ToBlobUrl(
+                    contestResponse.contestRules
+                );
+                setContestRules(blobUrl);
+            }
             const submissionsResponse = await getSubmissions(params.id);
             setSubmissions(submissionsResponse);
         } catch (error) {
@@ -70,7 +76,20 @@ export default function ContestPage() {
     }, [params, session]);
 
     const handleEditContest = (updatedContest: any) => {
+        const currentContest = contest;
         setContest(updatedContest);
+        try {
+            editContest(updatedContest, params.id);
+        } catch (error) {
+            setContest(currentContest);
+            console.error('Failed to edit contest:', error);
+            toast({
+                title: 'Error',
+                description: 'Failed to edit contest.',
+                variant: 'destructive',
+                duration: 2000,
+            });
+        }
     };
 
     const handleFilterChange = (filters: any) => {

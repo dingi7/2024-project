@@ -62,7 +62,6 @@ const request = async (
         },
     };
     if (isFormData && data) {
-        console.log(data);
         const formData = new FormData();
         appendFormData(formData, data);
         options.body = formData;

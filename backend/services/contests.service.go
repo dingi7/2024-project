@@ -85,6 +85,7 @@ func (s *ContestService) UpdateContest(ctx context.Context, id string, contest *
 			"prize":       contest.Prize,
 			"ownerID":     contest.OwnerID,
 			"testCases":   contest.TestCases,
+			"contestRules": contest.ContestRules,
 		},
 	}
 	_, err = s.ContestCollection.UpdateOne(ctx, query, update)

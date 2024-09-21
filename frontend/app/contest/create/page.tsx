@@ -163,6 +163,7 @@ export default function Component() {
                             <Input
                                 id='title'
                                 placeholder='Enter contest title'
+                                required
                                 {...register('title')}
                             />
                             {errors.title && (
@@ -176,6 +177,7 @@ export default function Component() {
                             <Textarea
                                 id='description'
                                 placeholder='Enter contest description'
+                                required
                                 {...register('description')}
                             />
                             {errors.description && (
@@ -195,6 +197,7 @@ export default function Component() {
                                     <Select
                                         onValueChange={field.onChange}
                                         defaultValue={field.value}
+                                        required
                                     >
                                         <SelectTrigger id='language'>
                                             <SelectValue placeholder='Select programming language' />
@@ -301,6 +304,7 @@ export default function Component() {
                                                 selected={field.value}
                                                 onSelect={field.onChange}
                                                 numberOfMonths={2}
+                                                
                                             />
                                             <div className='grid grid-cols-2 gap-2 p-3 border-t border-border'>
                                                 <div>
@@ -504,6 +508,7 @@ export default function Component() {
                                 id='prize'
                                 placeholder='Enter prize'
                                 type='number'
+                                required
                                 min={0}
                                 {...register('prize')}
                             />
@@ -520,8 +525,8 @@ export default function Component() {
                             <Input
                                 id='rules-files'
                                 type='file'
-                                accept='.pdf, .doc, .docx, .txt'
-                                multiple={true}
+                                accept='.pdf'
+                                multiple={false}
                                 {...register('rulesFile')}
                             />
                             {errors.rulesFile?.message && (

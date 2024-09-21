@@ -36,7 +36,6 @@ const authOptions: NextAuthOptions = {
             try {
                 const result = await userSignIn(serverPayload);
                 user.accessToken = result.accessToken;
-                console.log('SignIn callback - user:', user);
                 return true;
             } catch (e: any) {
                 console.error('SignIn error:', e);
@@ -44,7 +43,6 @@ const authOptions: NextAuthOptions = {
             }
         },
         async jwt({ token, account, user }) {
-            console.log("JWT callback - input:", { token, account, user });
             if (user) {
                 token.accessToken = user.accessToken;
                 token.id = user.id;
@@ -52,17 +50,14 @@ const authOptions: NextAuthOptions = {
                 token.accessToken = account.access_token;
                 token.id = account.id;
             }
-            console.log("JWT callback - output token:", token);
             return token;
         },
         async session({ session, token }) {
-            console.log("Session callback - input:", { session, token });
             session.user = {
                 ...session.user,
                 id: token.id as string,
             };
             session.accessToken = token.accessToken as string;
-            console.log("Session callback - output session:", session);
             return session;
         },
         
