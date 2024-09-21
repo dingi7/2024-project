@@ -15,15 +15,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Badge } from '@/components/ui/badge';
 
 interface Submission {
-  id: number;
+  _id: number;
   problem_id: number;
   problem_title: string;
   status: string;
   score: number;
   language: string;
-  createdAt: string;
+  createdat: string;
+  ownerName: string;
 }
 
 export default function AllSubmissionsPage() {
@@ -64,58 +66,54 @@ export default function AllSubmissionsPage() {
         if (a.score !== b.score) {
             return sortOrder === 'desc' ? b.score - a.score : a.score - b.score;
         }
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        return new Date(b.createdat).getTime() - new Date(a.createdat).getTime();
     });
 
     const toggleSortOrder = () => {
         setSortOrder(prevOrder => prevOrder === 'desc' ? 'asc' : 'desc');
     };
 
-    if (loading) {
-        return (
-            <div className='container mx-auto py-8 px-4 md:px-6'>
-                <Skeleton className='w-full h-[500px]' />
-            </div>
-        );
-    }
-
-    if (!contest) {
-        return (
-            <div className='container mx-auto py-8 px-4 md:px-6'>
-                <h1 className='text-2xl font-bold mb-4'>Contest not found</h1>
-            </div>
-        );
-    }
-
     return (
-        <div className='container mx-auto py-8 px-4 md:px-6'>
-            <div className='flex items-center justify-between mb-6'>
-                <h1 className='text-2xl font-bold'>All Submissions for {contest?.title || 'Contest'}</h1>
-                <Link href={`/contest/${params.id}`} passHref>
-                    <Button variant='outline'>Back to Contest</Button>
-                </Link>
-            </div>
-            {sortedSubmissions.length > 0 ? (
+        <div className="container mx-auto py-8">
+            <h1 className="text-2xl font-bold mb-4">All Submissions for {contest?.title}</h1>
+            {loading ? (
+                <p>Loading submissions...</p>
+            ) : sortedSubmissions.length > 0 ? (
                 <>
-                    <Button onClick={toggleSortOrder} className="mb-4">
-                        Sort by Score: {sortOrder === 'desc' ? 'Highest First' : 'Lowest First'}
-                    </Button>
+                    <div className="flex justify-between items-center mb-4">
+                        <Button onClick={toggleSortOrder}>
+                            Sort by Score: {sortOrder === 'desc' ? 'Highest First' : 'Lowest First'}
+                        </Button>
+                        <p>Total Submissions: {sortedSubmissions.length}</p>
+                    </div>
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>ID</TableHead>
+                                <TableHead>Submission Date</TableHead>
                                 <TableHead>Score</TableHead>
+                                <TableHead>Status</TableHead>
                                 <TableHead>Language</TableHead>
-                                <TableHead>Submitted At</TableHead>
+                                <TableHead>User</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {sortedSubmissions.map((submission) => (
-                                <TableRow key={submission.id}>
-                                    <TableCell>{submission.id}</TableCell>
-                                    <TableCell>{submission.score}</TableCell>
+                                <TableRow key={submission._id}>
+                                    <TableCell>{new Date(submission.createdat).toLocaleString()}</TableCell>
+                                    <TableCell>{submission.score !== null ? submission.score : '-'}</TableCell>
+                                    <TableCell>
+                                        <Badge
+                                            variant={
+                                                submission.status === "pending" ? "outline" :
+                                                submission.status ? 'success' : 'destructive'
+                                            }
+                                        >
+                                            {submission.status === "pending" ? "Pending" :
+                                             submission.status ? 'Passed' : 'Failed'}
+                                        </Badge>
+                                    </TableCell>
                                     <TableCell>{submission.language}</TableCell>
-                                    <TableCell>{new Date(submission.createdAt).toLocaleString()}</TableCell>
+                                    <TableCell>{submission.ownerName || 'Anonymous'}</TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
