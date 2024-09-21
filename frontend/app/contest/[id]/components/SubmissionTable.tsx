@@ -86,10 +86,10 @@ const SubmissionTable = ({ submissions, filterOptions, onFilterChange }: Props) 
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {submissions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map((submission) => (
+                    {submissions.sort((a, b) => new Date(b.createdat).getTime() - new Date(a.createdat).getTime()).map((submission) => (
                         submission ? (
                             <TableRow key={submission.id}>
-                                <TableCell>{new Date(submission.createdAt).toISOString().split('T')[0]}</TableCell>
+                                <TableCell>{new Date(submission.createdat).toISOString().split('T')[0]}</TableCell>
                                 <TableCell>
                                     <Badge
                                         variant={
