@@ -118,6 +118,7 @@ export default function Component() {
             prize: data.prize,
             ownerId: session.user.id,
             testCases: [], // TestCases will be added separately
+            contestRules: data.rulesFile,
         };
         try {
             await createContest(payload);

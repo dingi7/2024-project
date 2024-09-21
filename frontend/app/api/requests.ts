@@ -27,7 +27,7 @@ export const getContests = async () => {
 }
 
 export const createContest = async (payload : any) => {
-    return api.post(endpoints.createContest, payload);
+    return api.post(endpoints.createContest, payload, true);
 }
 
 export const getContestById = async (id: string) => {

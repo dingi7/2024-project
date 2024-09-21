@@ -13,6 +13,7 @@ import { Contest } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/components/ui/use-toast';
 import Link from 'next/link';
+import { decodeBase64ToBlobUrl } from '@/lib/utils';
 
 export default function ContestPage() {
     let { data: session, status } = useSession();
@@ -27,6 +28,9 @@ export default function ContestPage() {
         sortBy: 'date',
         order: 'desc',
     });
+
+    const [contestRules, setContestRules] = useState<string | null>(null);
+
 
     useEffect(() => {
         if (!session?.user.id) {
@@ -44,7 +48,8 @@ export default function ContestPage() {
             const contestResponse = await getContestById(params.id);
             setContest(contestResponse);
             setIsOwner(contestResponse.ownerID === session?.user?.id);
-
+            const blobUrl = decodeBase64ToBlobUrl(contestResponse.contestRules);
+            setContestRules(blobUrl);
             const submissionsResponse = await getSubmissions(params.id);
             setSubmissions(submissionsResponse);
         } catch (error) {
@@ -110,10 +115,10 @@ export default function ContestPage() {
                 prevSubmissions
                     ? prevSubmissions.map((sub) =>
                           sub === placeholderSubmission
-                        ? { ...sub, status: 'error' }
-                        : sub
-                    )
-                : [{ ...placeholderSubmission, status: 'error' }]
+                              ? { ...sub, status: 'error' }
+                              : sub
+                      )
+                    : [{ ...placeholderSubmission, status: 'error' }]
             );
             console.error('Submission failed:', error);
             toast({
@@ -198,11 +203,6 @@ export default function ContestPage() {
                             <RefreshCcwIcon className='w-4 h-4 mr-2' />
                             Refresh
                         </Button>
-                        <Link href={`/contest/${params.id}/submissions`} passHref>
-                            <Button variant='secondary'>
-                                See All Results
-                            </Button>
-                        </Link>
                     </div>
                 </div>
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-8'>
@@ -213,6 +213,7 @@ export default function ContestPage() {
                         isEditEnabled={isEditEnabled}
                         setIsEditEnabled={setIsEditEnabled}
                         onEdit={handleEditContest}
+                        contestRules={contestRules}
                     />
                     <SubmissionTable
                         submissions={filteredSubmissions}

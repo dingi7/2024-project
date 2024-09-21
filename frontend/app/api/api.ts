@@ -4,7 +4,6 @@ import { toast } from '@/components/ui/use-toast';
 const host = 'http://127.0.0.1:3001/api/v1';
 // const host = 'http://188.34.162.248/api/v1';
 
-
 interface RequestOptions {
     method: string;
     headers: {
@@ -12,26 +11,66 @@ interface RequestOptions {
         'Content-Type'?: string;
         Authorization?: string;
     };
-    body?: string;
+    body?: string | FormData;
 }
+
+const appendFormData = (formData: FormData, data: any, parentKey?: string) => {
+    for (const key in data) {
+        const value = data[key];
+        const fullKey = parentKey ? `${parentKey}[${key}]` : key;
+
+        if (value instanceof Date) {
+            // If the value is a Date object, convert it to ISO string
+            formData.append(fullKey, value.toISOString());
+        } else if (Array.isArray(value)) {
+            if (value.length === 0) {
+                // If it's an empty array, append an empty string
+                formData.append(fullKey, '');
+            } else if (value.every((x: any) => x instanceof File)) {
+                // If it's an array of Files, append each file
+                value.forEach((file: File) => {
+                    formData.append(fullKey, file);
+                });
+            } else {
+                // For other arrays, stringify the array
+                formData.append(fullKey, JSON.stringify(value));
+            }
+        } else if (value instanceof File) {
+            // If the value is a single File
+            formData.append(fullKey, value);
+        } else if (typeof value === 'object' && value !== null) {
+            // If the value is an object (but not a File), recurse
+            appendFormData(formData, value, fullKey);
+        } else {
+            // For primitive values
+            formData.append(fullKey, value);
+        }
+    }
+};
 
 const request = async (
     method: string,
     url: string,
-    data?: any
+    data?: any,
+    isFormData?: boolean
 ): Promise<any> => {
     const session = await getSession();
     const options: RequestOptions = {
         method,
         headers: {
-            'Content-Type': 'application/json',
             'Access-Control-Allow-Origin': '*',
         },
     };
-
-    if (data) {
-        options.headers['Content-Type'] = 'application/json';
-        options.body = JSON.stringify(data);
+    if (isFormData && data) {
+        console.log(data);
+        const formData = new FormData();
+        appendFormData(formData, data);
+        options.body = formData;
+    } else {
+        if (data) {
+            options.headers['Content-Type'] = 'application/json';
+            options.body = JSON.stringify(data);
+        }
     }
 
     if (session?.accessToken) {

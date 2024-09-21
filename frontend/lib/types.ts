@@ -41,5 +41,5 @@ export interface Contest {
     ownerId: string;
     testCases: TestCase[];
     createdAt: string;
-    contestRules: string[];
+    contestRules: string;
 }

@@ -4,6 +4,9 @@ import (
 	"backend/models"
 	"backend/services"
 	"context"
+	"fmt"
+	"io"
+	"mime/multipart"
 	"time"
 
 	"github.com/go-playground/validator"
@@ -22,22 +25,136 @@ func NewContestHandler(client *mongo.Client) *ContestHandler {
 	}
 }
 
+// func (h *ContestHandler) CreateContest(c *fiber.Ctx) error {
+// 	contest := new(models.Contest)
+// 	if err := c.BodyParser(contest); err != nil {
+// 		return err
+// 	}
+// 	file, err := c.FormFile("contestRules")
+// 	if err != nil {
+// 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+// 	}
+
+// 	// Open the uploaded file
+// 	src, err := file.Open()
+// 	if err != nil {
+// 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to open uploaded file"})
+// 	}
+// 	defer src.Close()
+
+// 	// Read the file contents
+// 	fileContent, err := io.ReadAll(src)
+// 	if err != nil {
+// 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to read file contents"})
+// 	}
+
+// 	contest.ContestRules = primitive.Binary{
+// 		Subtype: 0x00,
+// 		Data:    fileContent,
+// 	}
+// 	if err := validateContest(contest); err != nil {
+// 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+// 	}
+// 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+// 	defer cancel()
+// 	contest.CreatedAt = time.Now()
+// 	if err := h.ContestService.CreateContest(ctx, contest); err != nil {
+// 		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+// 	}
+
+// 	return c.JSON(contest)
+// }
+
 func (h *ContestHandler) CreateContest(c *fiber.Ctx) error {
-	contest := new(models.Contest)
-	if err := c.BodyParser(contest); err != nil {
-		return err
-	}
-	if err := validateContest(contest); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	contest.CreatedAt = time.Now()
-	if err := h.ContestService.CreateContest(ctx, contest); err != nil {
-		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+	// Parse the multipart form data (including the file)
+	form, err := c.MultipartForm()
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Failed to parse form data"})
 	}
 
-	return c.JSON(contest)
+	fmt.Println(form.Value)
+
+	// Extract form fields with error handling
+	title, err := getFormValue(form, "title")
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	description, err := getFormValue(form, "description")
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	language, err := getFormValue(form, "language")
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	startDate, err := getFormValue(form, "startDate")
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	endDate, err := getFormValue(form, "endDate")
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	prize, _ := getFormValue(form, "prize") // Prize is optional, so we ignore the error
+
+	ownerID, err := getFormValue(form, "ownerId")
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	// Check if the "contestRules" field exists and has at least one file
+	if files, ok := form.File["contestRules[0]"]; ok && len(files) > 0 {
+		// Handle PDF upload (assuming it's a single file upload)
+		fileHeader := files[0] // "contestRules" is the name of the input
+		file, err := fileHeader.Open()
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Failed to open PDF file"})
+		}
+		defer file.Close()
+
+		// Read the file into a byte slice
+		pdfData, err := io.ReadAll(file)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to read PDF file"})
+		}
+
+		// Create a new Contest instance with the form data
+		contest := &models.Contest{
+			Title:        title,
+			Description:  description,
+			Language:     language,
+			StartDate:    startDate,
+			EndDate:      endDate,
+			Prize:        prize,
+			OwnerID:      ownerID,
+			CreatedAt:    time.Now(),
+			ContestRules: pdfData, // Store the PDF file as binary in MongoDB
+		}
+
+		// Validate contest data
+		if err := validateContest(contest); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		}
+
+		// Create a context with a timeout
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		// Pass the contest to the service layer for saving
+		if err := h.ContestService.CreateContest(ctx, contest); err != nil {
+			return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+		}
+
+		// Return the saved contest as JSON
+		return c.JSON(contest)
+	} else {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "No contest rules file provided"})
+	}
 }
 
 func (h *ContestHandler) GetContests(c *fiber.Ctx) error {
@@ -65,6 +182,9 @@ func (h *ContestHandler) GetContestById(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
 	}
+
+	// encodedPDF := base64.StdEncoding.EncodeToString(contest.ContestRules)
+	// contest.ContestRules = []byte(encodedPDF)
 
 	if userId == contest.OwnerID {
 		return c.JSON(contest)
@@ -173,4 +293,13 @@ func validateContest(contest *models.Contest) error {
 		return err == nil
 	})
 	return validate.Struct(contest)
+}
+
+// Add this helper function at the end of the file
+func getFormValue(form *multipart.Form, key string) (string, error) {
+	values, ok := form.Value[key]
+	if !ok || len(values) == 0 {
+		return "", fmt.Errorf("missing required field: %s", key)
+	}
+	return values[0], nil
 }
