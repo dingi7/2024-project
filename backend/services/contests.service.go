@@ -85,7 +85,7 @@ func (s *ContestService) UpdateContest(ctx context.Context, id string, contest *
 			"prize":       contest.Prize,
 			"ownerID":     contest.OwnerID,
 			"testCases":   contest.TestCases,
-			"contestRules": contest.ContestRules,
+			// "contestRules": contest.ContestRules,
 		},
 	}
 	_, err = s.ContestCollection.UpdateOne(ctx, query, update)
@@ -116,7 +116,7 @@ func (s *ContestService) UpdateTestCase(ctx context.Context, id string, testCase
 	query := bson.M{"_id": objectID}
 	update := bson.M{
 		"$set": bson.M{
-			"testCases.$[testCase].input": testCase.Input,
+			"testCases.$[testCase].input":  testCase.Input,
 			"testCases.$[testCase].output": testCase.Output,
 		},
 	}

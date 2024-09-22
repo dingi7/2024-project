@@ -14,11 +14,18 @@ import {
     getSubmissions,
 } from '@/app/api/requests';
 import { useParams } from 'next/navigation';
-import { Contest, Submission } from '@/lib/types';
+import { Contest, ContestSolution, PlaceholderSubmission, Submission } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/components/ui/use-toast';
 import { decodeBase64ToBlobUrl } from '@/lib/utils';
 import Link from 'next/link';
+
+
+type FilterOptions = {
+    status: 'all' | 'pending' | 'completed' | string;
+    sortBy: 'date' | 'score' | string;
+    order: 'asc' | 'desc';
+}
 
 export default function ContestPage() {
     let { data: session, status } = useSession();
@@ -29,10 +36,12 @@ export default function ContestPage() {
     const [isEditEnabled, setIsEditEnabled] = useState(false);
 
     const [contest, setContest] = useState<Contest | null>(null);
-    const [submissions, setSubmissions] = useState<Submission[]>([]);
-    const [contestRulesBlobURL, setContestRulesBlobURL] = useState<string | null>(null);
+    const [submissions, setSubmissions] = useState<Submission[] | PlaceholderSubmission[]>([]);
+    const [contestRulesBlobURL, setContestRulesBlobURL] = useState<
+        string | null
+    >(null);
 
-    const [filterOptions, setFilterOptions] = useState({
+    const [filterOptions, setFilterOptions] = useState<FilterOptions>({
         status: 'all',
         sortBy: 'date',
         order: 'desc',
@@ -41,8 +50,10 @@ export default function ContestPage() {
     // check user session
     useEffect(() => {
         if (!session?.user.id) {
-            getSession().then((updatedSession: any) => {
-                session = updatedSession;
+            getSession().then((updatedSession) => {
+                if (updatedSession) {
+                    session = updatedSession;
+                }
             });
         }
         if (status === 'unauthenticated' || !session || !session.user.id)
@@ -51,16 +62,15 @@ export default function ContestPage() {
 
     const fetchContestAndSubmissions = async () => {
         try {
-            const contestResponse = await getContestById(params.id);
+            const [contestResponse, submissionsResponse] = await Promise.all([
+                getContestById(params.id),
+                getSubmissions(params.id)
+            ]);
+
             setContest(contestResponse);
             setIsOwner(contestResponse.ownerID === session?.user?.id);
-            if (contestResponse.contestRules) {
-                const blobUrl = decodeBase64ToBlobUrl(
-                    contestResponse.contestRules
-                );
-                setContestRulesBlobURL(blobUrl);
-            }
-            const submissionsResponse = await getSubmissions(params.id);
+            setContestRulesBlobURL(contestResponse.contestRules ? 
+                decodeBase64ToBlobUrl(contestResponse.contestRules) : null);
             setSubmissions(submissionsResponse);
         } catch (error) {
             console.error('Failed to fetch contest or submissions:', error);
@@ -94,20 +104,22 @@ export default function ContestPage() {
                 duration: 2000,
             });
         }
+        setIsEditEnabled(false)
     };
 
-    const handleFilterChange = (filters: any) => {
+    const handleFilterChange = (filters: FilterOptions) => {
         setFilterOptions(filters);
     };
 
-    const handleSubmit = async (solution: any) => {
+    const handleSubmit = async (solution: { code: string, language: string }) => {
         const submission = {
             ...solution,
             contestId: params.id,
-            userId: session!.user!.id,
+            ownerId: session!.user!.id,
+            _id: "placeholder",
         };
 
-        const placeholderSubmission = {
+        const placeholderSubmission: PlaceholderSubmission = {
             ...submission,
             status: 'pending',
             score: null,
@@ -115,15 +127,16 @@ export default function ContestPage() {
         };
 
         try {
-            setSubmissions((prevSubmissions) => 
-                Array.isArray(prevSubmissions) 
+            setSubmissions((prevSubmissions) =>
+                Array.isArray(prevSubmissions)
                     ? [...prevSubmissions, placeholderSubmission]
                     : [placeholderSubmission]
             );
-            
+
             toast({
                 title: 'Submission in progress',
-                description: 'Your code is being submitted. Please wait for the results.',
+                description:
+                    'Your code is being submitted. Please wait for the results.',
                 variant: 'default',
                 duration: 3000,
             });
@@ -133,14 +146,16 @@ export default function ContestPage() {
             setSubmissions((prevSubmissions) =>
                 Array.isArray(prevSubmissions)
                     ? prevSubmissions.map((sub) =>
-                        sub === placeholderSubmission ? submissionResponse : sub
+                          sub === placeholderSubmission
+                              ? submissionResponse
+                              : sub
                       )
                     : [submissionResponse]
             );
 
             toast({
-                title: 'Submission successful',
-                description: 'Your code has been submitted successfully.',
+                title: 'Submission assessed',
+                description: 'Your code has been successfully assessed.',
                 variant: 'success',
                 duration: 2000,
             });
@@ -149,13 +164,16 @@ export default function ContestPage() {
 
             setSubmissions((prevSubmissions) =>
                 Array.isArray(prevSubmissions)
-                    ? prevSubmissions.filter((sub) => sub !== placeholderSubmission)
+                    ? prevSubmissions.filter(
+                          (sub) => sub !== placeholderSubmission
+                      )
                     : []
             );
 
             toast({
                 title: 'Submission failed',
-                description: 'There was an error submitting your code. Please try again.',
+                description:
+                    'There was an error assessing your code. Please try again.',
                 variant: 'destructive',
                 duration: 3000,
             });
@@ -176,8 +194,10 @@ export default function ContestPage() {
         if (filterOptions.sortBy === 'date') {
             filtered.sort((a, b) =>
                 filterOptions.order === 'asc'
-                    ? new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-                    : new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+                    ? new Date(a.createdAt).getTime() -
+                      new Date(b.createdAt).getTime()
+                    : new Date(b.createdAt).getTime() -
+                      new Date(a.createdAt).getTime()
             );
         } else if (filterOptions.sortBy === 'score') {
             filtered.sort((a, b) =>
@@ -253,8 +273,8 @@ export default function ContestPage() {
                     />
                     <SubmissionTable
                         submissions={filteredSubmissions}
-                        filterOptions={filterOptions}
-                        onFilterChange={handleFilterChange}
+                        filterOptions={filterOptions as FilterOptions}
+                        onFilterChange={(filter) => handleFilterChange(filter as FilterOptions)}
                     />
                 </div>
             </div>

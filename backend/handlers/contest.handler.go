@@ -32,8 +32,6 @@ func (h *ContestHandler) CreateContest(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Failed to parse form data"})
 	}
 
-	fmt.Println(form.Value)
-
 	// Extract form fields with error handling
 	title, err := getFormValue(form, "title")
 	if err != nil {
@@ -172,26 +170,73 @@ func (h *ContestHandler) DeleteContest(c *fiber.Ctx) error {
 func (h *ContestHandler) EditContest(c *fiber.Ctx) error {
 	userId := c.Locals("userID").(string)
 	id := c.Params("id")
-	contest := new(models.Contest)
-	if err := c.BodyParser(contest); err != nil {
-		return err
+
+	// Parse the multipart form data
+	form, err := c.MultipartForm()
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Failed to parse form data"})
 	}
+
+	// Find the existing contest
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	contest, err := h.ContestService.FindContestByID(ctx, id)
+	existingContest, err := h.ContestService.FindContestByID(ctx, id)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
 	}
-	if userId != contest.OwnerID {
+	if userId != existingContest.OwnerID {
 		return c.Status(fiber.StatusUnauthorized).SendString("Unauthorized")
 	}
 
-	if err := h.ContestService.UpdateContest(ctx, id, contest); err != nil {
+	// Update contest fields
+	if title, err := getFormValue(form, "title"); err == nil {
+		existingContest.Title = title
+	}
+	if description, err := getFormValue(form, "description"); err == nil {
+		existingContest.Description = description
+	}
+	if language, err := getFormValue(form, "language"); err == nil {
+		existingContest.Language = language
+	}
+	if startDate, err := getFormValue(form, "startDate"); err == nil {
+		existingContest.StartDate = startDate
+	}
+	if endDate, err := getFormValue(form, "endDate"); err == nil {
+		existingContest.EndDate = endDate
+	}
+	if prize, err := getFormValue(form, "prize"); err == nil {
+		existingContest.Prize = prize
+	}
+
+	// Handle contest rules file update
+	if files, ok := form.File["contestRules[0]"]; ok && len(files) > 0 {
+		fileHeader := files[0]
+		file, err := fileHeader.Open()
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Failed to open PDF file"})
+		}
+		defer file.Close()
+
+		pdfData, err := io.ReadAll(file)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to read PDF file"})
+		}
+
+		existingContest.ContestRules = pdfData
+	}
+
+	// Validate updated contest data
+	if err := validateContest(existingContest); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	// Update the contest in the database
+	if err := h.ContestService.UpdateContest(ctx, id, existingContest); err != nil {
 		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
 	}
 
-	return c.JSON(contest)
+	return c.JSON(existingContest)
 }
 
 func (h *ContestHandler) AddTestCase(c *fiber.Ctx) error {

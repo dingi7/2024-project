@@ -16,20 +16,18 @@ import {
     SelectContent,
     SelectItem,
 } from '@/components/ui/select';
-import { Submission } from '@/lib/types';
+import { PlaceholderSubmission, Submission } from '@/lib/types';
+
+type FilterOptions = {
+    status: string;
+    sortBy: string;
+    order: string;
+};
 
 type Props = {
-    submissions: Submission[];
-    filterOptions: {
-        status: string;
-        sortBy: string;
-        order: string;
-    };
-    onFilterChange: (filter: {
-        status: string;
-        sortBy: string;
-        order: string;
-    }) => void;
+    submissions: Submission[] | PlaceholderSubmission[];
+    filterOptions: FilterOptions
+    onFilterChange: (filter: FilterOptions) => void;
 };
 
 const SubmissionTable = ({

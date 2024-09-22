@@ -14,11 +14,12 @@ export interface User {
     GitHubAccessToken: string | undefined;
 }
 
-export interface ContestSubmission {
-    id: string | undefined;
+export interface ContestSolution {
+    _id: string | null;
     ownerId: string
     code: string;
     language: string;
+    contestId: string;
 }
 
 export interface TestCase {
@@ -57,3 +58,12 @@ export type Submission = {
     status: string;
 }
 
+export type PlaceholderSubmission = {
+    _id: string;
+    contestId: string;
+    language: string;
+    ownerId: string;
+    score: number | null;
+    status: string;
+    createdAt: string;
+}

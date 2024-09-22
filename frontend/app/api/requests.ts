@@ -1,4 +1,4 @@
-import { ContestSubmission, User } from '@/lib/types';
+import { Contest, ContestSolution, TestCase, User } from '@/lib/types';
 import * as api from './api';
 
 export const endpoints = {
@@ -19,7 +19,7 @@ export const userSignIn = async (payload : User) => {
     return api.post(endpoints.userSingIn, payload);
 };
 
-export const codeSubmit = async (payload : ContestSubmission, id: string) => {
+export const codeSubmit = async (payload : ContestSolution, id: string) => {
     return api.post(endpoints.codeSubmit(id), payload);
 }
 
@@ -27,11 +27,20 @@ export const getContests = async () => {
     return api.get(endpoints.getContests);
 }
 
-export const createContest = async (payload : any) => {
+export const createContest = async (payload : {
+    title: string,
+    description: string,
+    language: string,
+    startDate: Date,
+    endDate: Date,
+    prize: number,
+    ownerId: string,
+    contestRules: any,
+}) => {
     return api.post(endpoints.createContest, payload, true);
 }
 
-export const editContest = async (payload : any, id: string) => {
+export const editContest = async (payload : Contest, id: string) => {
     return api.put(endpoints.editContest(id), payload, true);
 }
 

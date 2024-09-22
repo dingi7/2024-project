@@ -83,7 +83,7 @@ export default function Component() {
 
     useEffect(() => {
         if (!session?.user.id) {
-            getSession().then((updatedSession: any) => {
+            getSession().then((updatedSession) => {
                 session = updatedSession;
             });
         }
@@ -115,7 +115,7 @@ export default function Component() {
             language: data.language,
             startDate: data.dateRange.from,
             endDate: data.dateRange.to,
-            prize: data.prize,
+            prize: parseInt(data.prize),
             ownerId: session.user.id,
             testCases: [], // TestCases will be added separately
             contestRules: data.rulesFile,

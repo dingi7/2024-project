@@ -2,7 +2,6 @@
 import { getSession, signOut as nextAuthSignOut } from 'next-auth/react';
 
 export const signOut = async () => {
-    // Perform any actions before signing out (e.g., notify your backend)
     const session = await getSession();
     const accessToken = session?.accessToken;
 

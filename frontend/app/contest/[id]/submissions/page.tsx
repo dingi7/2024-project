@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select'; // Import Select components
+import { Contest } from '@/lib/types';
 
 interface Submission {
   _id: number;
@@ -31,7 +32,7 @@ interface Submission {
 
 export default function AllSubmissionsPage() {
     const [loading, setLoading] = useState(true);
-    const [contest, setContest] = useState<any>(null);
+    const [contest, setContest] = useState<Contest | null>(null);
     const [submissions, setSubmissions] = useState<Submission[]>([]);
     const [sortOrder, setSortOrder] = useState<'score' | 'date' | 'status'>('score');
     const params = useParams<{ id: string }>();

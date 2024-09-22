@@ -37,7 +37,7 @@ const authOptions: NextAuthOptions = {
                 const result = await userSignIn(serverPayload);
                 user.accessToken = result.accessToken;
                 return true;
-            } catch (e: any) {
+            } catch (e) {
                 console.error('SignIn error:', e);
                 return false;
             }

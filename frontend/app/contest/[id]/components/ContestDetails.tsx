@@ -34,23 +34,24 @@ const ContestDetails = ({
 
     const [rulesFile, setRulesFile] = useState<File | null>(null);
 
-    const handleEditContest = (e: any) => {
+    const handleEditContest = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        const form = e.currentTarget;
         onEdit({
             ...contest,
-            title: e.target.title.value,
-            description: e.target.description.value,
-            startDate: e.target.startDate.value,
-            endDate: e.target.endDate.value,
-            prize: e.target.prize.value,
+            title: (form.elements.namedItem('title') as HTMLInputElement).value,
+            description: (form.elements.namedItem('description') as HTMLTextAreaElement).value,
+            startDate: (form.elements.namedItem('startDate') as HTMLInputElement).value,
+            endDate: (form.elements.namedItem('endDate') as HTMLInputElement).value,
+            prize: parseInt((form.elements.namedItem('prize') as HTMLInputElement).value),
         });
     };
 
-    // const handleRulesFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    //     if (e.target.files && e.target.files.length > 0) {
-    //         setRulesFile(e.target.files[0]);
-    //     }
-    // };
+    const handleRulesFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            setRulesFile(e.target.files[0]);
+        }
+    };
 
     const updateTestCases = (testCase: TestCase, action: 'delete' | 'add') => {
         if (action === 'add') {
@@ -198,7 +199,7 @@ const ContestDetails = ({
                                 required
                             />
                         </div>
-                        {/* <div className='mt-4'>
+                        <div className='mt-4'>
                             <Label htmlFor='rulesFile'>
                                 Contest Rules (PDF)
                             </Label>
@@ -225,7 +226,7 @@ const ContestDetails = ({
                                     New file selected: {rulesFile.name}
                                 </p>
                             )}
-                        </div> */}
+                        </div>
                         <ContestTestCases
                             contestId={contest.id}
                             dbTestCases={contest.testCases}
@@ -234,7 +235,6 @@ const ContestDetails = ({
                         <Button
                             type='submit'
                             className='mt-4'
-                            onClick={() => setIsEditEnabled(false)}
                         >
                             Save Changes
                         </Button>
