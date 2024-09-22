@@ -64,7 +64,7 @@ const ContestPage = () => {
             );
         });
 
-        setFilteredContests(filtered);
+        setFilteredContests(filtered.reverse());
     }, [filters, searchQuery, contests]);
 
     const handleFilterChange = (newFilters: ContestFilters) => {

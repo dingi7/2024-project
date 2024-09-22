@@ -96,7 +96,7 @@ export default function ContestPage() {
   };
   useEffect(() => {
     fetchContestAndSubmissions();
-  }, [params, session?.user?.id, status]);
+  }, [params, session?.user?.id, status,]);
 
   const handleEditContest = (updatedContest: Contest) => {
     const currentContest = contest;
