@@ -32,9 +32,9 @@ func (s *LeaderboardService) GetLeaderboard(ctx context.Context) ([]LeaderboardE
 	pipeline := []bson.M{
 		{
 			"$group": bson.M{
-				"_id":                  "$ownerid",
+				"_id":                  "$ownerId",
 				"totalScore":           bson.M{"$sum": "$score"},
-				"contestsParticipated": bson.M{"$addToSet": "$contestid"},
+				"contestsParticipated": bson.M{"$addToSet": "$contestId"},
 			},
 		},
 		{
