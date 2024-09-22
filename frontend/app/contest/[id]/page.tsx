@@ -115,39 +115,49 @@ export default function ContestPage() {
         };
 
         try {
-            setSubmissions([...submissions, placeholderSubmission]);
+            setSubmissions((prevSubmissions) => 
+                Array.isArray(prevSubmissions) 
+                    ? [...prevSubmissions, placeholderSubmission]
+                    : [placeholderSubmission]
+            );
+            
             toast({
-                title: 'Submission successful',
-                description:
-                    'Your code has been submitted successfully. Please wait for the results.',
-                variant: 'success',
-                duration: 1000,
+                title: 'Submission in progress',
+                description: 'Your code is being submitted. Please wait for the results.',
+                variant: 'default',
+                duration: 3000,
             });
+
             const submissionResponse = await codeSubmit(submission, params.id);
+
             setSubmissions((prevSubmissions) =>
-                prevSubmissions
+                Array.isArray(prevSubmissions)
                     ? prevSubmissions.map((sub) =>
-                          sub === placeholderSubmission
-                              ? submissionResponse
-                              : sub
+                        sub === placeholderSubmission ? submissionResponse : sub
                       )
                     : [submissionResponse]
             );
+
+            toast({
+                title: 'Submission successful',
+                description: 'Your code has been submitted successfully.',
+                variant: 'success',
+                duration: 2000,
+            });
         } catch (error) {
-            setSubmissions((prevSubmissions) =>
-                prevSubmissions
-                    ? prevSubmissions.filter(
-                          (sub) => sub !== placeholderSubmission
-                      )
-                    : [{ ...placeholderSubmission, status: 'error' }]
-            );
             console.error('Submission failed:', error);
+
+            setSubmissions((prevSubmissions) =>
+                Array.isArray(prevSubmissions)
+                    ? prevSubmissions.filter((sub) => sub !== placeholderSubmission)
+                    : []
+            );
+
             toast({
                 title: 'Submission failed',
-                description:
-                    'There was an error submitting your code. Please try again.',
+                description: 'There was an error submitting your code. Please try again.',
                 variant: 'destructive',
-                duration: 2000,
+                duration: 3000,
             });
         }
     };
