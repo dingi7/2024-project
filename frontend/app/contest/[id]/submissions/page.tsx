@@ -25,7 +25,7 @@ interface Submission {
   status: string;
   score: number;
   language: string;
-  createdat: string;
+  createdAt: string;
   ownerName: string;
 }
 
@@ -70,7 +70,7 @@ export default function AllSubmissionsPage() {
         if (sortOrder === 'score') {
             return b.score - a.score; // Sort by score descending
         } else if (sortOrder === 'date') {
-            return new Date(b.createdat).getTime() - new Date(a.createdat).getTime(); // Sort by date descending
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(); // Sort by date descending
         } else if (sortOrder === 'status') {
             // Convert status to a comparable value
             const statusOrder = { 'pending': 0, 'success': 1, 'failed': 2 };
@@ -120,7 +120,7 @@ export default function AllSubmissionsPage() {
                                 <TableBody>
                                     {sortedSubmissions.map((submission) => (
                                         <TableRow key={submission._id}>
-                                            <TableCell>{new Date(submission.createdat).toLocaleString()}</TableCell>
+                                            <TableCell>{new Date(submission.createdAt).toLocaleString()}</TableCell>
                                             <TableCell>{submission.score !== null ? submission.score : '-'}</TableCell>
                                             <TableCell>
                                                 <Badge
