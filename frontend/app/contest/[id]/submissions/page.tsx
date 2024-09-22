@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { getContestById, getSubmissions } from '@/app/api/requests';
+import { getContestById, getSubmissionsByContestID } from '@/app/api/requests';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
@@ -46,7 +46,7 @@ export default function AllSubmissionsPage() {
             setLoading(true);
             const [contestResponse, submissionsResponse] = await Promise.all([
                 getContestById(params.id),
-                getSubmissions(params.id)
+                getSubmissionsByContestID(params.id)
             ]);
             setContest(contestResponse);
             setSubmissions(Array.isArray(submissionsResponse) ? submissionsResponse : []);

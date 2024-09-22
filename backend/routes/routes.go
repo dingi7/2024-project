@@ -25,7 +25,8 @@ func Setup(app *fiber.App, client *mongo.Client) {
 	// private routes
 	api.Use(middlewares.AuthMiddleware)
 	api.Post("/codeSubmit/:contestId", submissionHandler.CreateSubmission)
-	api.Get("/submissions/:contestId", submissionHandler.GetSubmissions)
+	api.Get("/submissions/:contestId", submissionHandler.GetSubmissionsByContestID)
+	api.Get("/submissions/:contestId/:ownerId", submissionHandler.GetSubmissionsByOwnerID)
 	api.Post("/contest", contestHandler.CreateContest)
 	api.Get("/contest/:id", contestHandler.GetContestById)
 	api.Put("/contest/:id", contestHandler.EditContest)

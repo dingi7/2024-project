@@ -71,15 +71,24 @@ func (h *SubmissionHandler) CreateSubmission(c *fiber.Ctx) error {
 
 }
 
-func (h *SubmissionHandler) GetSubmissions(c *fiber.Ctx) error {
-	userID := c.Locals("userID").(string)
+func (h *SubmissionHandler) GetSubmissionsByOwnerID(c *fiber.Ctx) error {
 	contestID := c.Params("contestId")
-
-	submissions, err := h.SubmissionService.GetSubmissionsByContestIDAndOwnerID(c.Context(), contestID, userID)
+	ownerID := c.Params("ownerId")
+	submissions, err := h.SubmissionService.GetSubmissionsByContestIDAndOwnerID(c.Context(), contestID, ownerID)
 
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error fetching submissions"})
 	}
 
+	return c.Status(fiber.StatusOK).JSON(submissions)
+}
+
+func (h *SubmissionHandler) GetSubmissionsByContestID(c *fiber.Ctx) error {
+	contestID := c.Params("contestId")
+
+	submissions, err := h.SubmissionService.GetSubmissionsByContestID(c.Context(), contestID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error fetching submissions"})
+	}
 	return c.Status(fiber.StatusOK).JSON(submissions)
 }

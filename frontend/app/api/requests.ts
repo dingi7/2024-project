@@ -10,7 +10,8 @@ export const endpoints = {
     deleteTestCase: (contestId: string, testCaseId: string) => `/contest/${contestId}/TestCases/${testCaseId}`,
     getContestById: (id: string) => `/contest/${id}`,
     deleteContest: (id: string) => `/contest/${id}`,
-    getSubmissions: (id: string) => `/submissions/${id}`,
+    getSubmissionsByContestID: (contestId: string) => `/submissions/${contestId}`,
+    getSubmissionsByOwnerID: (contestId: string, ownerId: string) => `/submissions/${contestId}/${ownerId}`,
     getLeaderboard: '/leaderboard',
     editContest: (id: string) => `/contest/${id}`,
 };
@@ -56,8 +57,12 @@ export const addTestCase = async (id: string, payload : any) => {
     return api.post(endpoints.addTestCase(id), payload);
 }
 
-export const getSubmissions = async (contestId: string) => {
-    return api.get(endpoints.getSubmissions(contestId));
+export const getSubmissionsByContestID = async (contestId: string) => {
+    return api.get(endpoints.getSubmissionsByContestID(contestId));
+}
+
+export const getSubmissionsByOwnerID = async (contestId: string, ownerId: string) => {
+    return api.get(endpoints.getSubmissionsByOwnerID(contestId, ownerId));
 }
 
 export const deleteTestCase = async (contestId: string, testCaseId: string) => {

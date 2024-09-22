@@ -83,37 +83,11 @@ func (s *SubmissionService) UpdateSubmission(ctx context.Context, id string, sub
 	return err
 }
 
-func (s *SubmissionService) GetSubmissionsByContestID(ctx context.Context, contestID string) ([]models.Submission, error) {
-	var submissions []models.Submission
-	cursor, err := s.SubmissionCollection.Find(ctx, bson.M{"contestID": contestID})
-	if err != nil {
-		return nil, err
-	}
-	defer cursor.Close(ctx)
-	if err := cursor.All(ctx, &submissions); err != nil {
-		return nil, err
-	}
-	return submissions, nil
-}
-
-func (s *SubmissionService) GetSubmissionsByOwnerID(ctx context.Context, ownerID string) ([]models.Submission, error) {
-	var submissions []models.Submission
-	cursor, err := s.SubmissionCollection.Find(ctx, bson.M{"ownerID": ownerID})
-	if err != nil {
-		return nil, err
-	}
-	defer cursor.Close(ctx)
-	if err := cursor.All(ctx, &submissions); err != nil {
-		return nil, err
-	}
-	return submissions, nil
-}
-
-func (s *SubmissionService) GetSubmissionsByContestIDAndOwnerID(ctx context.Context, contestID, ownerID string) ([]bson.M, error) {
-	fmt.Printf("Querying for contestID: %s, ownerID: %s\n", contestID, ownerID)
+func (s *SubmissionService) GetSubmissionsByContestID(ctx context.Context, contestID string) ([]bson.M, error) {
+	fmt.Printf("Querying for contestID: %s\n", contestID)
 
 	pipeline := mongo.Pipeline{
-		{{Key: "$match", Value: bson.M{"contestId": contestID, "ownerId": ownerID}}},
+		{{Key: "$match", Value: bson.M{"contestId": contestID}}},
 		{{Key: "$lookup", Value: bson.M{
 			"from":         "users",
 			"localField":   "ownerId",
@@ -146,6 +120,41 @@ func (s *SubmissionService) GetSubmissionsByContestIDAndOwnerID(ctx context.Cont
 		fmt.Printf("Error in cursor.All: %v\n", err)
 		return nil, err
 	}
+	fmt.Printf("Found %d submissions\n", len(submissions))
+	return submissions, nil
+}
+
+func (s *SubmissionService) GetSubmissionsByOwnerID(ctx context.Context, ownerID string) ([]models.Submission, error) {
+	var submissions []models.Submission
+	cursor, err := s.SubmissionCollection.Find(ctx, bson.M{"ownerID": ownerID})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+	if err := cursor.All(ctx, &submissions); err != nil {
+		return nil, err
+	}
+	return submissions, nil
+}
+
+func (s *SubmissionService) GetSubmissionsByContestIDAndOwnerID(ctx context.Context, contestID, ownerID string) ([]models.Submission, error) {
+	fmt.Printf("Querying for contestID: %s, ownerID: %s\n", contestID, ownerID)
+
+	filter := bson.M{"contestId": contestID, "ownerId": ownerID}
+
+	cursor, err := s.SubmissionCollection.Find(ctx, filter)
+	if err != nil {
+		fmt.Printf("Error in Find: %v\n", err)
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var submissions []models.Submission
+	if err := cursor.All(ctx, &submissions); err != nil {
+		fmt.Printf("Error in cursor.All: %v\n", err)
+		return nil, err
+	}
+
 	fmt.Printf("Found %d submissions\n", len(submissions))
 	return submissions, nil
 }
