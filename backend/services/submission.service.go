@@ -113,22 +113,22 @@ func (s *SubmissionService) GetSubmissionsByContestIDAndOwnerID(ctx context.Cont
 	fmt.Printf("Querying for contestID: %s, ownerID: %s\n", contestID, ownerID)
 
 	pipeline := mongo.Pipeline{
-		{{Key: "$match", Value: bson.M{"contestid": contestID, "ownerid": ownerID}}},
+		{{Key: "$match", Value: bson.M{"contestId": contestID, "ownerId": ownerID}}},
 		{{Key: "$lookup", Value: bson.M{
 			"from":         "users",
-			"localField":   "ownerid",
+			"localField":   "ownerId",
 			"foreignField": "_id",
 			"as":           "owner",
 		}}},
 		{{Key: "$unwind", Value: "$owner"}},
 		{{Key: "$project", Value: bson.M{
 			"_id":        1,
-			"contestid":  1,
-			"ownerid":    1,
+			"contestId":  1,
+			"ownerId":    1,
 			"language":   1,
 			"status":     1,
 			"score":      1,
-			"createdat":  1,
+			"createdAt":  1,
 			"ownerName":  "$owner.name",
 			"ownerEmail": "$owner.email",
 		}}},

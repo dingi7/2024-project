@@ -17,10 +17,10 @@ type Contest struct {
 	Title        string     `json:"title" validate:"required"`
 	Description  string     `json:"description" validate:"required"`
 	Language     string     `json:"language" validate:"required"`
-	StartDate    string     `json:"startDate" validate:"required"`
-	EndDate      string     `json:"endDate" validate:"required"`
+	StartDate    string     `json:"startDate" bson:"startDate" validate:"required"`
+	EndDate      string     `json:"endDate" bson:"endDate" validate:"required"`
 	Prize        string     `json:"prize,omitempty" bson:"prize,omitempty"`
-	OwnerID      string     `json:"ownerID" bson:"ownerid" validate:"required"`
+	OwnerID      string     `json:"ownerID" bson:"ownerId" validate:"required"`
 	TestCases    []TestCase `json:"testCases" bson:"testCases" validate:"dive,required"`
 	CreatedAt    time.Time  `json:"createdAt" bson:"createdAt"`
 	ContestRules []byte     `json:"contestRules" bson:"contestRules"`

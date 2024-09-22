@@ -10,6 +10,16 @@ import { deleteContest } from '@/app/api/requests';
 import { useToast } from '@/components/ui/use-toast';
 import { useRouter } from 'next/navigation';
 
+type Props = {
+    contest: Contest;
+    isOwner: boolean;
+    setContest: (contest: Contest) => void;
+    isEditEnabled: boolean;
+    setIsEditEnabled: (isEditEnabled: boolean) => void;
+    onEdit: (updatedContest: Contest) => void;
+    contestRules: string | null;
+};
+
 const ContestDetails = ({
     contest,
     isOwner,
@@ -18,19 +28,11 @@ const ContestDetails = ({
     setIsEditEnabled,
     onEdit,
     contestRules,
-}: {
-    contest: Contest;
-    setContest: (contest: Contest) => void;
-    isOwner: boolean;
-    isEditEnabled: boolean;
-    setIsEditEnabled: (isEditEnabled: boolean) => void;
-    onEdit: (updatedContest: any) => void;
-    contestRules: string | null;
-}) => {
-    const [rulesFile, setRulesFile] = useState<File | null>(null);
-
+}: Props) => {
     const { toast } = useToast();
     const router = useRouter();
+
+    const [rulesFile, setRulesFile] = useState<File | null>(null);
 
     const handleEditContest = (e: any) => {
         e.preventDefault();
@@ -41,19 +43,14 @@ const ContestDetails = ({
             startDate: e.target.startDate.value,
             endDate: e.target.endDate.value,
             prize: e.target.prize.value,
-            rulesFile,
         });
     };
 
-    const handleRulesFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files.length > 0) {
-            setRulesFile(e.target.files[0]);
-        }
-    };
-
-    const handleSaveChanges = () => {
-        setIsEditEnabled(false);
-    };
+    // const handleRulesFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    //     if (e.target.files && e.target.files.length > 0) {
+    //         setRulesFile(e.target.files[0]);
+    //     }
+    // };
 
     const updateTestCases = (testCase: TestCase, action: 'delete' | 'add') => {
         if (action === 'add') {
@@ -71,19 +68,19 @@ const ContestDetails = ({
         }
     };
 
-    const handleDeleteContest = async () => {
+    const deleteContestPopup = async () => {
         toast({
             title: 'Delete Contest',
             description: 'Are you sure you want to delete this contest?',
             action: (
-                <Button variant='destructive' onClick={confirmDelete}>
+                <Button variant='destructive' onClick={confirmDeleteContest}>
                     Delete
                 </Button>
             ),
         });
     };
 
-    const confirmDelete = async () => {
+    const confirmDeleteContest = async () => {
         try {
             await deleteContest(contest.id);
             toast({
@@ -120,7 +117,9 @@ const ContestDetails = ({
                 </div>
                 {contestRules && (
                     <div>
-                        <h3 className='text-sm font-medium mb-1'>Contest Rules</h3>
+                        <h3 className='text-sm font-medium mb-1'>
+                            Contest Rules
+                        </h3>
                         <Button
                             variant='link'
                             onClick={() => window.open(contestRules, '_blank')}
@@ -136,7 +135,7 @@ const ContestDetails = ({
                     <Button onClick={() => setIsEditEnabled(!isEditEnabled)}>
                         {isEditEnabled ? 'Cancel Edit' : 'Edit Contest'}
                     </Button>
-                    <Button variant='destructive' onClick={handleDeleteContest}>
+                    <Button variant='destructive' onClick={deleteContestPopup}>
                         Delete Contest
                     </Button>
                 </div>
@@ -199,7 +198,7 @@ const ContestDetails = ({
                                 required
                             />
                         </div>
-                        <div className='mt-4'>
+                        {/* <div className='mt-4'>
                             <Label htmlFor='rulesFile'>
                                 Contest Rules (PDF)
                             </Label>
@@ -226,7 +225,7 @@ const ContestDetails = ({
                                     New file selected: {rulesFile.name}
                                 </p>
                             )}
-                        </div>
+                        </div> */}
                         <ContestTestCases
                             contestId={contest.id}
                             dbTestCases={contest.testCases}
@@ -235,7 +234,7 @@ const ContestDetails = ({
                         <Button
                             type='submit'
                             className='mt-4'
-                            onClick={handleSaveChanges}
+                            onClick={() => setIsEditEnabled(false)}
                         >
                             Save Changes
                         </Button>

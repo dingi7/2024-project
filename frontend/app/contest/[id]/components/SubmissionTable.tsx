@@ -16,19 +16,34 @@ import {
     SelectContent,
     SelectItem,
 } from '@/components/ui/select';
+import { Submission } from '@/lib/types';
 
 type Props = {
-    submissions: any[];
-    filterOptions: any;
-    onFilterChange: (filters: any) => void;
+    submissions: Submission[];
+    filterOptions: {
+        status: string;
+        sortBy: string;
+        order: string;
+    };
+    onFilterChange: (filter: {
+        status: string;
+        sortBy: string;
+        order: string;
+    }) => void;
 };
 
-const SubmissionTable = ({ submissions, filterOptions, onFilterChange }: Props) => {
+const SubmissionTable = ({
+    submissions,
+    filterOptions,
+    onFilterChange,
+}: Props) => {
     return (
         <div>
             <h2 className='text-lg font-medium mb-4'>Your Submissions</h2>
             <div className='mb-4'>
-                <Label htmlFor='status' className='mr-2'>Filter by status:</Label>
+                <Label htmlFor='status' className='mr-2'>
+                    Filter by status:
+                </Label>
                 <Select
                     value={filterOptions.status}
                     onValueChange={(value) =>
@@ -47,7 +62,9 @@ const SubmissionTable = ({ submissions, filterOptions, onFilterChange }: Props) 
                 </Select>
             </div>
             <div className='mb-4'>
-                <Label htmlFor='sortBy' className='mr-2'>Sort by:</Label>
+                <Label htmlFor='sortBy' className='mr-2'>
+                    Sort by:
+                </Label>
                 <Select
                     value={filterOptions.sortBy}
                     onValueChange={(value) =>
@@ -86,25 +103,49 @@ const SubmissionTable = ({ submissions, filterOptions, onFilterChange }: Props) 
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {submissions.sort((a, b) => new Date(b.createdat).getTime() - new Date(a.createdat).getTime()).map((submission) => (
-                        submission ? (
-                            <TableRow key={submission.id}>
-                                <TableCell>{new Date(submission.createdat).toISOString().split('T')[0]}</TableCell>
-                                <TableCell>
-                                    <Badge
-                                        variant={
-                                            submission.status.toString() == "pending" ? "outline" : submission.status ? 'success' : 'failure'
+                    {submissions
+                        .sort(
+                            (a, b) =>
+                                new Date(b.createdAt).getTime() -
+                                new Date(a.createdAt).getTime()
+                        )
+                        .map((submission) =>
+                            submission ? (
+                                <TableRow key={submission._id}>
+                                    <TableCell>
+                                        {
+                                            new Date(submission.createdAt)
+                                                .toISOString()
+                                                .split('T')[0]
                                         }
-                                    >
-                                        {submission.status.toString() == "pending" ? "Pending" :  submission.status ? 'Passed' : 'Failed'}
-                                    </Badge>
-                                </TableCell>
-                                <TableCell>
-                                    {submission.score !== null ? submission.score : '-'}
-                                </TableCell>
-                            </TableRow>
-                        ) : null
-                    ))}
+                                    </TableCell>
+                                    <TableCell>
+                                        <Badge
+                                            variant={
+                                                submission.status.toString() ==
+                                                'pending'
+                                                    ? 'outline'
+                                                    : submission.status
+                                                    ? 'success'
+                                                    : 'failure'
+                                            }
+                                        >
+                                            {submission.status.toString() ==
+                                            'pending'
+                                                ? 'Pending'
+                                                : submission.status
+                                                ? 'Passed'
+                                                : 'Failed'}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell>
+                                        {submission.score !== null
+                                            ? submission.score
+                                            : '-'}
+                                    </TableCell>
+                                </TableRow>
+                            ) : null
+                        )}
                 </TableBody>
             </Table>
         </div>

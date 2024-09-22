@@ -49,7 +49,7 @@ const ContestTestCases: React.FC<ContestTestCasesProps> = ({
         deleteTestCase(contestId, testCase.id.toString());
         setTestCases(testCases.filter((test) => test.id !== testCase.id));
         saveContestTestCase(testCase, 'delete');
-    };
+    }; 
 
     const handleInputChange = (
         id: number,

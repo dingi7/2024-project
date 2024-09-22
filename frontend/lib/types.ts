@@ -42,4 +42,18 @@ export interface Contest {
     testCases: TestCase[];
     createdAt: string;
     contestRules: string;
+    contestRulesBlob: string | null;
 }
+
+export type Submission = {
+    _id: string;
+    contestId: string;
+    createdAt: string;
+    language: string;
+    ownerName: string;
+    ownerEmail: string;
+    ownerId: string;
+    score: number;
+    status: string;
+}
+

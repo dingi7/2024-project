@@ -2,11 +2,11 @@ package models
 
 type Submission struct {
 	ID        string  `json:"id,omitempty" bson:"_id,omitempty"`
-	ContestID string  `json:"contestID" validate:"required"`
-	OwnerID   string  `json:"userID" validate:"required"`
+	ContestID string  `json:"contestID" bson:"contestId" validate:"required"`
+	OwnerID   string  `json:"userID" bson:"ownerId" validate:"required"`
 	Code      string  `json:"code" validate:"required"`
 	Status    bool    `json:"status" validate:"required"`
 	Score     float64 `json:"score"`
-	CreatedAt string  `json:"createdAt" validate:"required"`
+	CreatedAt string  `json:"createdAt" bson:"createdAt" validate:"required"`
 	Language  string  `json:"language"`
 }
