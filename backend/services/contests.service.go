@@ -9,6 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type ContestService struct {
@@ -109,19 +110,45 @@ func (s *ContestService) AddTestCase(ctx context.Context, id string, testCase *m
 }
 
 func (s *ContestService) UpdateTestCase(ctx context.Context, id string, testCase *models.TestCase) error {
+	// Convert the contest ID from hex to ObjectID
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return err
 	}
-	query := bson.M{"_id": objectID}
+
+	// Define the filter to locate the specific contest
+	filter := bson.M{"_id": objectID}
+
+	// Define the update to set the input and output of the specific test case
 	update := bson.M{
 		"$set": bson.M{
-			"testCases.$[testCase].input":  testCase.Input,
-			"testCases.$[testCase].output": testCase.Output,
+			"testCases.$[tc].input":  testCase.Input,
+			"testCases.$[tc].output": testCase.Output,
 		},
 	}
-	_, err = s.ContestCollection.UpdateOne(ctx, query, update)
-	return err
+
+	// Define array filters to target the specific test case by its ID
+	arrayFilters := options.ArrayFilters{
+		Filters: []interface{}{
+			bson.M{"tc._id": testCase.ID},
+		},
+	}
+
+	// Set the array filters option
+	opts := options.Update().SetArrayFilters(arrayFilters)
+
+	// Perform the update operation
+	result, err := s.ContestCollection.UpdateOne(ctx, filter, update, opts)
+	if err != nil {
+		return err
+	}
+
+	// Check if any document was modified
+	if result.ModifiedCount == 0 {
+		return errors.New("test case not found or no changes made")
+	}
+
+	return nil
 }
 
 func (s *ContestService) DeleteTestCase(ctx context.Context, id string, testCaseId string) error {

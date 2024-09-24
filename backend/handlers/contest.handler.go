@@ -173,6 +173,8 @@ func (h *ContestHandler) EditContest(c *fiber.Ctx) error {
 
 	// Parse the multipart form data
 	form, err := c.MultipartForm()
+	fmt.Println("Form parsed")
+	fmt.Println(form)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Failed to parse form data"})
 	}
@@ -208,9 +210,7 @@ func (h *ContestHandler) EditContest(c *fiber.Ctx) error {
 	if prize, err := getFormValue(form, "prize"); err == nil {
 		existingContest.Prize = prize
 	}
-
-	// Handle contest rules file update
-	if files, ok := form.File["contestRules[0]"]; ok && len(files) > 0 {
+	if files, ok := form.File["contestRules"]; ok && len(files) > 0 {
 		fileHeader := files[0]
 		file, err := fileHeader.Open()
 		if err != nil {
@@ -224,6 +224,7 @@ func (h *ContestHandler) EditContest(c *fiber.Ctx) error {
 		}
 
 		existingContest.ContestRules = pdfData
+		fmt.Println("Contest rules updated")
 	}
 
 	// Validate updated contest data

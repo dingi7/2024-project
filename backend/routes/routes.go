@@ -32,5 +32,7 @@ func Setup(app *fiber.App, client *mongo.Client) {
 	api.Put("/contest/:id", contestHandler.EditContest)
 	api.Delete("/contest/:id", contestHandler.DeleteContest)
 	api.Post("/contest/:id/TestCases", contestHandler.AddTestCase)
+	api.Put("/contest/:id/TestCases", contestHandler.UpdateTestCase)
 	api.Delete("/contest/:contestId/TestCases/:testCaseId", contestHandler.DeleteTestCase)
+	
 }

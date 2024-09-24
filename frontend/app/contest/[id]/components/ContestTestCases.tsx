@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Pencil, Trash2, Plus } from 'lucide-react';
 import { TestCase } from '@/lib/types';
-import { addTestCase, deleteTestCase } from '@/app/api/requests';
+import { addTestCase, deleteTestCase, editTestCase } from '@/app/api/requests';
 
 // optimize test cases adding
 
@@ -38,11 +38,16 @@ const ContestTestCases: React.FC<ContestTestCasesProps> = ({
     });
 
     const handleEdit = (id: number) => {
+
         setEditingId(id);
     };
 
     const handleSave = (id: number) => {
         setEditingId(null);
+        const savedTestCase = testCases.find((test) => test.id === id);
+        if (savedTestCase) {
+            editTestCase(contestId, savedTestCase);
+        }
     };
 
     const handleDelete = (testCase: TestCase) => {
