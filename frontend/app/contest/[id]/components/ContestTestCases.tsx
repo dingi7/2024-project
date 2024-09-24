@@ -49,8 +49,7 @@ const ContestTestCases: React.FC<ContestTestCasesProps> = ({
         deleteTestCase(contestId, testCase.id.toString());
         setTestCases(testCases.filter((test) => test.id !== testCase.id));
         saveContestTestCase(testCase, 'delete');
-    }; 
-
+    };
     const handleInputChange = (
         id: number,
         field: keyof TestCase,
@@ -156,17 +155,19 @@ const ContestTestCases: React.FC<ContestTestCasesProps> = ({
                                 <div className='flex-col flex justify-center items-center gap-2'>
                                     {editingId === testCase.id ? (
                                         <Button
-                                            onClick={() =>
-                                                handleSave(testCase.id)
-                                            }
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                handleSave(testCase.id);
+                                            }}
                                         >
                                             Save
                                         </Button>
                                     ) : (
                                         <Button
-                                            onClick={() =>
-                                                handleEdit(testCase.id)
-                                            }
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                handleEdit(testCase.id);
+                                            }}
                                         >
                                             <Pencil className='h-4 w-4' />
                                         </Button>

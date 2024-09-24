@@ -4,6 +4,7 @@ import (
 	"backend/models"
 	"backend/util"
 	"bytes"
+
 	"encoding/json"
 	"fmt"
 	"log"
@@ -34,23 +35,8 @@ func createTempFile(content string, extension string) (string, error) {
 	return tmpfile.Name(), nil
 }
 
-func executeCode(solution Solution, inputs []string) (string, error) {
-	extension := ""
-	modifiedCode := solution.Code
-	switch solution.Language {
-	case "Python":
-		extension = "py"
-		modifiedCode = util.ModifyPythonCode(solution.Code)
-	case "JavaScript":
-		extension = "js"
-		modifiedCode = util.ModifyJSCode(solution.Code)
-	case "Java":
-		extension = "java"
-	case "C++":
-		extension = "cpp"
-	case "C#":
-		extension = "cs"
-	}
+func executeCode(solution Solution, inputString string) (string, error) {
+	extension, modifiedCode := util.GetFileExtension(solution.Language, solution.Code)
 
 	codeFile, err := createTempFile(modifiedCode, extension)
 	if err != nil {
@@ -58,35 +44,7 @@ func executeCode(solution Solution, inputs []string) (string, error) {
 	}
 	defer exec.Command("rm", codeFile).Run() // Cleanup temp file
 
-	// Docker command to run the code inside a container
-	var inputArgs []string
-	for _, input := range inputs {
-		inputArgs = append(inputArgs, fmt.Sprintf("'%s'", input))
-	}
-	inputString := strings.Join(inputArgs, " ")
-
-	cmdArgs := []string{"run", "--rm", "-v", codeFile + ":/app/code." + extension, "python:3.8", "bash", "-c", fmt.Sprintf("python /app/code.py %s", inputString)}
-	switch solution.Language {
-	case "JavaScript":
-		cmdArgs = []string{"run", "--rm", "-v", codeFile + ":/app/code.js", "node:14", "bash", "-c", fmt.Sprintf("node /app/code.js %s", inputString)}
-	case "Java":
-		cmdArgs = []string{"run", "--rm", "-v", codeFile + ":/app/code.java", "openjdk:11", "bash", "-c", fmt.Sprintf("javac /app/code.java && java -cp /app/ code %s", inputString)}
-	case "C++":
-		cmdArgs = []string{"run", "--rm", "-v", codeFile + ":/app/code.cpp", "gcc:latest", "bash", "-c", fmt.Sprintf("g++ /app/code.cpp -o /app/a.out && ./app/a.out %s", inputString)}
-	case "C#":
-		cmdArgs = []string{
-			"run", "--rm",
-			"-v", codeFile + ":/code/Program.cs",
-			"mcr.microsoft.com/dotnet/sdk:6.0",
-			"bash", "-c",
-			fmt.Sprintf(
-				"mkdir /app && cd /app && dotnet new console -n MyProject && mv /code/Program.cs /app/MyProject/Program.cs && dotnet run --project /app/MyProject %s",
-				inputString,
-			),
-		}
-	case "Python":
-		cmdArgs = []string{"run", "--rm", "-v", codeFile + ":/app/code.py", "python:3.8", "bash", "-c", fmt.Sprintf("python /app/code.py %s", inputString)}
-	}
+	cmdArgs := util.GetDockerCommand(solution.Language, codeFile, inputString)
 
 	cmd := exec.Command("docker", cmdArgs...)
 	fmt.Printf("Running command: %v\n", cmd.Args)
@@ -112,6 +70,7 @@ func executeCode(solution Solution, inputs []string) (string, error) {
 }
 
 func RunTestCases(language string, code string, testCases []models.TestCase) (int, []byte, int, bool, error) {
+	
 	// Handle case with no test cases
 	if len(testCases) == 0 {
 		return fiber.StatusOK, []byte("[]"), 100, true, nil
@@ -125,11 +84,7 @@ func RunTestCases(language string, code string, testCases []models.TestCase) (in
 	var allResults []map[string]interface{}
 
 	for _, testCase := range testCases {
-		inputs := strings.Split(testCase.Input, ",")
-		for i, input := range inputs {
-			inputs[i] = strings.TrimSpace(input)
-		}
-		output, err := executeCode(solution, inputs)
+		output, err := executeCode(solution, strings.TrimSpace(testCase.Input))
 		if err != nil {
 			log.Printf("Error executing code for test case: %v", err)
 			return fiber.StatusInternalServerError, nil, 0, false, err
@@ -139,8 +94,11 @@ func RunTestCases(language string, code string, testCases []models.TestCase) (in
 
 		trimmedExpected := strings.TrimSpace(testCase.Output)
 		trimmedOutput := strings.TrimSpace(output)
+		fmt.Println("trimmedOutput: ", trimmedOutput)
+		fmt.Println("trimmedExpected: ", trimmedExpected)
 
 		passed := trimmedOutput == trimmedExpected
+		fmt.Println("passed: ", passed)
 
 		result := map[string]interface{}{
 			"passed":   passed,
@@ -166,6 +124,6 @@ func RunTestCases(language string, code string, testCases []models.TestCase) (in
 		log.Printf("Error marshaling results to JSON: %v", err)
 		return fiber.StatusInternalServerError, nil, 0, false, err
 	}
-
+	fmt.Println(jsonResult)
 	return fiber.StatusOK, jsonResult, int(scorePercentage), passed, nil
 }
