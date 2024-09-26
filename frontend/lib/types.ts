@@ -43,7 +43,6 @@ export interface Contest {
     testCases: TestCase[];
     createdAt: string;
     contestRules: string;
-    contestRulesBlob: string | null;
 }
 
 export type Submission = {

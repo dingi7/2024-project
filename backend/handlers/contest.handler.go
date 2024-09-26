@@ -210,7 +210,8 @@ func (h *ContestHandler) EditContest(c *fiber.Ctx) error {
 	if prize, err := getFormValue(form, "prize"); err == nil {
 		existingContest.Prize = prize
 	}
-	if files, ok := form.File["contestRules"]; ok && len(files) > 0 {
+
+	if files, ok := form.File["contestRules[0]"]; ok && len(files) > 0 {
 		fileHeader := files[0]
 		file, err := fileHeader.Open()
 		if err != nil {

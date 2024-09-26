@@ -16,7 +16,6 @@ import {
 import { useParams } from "next/navigation";
 import {
   Contest,
-  ContestSolution,
   PlaceholderSubmission,
   Submission,
 } from "@/lib/types";

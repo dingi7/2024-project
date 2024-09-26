@@ -9,6 +9,9 @@ import { Contest, TestCase } from '@/lib/types';
 import { deleteContest } from '@/app/api/requests';
 import { useToast } from '@/components/ui/use-toast';
 import { useRouter } from 'next/navigation';
+import ContestEditForm from './ContestEditForm';
+
+
 
 type Props = {
     contest: Contest;
@@ -104,6 +107,7 @@ const ContestDetails = ({
             <h1 className='text-2xl font-bold mb-4'>{contest.title}</h1>
             <p className='text-muted-foreground mb-4'>{contest.description}</p>
             <div className='grid grid-cols-2 gap-4 mb-4'>
+                
                 <div>
                     <h3 className='text-sm font-medium mb-1'>Start Date</h3>
                     <p>{formatDate(contest.startDate)}</p>
@@ -141,106 +145,7 @@ const ContestDetails = ({
                     </Button>
                 </div>
             )}
-            {isOwner && isEditEnabled && (
-                <div className='mt-8'>
-                    <h2 className='text-lg font-medium mb-4'>Edit Contest</h2>
-                    <form onSubmit={handleEditContest}>
-                        <div className='grid grid-cols-2 gap-4 mb-4'>
-                            <div>
-                                <Label htmlFor='title'>Title</Label>
-                                <Input
-                                    id='title'
-                                    defaultValue={contest.title}
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <Label htmlFor='description'>Description</Label>
-                                <Textarea
-                                    id='description'
-                                    defaultValue={contest.description}
-                                    required
-                                />
-                            </div>
-                        </div>
-                        <div className='grid grid-cols-2 gap-4 mb-4'>
-                            <div>
-                                <Label htmlFor='startDate'>Start Date</Label>
-                                <Input
-                                    id='startDate'
-                                    type='date'
-                                    value={
-                                        new Date(contest.startDate)
-                                            .toISOString()
-                                            .split('T')[0]
-                                    }
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <Label htmlFor='endDate'>End Date</Label>
-                                <Input
-                                    id='endDate'
-                                    type='date'
-                                    value={
-                                        new Date(contest.endDate)
-                                            .toISOString()
-                                            .split('T')[0]
-                                    }
-                                    required
-                                />
-                            </div>
-                        </div>
-                        <div>
-                            <Label htmlFor='prize'>Prize</Label>
-                            <Input
-                                id='prize'
-                                defaultValue={contest.prize}
-                                required
-                            />
-                        </div>
-                        <div className='mt-4'>
-                            <Label htmlFor='rulesFile'>
-                                Contest Rules (PDF)
-                            </Label>
-                            <div className='flex items-center gap-2'>
-                                <Input
-                                    id='rulesFile'
-                                    type='file'
-                                    onChange={handleRulesFileChange}
-                                    accept='.pdf'
-                                />
-                                {contestRules && (
-                                    <Button
-                                        variant='outline'
-                                        onClick={() =>
-                                            window.open(contestRules, '_blank')
-                                        }
-                                    >
-                                        View Current
-                                    </Button>
-                                )}
-                            </div>
-                            {rulesFile && (
-                                <p className='text-sm text-muted-foreground mt-1'>
-                                    New file selected: {rulesFile.name}
-                                </p>
-                            )}
-                        </div>
-                        <ContestTestCases
-                            contestId={contest.id}
-                            dbTestCases={contest.testCases}
-                            saveContestTestCase={updateTestCases}
-                        />
-                        <Button
-                            type='submit'
-                            className='mt-4'
-                        >
-                            Save Changes
-                        </Button>
-                    </form>
-                </div>
-            )}
+            {isOwner && isEditEnabled && <ContestEditForm contest={contest} onEdit={onEdit} updateTestCases={updateTestCases} />}
         </div>
     );
 };
