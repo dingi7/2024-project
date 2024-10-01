@@ -2,16 +2,26 @@
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
+import { getUserAttendedContests} from "../api/requests"
+import { Contest } from "@/lib/types";
 
-const badges = ["Python", "JavaScript", "C#", "Java", "Top 10"];
 
 export default function Component() {
   const { data: session } = useSession();
   const user = session?.user;
+  const [contests, setContests] = useState<Contest[]>([]);
 
+  useEffect(() => {
+    const fetchContests = async () => {
+      if (!user?.id) return;
+      const contests = await getUserAttendedContests(user.id);
+      setContests(contests);
+    };
+    fetchContests();
+  }, [user?.id]);
   return (
     <div className="w-full max-w-5xl mx-auto py-8 px-4 md:px-6 flex flex-col flex-1">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -68,101 +78,27 @@ export default function Component() {
             </Link>
           </div>
           <div className="grid gap-4">
-            <div className="grid grid-cols-[auto_1fr_auto] items-center gap-4">
+            {contests.map((contest: Contest) => {
+              return (
+                <div className="grid grid-cols-[auto_1fr_auto] items-center gap-4">
               <div className="bg-muted rounded-md flex items-center justify-center aspect-square w-10">
                 <TrophyIcon className="w-5 h-5 text-muted-foreground" />
               </div>
               <div>
-                <div className="font-medium">Global Hackathon 2023</div>
+                <div className="font-medium">{contest.title}</div>
                 <div className="text-sm text-muted-foreground">
-                  June 1, 2023
+                  {new Date(contest.startDate).toLocaleDateString()}
+                  </div>
                 </div>
+                <Button variant="default">
+                  <Link href={`/contest/${contest.id}`}>View Contest</Link>
+                </Button>
               </div>
-              <div className="text-sm font-medium text-primary">Rank: 32</div>
-            </div>
-            <div className="grid grid-cols-[auto_1fr_auto] items-center gap-4">
-              <div className="bg-muted rounded-md flex items-center justify-center aspect-square w-10">
-                <TrophyIcon className="w-5 h-5 text-muted-foreground" />
-              </div>
-              <div>
-                <div className="font-medium">Acme Coding Challenge</div>
-                <div className="text-sm text-muted-foreground">
-                  April 15, 2023
-                </div>
-              </div>
-              <div className="text-sm font-medium text-primary">Rank: 18</div>
-            </div>
-            <div className="grid grid-cols-[auto_1fr_auto] items-center gap-4">
-              <div className="bg-muted rounded-md flex items-center justify-center aspect-square w-10">
-                <TrophyIcon className="w-5 h-5 text-muted-foreground" />
-              </div>
-              <div>
-                <div className="font-medium">Hacktoberfest 2022</div>
-                <div className="text-sm text-muted-foreground">
-                  October 1, 2022
-                </div>
-              </div>
-              <div className="text-sm font-medium text-primary">Rank: 45</div>
-            </div>
-          </div>
-        </div>
-        <div className="bg-background rounded-lg border p-6 col-span-2">
-          <div className="grid gap-4">
-            <div className="grid grid-cols-[auto_1fr_auto] items-center gap-4">
-              <div className="bg-muted rounded-md flex items-center justify-center aspect-square w-10">
-                <CalendarIcon className="w-5 h-5 text-muted-foreground" />
-              </div>
-              <div>
-                <div className="font-medium">Acme Coding Challenge</div>
-                <div className="text-sm text-muted-foreground">
-                  A coding challenge for Acme Inc employees.
-                </div>
-              </div>
-              <Button>View Contest</Button>
-            </div>
-            <div className="grid grid-cols-[auto_1fr_auto] items-center gap-4">
-              <div className="bg-muted rounded-md flex items-center justify-center aspect-square w-10">
-                <CalendarIcon className="w-5 h-5 text-muted-foreground" />
-              </div>
-              <div>
-                <div className="font-medium">Hackathon 2023</div>
-                <div className="text-sm text-muted-foreground">
-                  A 24-hour hackathon for developers.
-                </div>
-              </div>
-              <Button>View Contest</Button>
-            </div>
-            <div className="grid grid-cols-[auto_1fr_auto] items-center gap-4">
-              <div className="bg-muted rounded-md flex items-center justify-center aspect-square w-10">
-                <CalendarIcon className="w-5 h-5 text-muted-foreground" />
-              </div>
-              <div>
-                <div className="font-medium">Coding Competition</div>
-                <div className="text-sm text-muted-foreground">
-                  A monthly coding competition for students.
-                </div>
-              </div>
-              <Button>View Contest</Button>
-            </div>
-          </div>
-        </div>
-        <div className="bg-background rounded-lg border p-6">
-          <h2 className="text-lg font-medium mb-4">Badges</h2>
-          <div className="flex flex-wrap gap-3">
-            {badges.map((badge, index) => (
-              <BadgeDiv key={index}>{badge}</BadgeDiv>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-function BadgeDiv({ children, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div {...props} className="align-middle">
-      <Badge className="bg-primary text-primary-foreground">{children}</Badge>
     </div>
   );
 }

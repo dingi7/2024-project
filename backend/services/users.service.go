@@ -3,20 +3,26 @@ package services
 import (
 	"backend/models"
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type UserService struct {
-	UserCollection *mongo.Collection
+	UserCollection       *mongo.Collection
+	ContestCollection    *mongo.Collection
+	SubmissionCollection *mongo.Collection
 }
 
 func NewUserService(client *mongo.Client) *UserService {
 	return &UserService{
-		UserCollection: client.Database("contestify").Collection("users"),
+		UserCollection:       client.Database("contestify").Collection("users"),
+		ContestCollection:    client.Database("contestify").Collection("contests"),
+		SubmissionCollection: client.Database("contestify").Collection("submissions"),
 	}
 }
 
@@ -60,4 +66,55 @@ func (s *UserService) CreateAccessToken(user models.User) (string, error) {
 		return "", err
 	}
 	return accessToken, nil
+}
+
+func (s *UserService) GetUsersAttendedContests(ctx context.Context, userID string) ([]models.Contest, error) {
+	var submissions []models.Submission
+	cursor, err := s.SubmissionCollection.Find(ctx, bson.M{"ownerId": userID})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+	if err := cursor.All(ctx, &submissions); err != nil {
+		return nil, err
+	}
+	// Log the contest IDs
+	fmt.Println("Contest IDs for user", userID)
+	for _, submission := range submissions {
+		fmt.Printf("ContestID: %s\n", submission.ContestID)
+	}
+
+	// Create a slice to store unique contest IDs
+	contestIDs := make(map[string]bool)
+	for _, submission := range submissions {
+		contestIDs[submission.ContestID] = true
+	}
+
+	// Create a slice to store the contests
+	var contests []models.Contest
+
+	// Iterate through unique contest IDs
+	for contestID := range contestIDs {
+		// Convert string ID to ObjectID
+		objectID, err := primitive.ObjectIDFromHex(contestID)
+		if err != nil {
+			return nil, fmt.Errorf("invalid contest ID: %v", err)
+		}
+
+		// Find the contest by ID
+		var contest models.Contest
+		err = s.ContestCollection.FindOne(ctx, bson.M{"_id": objectID}).Decode(&contest)
+		if err != nil {
+			if err == mongo.ErrNoDocuments {
+				// Skip this contest if it doesn't exist
+				continue
+			}
+			return nil, fmt.Errorf("error fetching contest: %v", err)
+		}
+
+		// Add the contest to the slice
+		contests = append(contests, contest)
+	}
+
+	return contests, nil
 }

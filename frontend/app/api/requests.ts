@@ -15,6 +15,7 @@ export const endpoints = {
     getSubmissionsByOwnerID: (contestId: string, ownerId: string) => `/submissions/${contestId}/${ownerId}`,
     getLeaderboard: '/leaderboard',
     editContest: (id: string) => `/contest/${id}`,
+    getUserAttendedContests: (userId: string) => `/users/${userId}/contests`,
 };
 
 export const userSignIn = async (payload : User) => {
@@ -76,4 +77,8 @@ export const deleteTestCase = async (contestId: string, testCaseId: string) => {
 
 export const getLeaderboard = async () => {
     return api.get(endpoints.getLeaderboard);
+}
+
+export const getUserAttendedContests = async (userId: string): Promise<Contest[]> => {
+    return api.get(endpoints.getUserAttendedContests(userId));
 }

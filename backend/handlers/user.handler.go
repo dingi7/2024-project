@@ -100,3 +100,25 @@ func validateGitHubToken(token string) (bool, error) {
 
 	return true, nil
 }
+
+func (h *UserHandler) GetUsersAttendedContests(c *fiber.Ctx) error {
+	userID := c.Params("userId")
+	if userID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "User ID is required",
+		})
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	attendedContests, err := h.UserService.GetUsersAttendedContests(ctx, userID)
+	if err != nil {
+		log.Printf("Error fetching attended contests: %v", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to fetch attended contests",
+		})
+	}
+
+	return c.JSON(attendedContests)
+}
