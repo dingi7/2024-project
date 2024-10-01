@@ -21,6 +21,7 @@ func Setup(app *fiber.App, client *mongo.Client) {
 	api.Post("/auth/signIn", userHandler.UserSignIn)
 	api.Get("/contest", contestHandler.GetContests)
 	api.Get("/leaderboard", leaderboardHandler.GetLeaderboard)
+	api.Post("/auth/refresh", userHandler.RefreshAccessToken)
 
 	// private routes
 	api.Use(middlewares.AuthMiddleware)

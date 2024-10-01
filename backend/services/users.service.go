@@ -3,6 +3,8 @@ package services
 import (
 	"backend/models"
 	"context"
+	"errors"
+	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -47,17 +49,77 @@ func (s *UserService) CreateUser(ctx context.Context, user *models.User) error {
 	return err
 }
 
-func (s *UserService) CreateAccessToken(user models.User) (string, error) {
+func (s *UserService) CreateAccessToken(user models.User, refreshToken string) (string, error) {
+
+	if refreshToken != "" {
+		valid, _, err := s.validateRefreshToken(refreshToken)
+		if err != nil {
+			return "", err
+		}
+		if !valid {
+			return "", errors.New("invalid refresh token")
+		}
+	}
+
 	claims := jwt.MapClaims{
 		"id":  user.ID,
 		"exp": time.Now().Add(time.Hour * 24).Unix(), // Token expires in 24 hours
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	JWT_SECRET := []byte("your_secret_key_here") // Replace with your actual secret key extract in .env file
+	JWT_SECRET := []byte(os.Getenv("ACCESS_TOKEN_SECRET"))
 
 	accessToken, err := token.SignedString(JWT_SECRET)
 	if err != nil {
 		return "", err
 	}
 	return accessToken, nil
+}
+
+func (s *UserService) CreateRefreshToken(user models.User) (string, error) {
+	claims := jwt.MapClaims{
+		"id":  user.ID,
+		"exp": time.Now().Add(time.Hour * 24 * 7).Unix(), // Token expires in 7 days
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	JWT_SECRET := []byte(os.Getenv("REFRESH_TOKEN_SECRET"))
+
+	refreshToken, err := token.SignedString(JWT_SECRET)
+	if err != nil {
+		return "", err
+	}
+	return refreshToken, nil
+}
+
+func (s *UserService) CreateAccessTokenFromRefreshToken(refreshToken string) (string, error) {
+	valid, userID, err := s.validateRefreshToken(refreshToken)
+	if err != nil {
+		return "", err
+	}
+	if !valid {
+		return "", errors.New("invalid refresh token")
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	user, err := s.FindUserByID(ctx, userID)
+	if err != nil {
+		return "", err
+	}
+	newAccessToken, err := s.CreateAccessToken(*user, refreshToken)
+	if err != nil {
+		return "", err
+	}
+	return newAccessToken, nil
+}
+
+func (s *UserService) validateRefreshToken(refreshToken string) (bool,string, error) {
+	token, err := jwt.Parse(refreshToken, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("invalid token signing method")
+		}
+		return []byte(os.Getenv("REFRESH_TOKEN_SECRET")), nil
+	})
+	if err != nil {
+		return false, "", err
+	}
+	return token.Valid, token.Claims.(jwt.MapClaims)["id"].(string), nil
 }

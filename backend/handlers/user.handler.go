@@ -70,10 +70,41 @@ func (h *UserHandler) UserSignIn(c *fiber.Ctx) error {
 		log.Printf("User already exists: %v", existingUser)
 	}
 
-	accessToken, err := h.UserService.CreateAccessToken(*user)
+	accessToken, err := h.UserService.CreateAccessToken(*user, "")
 	if err != nil {
 		log.Printf("Failed to create access token: %v", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to create access token", "details": err.Error()})
+	}
+	refreshToken, err := h.UserService.CreateRefreshToken(*user)
+	if err != nil {
+		log.Printf("Failed to create refresh token: %v", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to create refresh token", "details": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{"accessToken": accessToken, "refreshToken": refreshToken})
+}
+
+func (h *UserHandler) RefreshAccessToken(c *fiber.Ctx) error {
+	// Parse the request body
+	var body struct {
+		RefreshToken string `json:"refreshToken"`
+	}
+	if err := c.BodyParser(&body); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	}
+
+	// Check if the refresh token is provided
+	if body.RefreshToken == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Refresh token is required"})
+	}
+
+	// Use the parsed refresh token
+	refreshToken := body.RefreshToken
+
+	// Extract user ID from refresh token
+	accessToken, err := h.UserService.CreateAccessTokenFromRefreshToken(refreshToken)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid refresh token"})
 	}
 
 	return c.JSON(fiber.Map{"accessToken": accessToken})

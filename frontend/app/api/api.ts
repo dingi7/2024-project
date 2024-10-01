@@ -1,4 +1,4 @@
-import { getSession } from 'next-auth/react';
+import { getSession, signOut } from 'next-auth/react';
 import { toast } from '@/components/ui/use-toast';
 
 const host = 'http://127.0.0.1:3001/api/v1';
@@ -48,13 +48,41 @@ const appendFormData = (formData: FormData, data: any, parentKey?: string) => {
     }
 };
 
+export const refreshAccessToken = async (refreshToken: string): Promise<string | null> => {
+    const result = await fetch(host + '/auth/refresh', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ refreshToken }),
+    });
+    const data = await result.json();
+    if(data.status === 401){
+        await signOut({ callbackUrl: '/login' });
+        toast({
+            title: 'Unauthorized',
+            description: 'You have been logged out.',
+            variant: 'destructive',
+        });
+        return null;
+    }
+    if (data.accessToken) {
+        // Update the session with the new access token
+        const session = await getSession();
+        if (session) {
+            session.accessToken = data.accessToken;
+        }
+    }
+    return data.accessToken || null;
+};
+
 const request = async (
     method: string,
     url: string,
     data?: any,
     isFormData?: boolean
 ): Promise<any> => {
-    const session = await getSession();
+    let session = await getSession();
     const options: RequestOptions = {
         method,
         headers: {
@@ -81,7 +109,6 @@ const request = async (
         const responseData = await res.json();
 
         if (res.status === 401) {
-            const { signOut } = await import('next-auth/react');
             await signOut({ callbackUrl: '/login' });
             toast({
                 title: 'Unauthorized',
