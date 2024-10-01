@@ -87,13 +87,8 @@ export default function AllSubmissionsPage() {
                 new Date(a.createdAt).getTime()
             ); // Sort by date descending
         } else if (sortOrder === 'status') {
-            // Convert status to a comparable value
-            const statusOrder = { pending: 0, success: 1, failed: 2 };
-            const aStatus =
-                statusOrder[a.status as keyof typeof statusOrder] ?? 3;
-            const bStatus =
-                statusOrder[b.status as keyof typeof statusOrder] ?? 3;
-            return aStatus - bStatus;
+            // Sort by status true first
+            return b.status ? 1 : a.status ? -1 : 0;
         }
         return 0; // Default case
     });
