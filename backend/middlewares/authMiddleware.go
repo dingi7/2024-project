@@ -1,9 +1,11 @@
 package middlewares
 
 import (
+	"os"
+	"strings"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
-	"strings"
 )
 
 func AuthMiddleware(c *fiber.Ctx) error {
@@ -28,7 +30,7 @@ func AuthMiddleware(c *fiber.Ctx) error {
 		}
 
 		// Return the secret key used to sign the token
-		return []byte("your_secret_key_here"), nil // Use the same secret key as in CreateAccessToken
+		return []byte(os.Getenv("ACCESS_TOKEN_SECRET")), nil
 	})
 
 	if err != nil {

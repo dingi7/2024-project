@@ -72,7 +72,6 @@ const ContestTestCases: React.FC<ContestTestCasesProps> = ({
     };
 
     const handleAddTestCase = async () => {
-        console.log(newTestCase);
         const response = await addTestCase(contestId, {
             input: newTestCase.input,
             output: newTestCase.output,

@@ -32,7 +32,6 @@ type FilterOptions = {
 
 export default function ContestPage() {
   let { data: session, status } = useSession();
-  console.log(session);
   const params = useParams<{ id: string }>();
 
   const [loading, setLoading] = useState(true);
