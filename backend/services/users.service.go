@@ -4,6 +4,7 @@ import (
 	"backend/models"
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"time"
 
@@ -129,6 +130,8 @@ func (s *UserService) GetUsersAttendedContests(ctx context.Context, userID strin
 	}
 
 	return contests, nil
+
+}
 func (s *UserService) CreateRefreshToken(user models.User) (string, error) {
 	claims := jwt.MapClaims{
 		"id":  user.ID,
