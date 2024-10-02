@@ -1,4 +1,4 @@
-'use client';
+'use server';
 
 import { Card } from '@/components/ui/card';
 import {
@@ -10,7 +10,7 @@ import {
     TableCell,
 } from '@/components/ui/table';
 import { getLeaderboard } from '../api/requests';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import LeaderboardTop3Card from './components/LeaderboardTop3Card';
 
 type LeaderboardEntry = {
@@ -20,19 +20,10 @@ type LeaderboardEntry = {
     contestsParticipated: number;
 };
 
-function Leaderboard() {
-    const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>(
-        []
-    );
-    useEffect(() => {
-        const fetchLeaderboard = async () => {
-            const fetchedData = await getLeaderboard();
-            if (fetchedData) {
-                setLeaderboardData(fetchedData);
-            }
-        };
-        fetchLeaderboard();
-    }, []);
+async function Leaderboard() {
+
+    const leaderboardData: LeaderboardEntry[] = await getLeaderboard();
+
 
     return (
         <div className='w-full max-w-6xl mx-auto py-10 px-4 md:px-6 flex flex-col flex-1'>
@@ -52,12 +43,16 @@ function Leaderboard() {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead className='w-[80px]'>Rank</TableHead>
+                                    <TableHead className='w-[80px]'>
+                                        Rank
+                                    </TableHead>
                                     <TableHead>Username</TableHead>
                                     <TableHead className='text-right'>
                                         Contests
                                     </TableHead>
-                                    <TableHead className='text-right'>Score</TableHead>
+                                    <TableHead className='text-right'>
+                                        Score
+                                    </TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -80,9 +75,13 @@ function Leaderboard() {
                     </Card>
                 </>
             ) : (
-                <Card className="p-6 text-center">
-                    <p className="text-lg font-medium">No leaderboard data available yet.</p>
-                    <p className="text-sm text-gray-500 mt-2">Be the first to submit and appear on the leaderboard!</p>
+                <Card className='p-6 text-center'>
+                    <p className='text-lg font-medium'>
+                        No leaderboard data available yet.
+                    </p>
+                    <p className='text-sm text-gray-500 mt-2'>
+                        Be the first to submit and appear on the leaderboard!
+                    </p>
                 </Card>
             )}
         </div>
