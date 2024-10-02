@@ -5,12 +5,13 @@ import (
 	"backend/services"
 	"context"
 	"log"
-	"net/http"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/mongo"
 )
+
+const requestTimeout = 10 * time.Second
 
 type UserHandler struct {
 	UserService *services.UserService
@@ -23,32 +24,38 @@ func NewUserHandler(client *mongo.Client) *UserHandler {
 	}
 }
 
+// Helper function to create structured error responses
+func createErrorResponse(message string, details string) fiber.Map {
+	return fiber.Map{"error": message, "details": details}
+}
+
 func (h *UserHandler) GetUsers(c *fiber.Ctx) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), requestTimeout)
 	defer cancel()
 
 	users, err := h.UserService.GetUsers(ctx)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+		log.Printf("Error fetching users: %v", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(createErrorResponse("Failed to fetch users", err.Error()))
 	}
 
 	return c.JSON(users)
 }
 
 func (h *UserHandler) UserSignIn(c *fiber.Ctx) error {
-	user := new(models.User)
-	if err := c.BodyParser(user); err != nil {
-		return err
+	var user models.User
+	if err := c.BodyParser(&user); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(createErrorResponse("Invalid request body", err.Error()))
 	}
 
 	// Validate GitHub access token
-	isValid, err := validateGitHubToken(user.GitHubAccessToken)
-	if !isValid || err != nil {
+	isValid, err := h.UserService.ValidateGitHubToken(user.GitHubAccessToken)
+	if err != nil || !isValid {
 		log.Printf("Invalid GitHub access token: %v", err)
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid GitHub access token"})
+		return c.Status(fiber.StatusUnauthorized).JSON(createErrorResponse("Invalid GitHub access token", ""))
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), requestTimeout)
 	defer cancel()
 
 	// Check if user exists
@@ -57,98 +64,67 @@ func (h *UserHandler) UserSignIn(c *fiber.Ctx) error {
 		if err == mongo.ErrNoDocuments {
 			// User doesn't exist, create new user
 			user.CreatedAt = time.Now() // Set the CreatedAt field
-			if err := h.UserService.CreateUser(ctx, user); err != nil {
+			if err := h.UserService.CreateUser(ctx, &user); err != nil {
 				log.Printf("Failed to create user: %v", err)
-				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to create user", "details": err.Error()})
+				return c.Status(fiber.StatusInternalServerError).JSON(createErrorResponse("Failed to create user", err.Error()))
 			}
 		} else {
 			log.Printf("Database error: %v", err)
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Database error", "details": err.Error()})
+			return c.Status(fiber.StatusInternalServerError).JSON(createErrorResponse("Database error", err.Error()))
 		}
 	} else {
 		// User exists
 		log.Printf("User already exists: %v", existingUser)
 	}
 
-	accessToken, err := h.UserService.CreateAccessToken(*user, "")
+	accessToken, err := h.UserService.CreateAccessToken(user, "")
 	if err != nil {
 		log.Printf("Failed to create access token: %v", err)
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to create access token", "details": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(createErrorResponse("Failed to create access token", err.Error()))
 	}
-	refreshToken, err := h.UserService.CreateRefreshToken(*user)
+	refreshToken, err := h.UserService.CreateRefreshToken(user)
 	if err != nil {
 		log.Printf("Failed to create refresh token: %v", err)
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to create refresh token", "details": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(createErrorResponse("Failed to create refresh token", err.Error()))
 	}
 
 	return c.JSON(fiber.Map{"accessToken": accessToken, "refreshToken": refreshToken})
 }
 
 func (h *UserHandler) RefreshAccessToken(c *fiber.Ctx) error {
-	// Parse the request body
 	var body struct {
 		RefreshToken string `json:"refreshToken"`
 	}
 	if err := c.BodyParser(&body); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+		return c.Status(fiber.StatusBadRequest).JSON(createErrorResponse("Invalid request body", err.Error()))
 	}
 
-	// Check if the refresh token is provided
 	if body.RefreshToken == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Refresh token is required"})
+		return c.Status(fiber.StatusBadRequest).JSON(createErrorResponse("Refresh token is required", ""))
 	}
 
-	// Use the parsed refresh token
-	refreshToken := body.RefreshToken
-
-	// Extract user ID from refresh token
-	accessToken, err := h.UserService.CreateAccessTokenFromRefreshToken(refreshToken)
+	accessToken, err := h.UserService.CreateAccessTokenFromRefreshToken(body.RefreshToken)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid refresh token"})
+		log.Printf("Invalid refresh token: %v", err)
+		return c.Status(fiber.StatusUnauthorized).JSON(createErrorResponse("Invalid refresh token", ""))
 	}
 
 	return c.JSON(fiber.Map{"accessToken": accessToken})
 }
 
-func validateGitHubToken(token string) (bool, error) {
-	// Validate the token with GitHub API
-	req, err := http.NewRequest("GET", "https://api.github.com/user", nil)
-	if err != nil {
-		return false, err
-	}
-	req.Header.Set("Authorization", "Bearer "+token)
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return false, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return false, nil
-	}
-
-	return true, nil
-}
-
 func (h *UserHandler) GetUsersAttendedContests(c *fiber.Ctx) error {
 	userID := c.Params("userId")
 	if userID == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "User ID is required",
-		})
+		return c.Status(fiber.StatusBadRequest).JSON(createErrorResponse("User ID is required", ""))
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), requestTimeout)
 	defer cancel()
 
 	attendedContests, err := h.UserService.GetUsersAttendedContests(ctx, userID)
 	if err != nil {
 		log.Printf("Error fetching attended contests: %v", err)
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to fetch attended contests",
-		})
+		return c.Status(fiber.StatusInternalServerError).JSON(createErrorResponse("Failed to fetch attended contests", err.Error()))
 	}
 
 	return c.JSON(attendedContests)

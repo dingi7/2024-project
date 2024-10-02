@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"time"
 
@@ -14,10 +15,17 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+const (
+	AccessTokenExpiry   = 24 * time.Hour
+	RefreshTokenExpiry  = 7 * 24 * time.Hour
+)
+
 type UserService struct {
 	UserCollection       *mongo.Collection
 	ContestCollection    *mongo.Collection
 	SubmissionCollection *mongo.Collection
+	JWTSecret            []byte
+	RefreshSecret        []byte
 }
 
 func NewUserService(client *mongo.Client) *UserService {
@@ -25,6 +33,8 @@ func NewUserService(client *mongo.Client) *UserService {
 		UserCollection:       client.Database("contestify").Collection("users"),
 		ContestCollection:    client.Database("contestify").Collection("contests"),
 		SubmissionCollection: client.Database("contestify").Collection("submissions"),
+		JWTSecret:            []byte(os.Getenv("ACCESS_TOKEN_SECRET")),
+		RefreshSecret:        []byte(os.Getenv("REFRESH_TOKEN_SECRET")),
 	}
 }
 
@@ -56,25 +66,20 @@ func (s *UserService) CreateUser(ctx context.Context, user *models.User) error {
 }
 
 func (s *UserService) CreateAccessToken(user models.User, refreshToken string) (string, error) {
-
 	if refreshToken != "" {
 		valid, _, err := s.validateRefreshToken(refreshToken)
-		if err != nil {
-			return "", err
-		}
-		if !valid {
+		if err != nil || !valid {
 			return "", errors.New("invalid refresh token")
 		}
 	}
 
 	claims := jwt.MapClaims{
 		"id":  user.ID,
-		"exp": time.Now().Add(time.Hour * 24).Unix(), // Token expires in 24 hours
+		"exp": time.Now().Add(AccessTokenExpiry).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	JWT_SECRET := []byte(os.Getenv("ACCESS_TOKEN_SECRET"))
 
-	accessToken, err := token.SignedString(JWT_SECRET)
+	accessToken, err := token.SignedString(s.JWTSecret)
 	if err != nil {
 		return "", err
 	}
@@ -88,59 +93,45 @@ func (s *UserService) GetUsersAttendedContests(ctx context.Context, userID strin
 		return nil, err
 	}
 	defer cursor.Close(ctx)
+
 	if err := cursor.All(ctx, &submissions); err != nil {
 		return nil, err
 	}
-	// Log the contest IDs
-	fmt.Println("Contest IDs for user", userID)
-	for _, submission := range submissions {
-		fmt.Printf("ContestID: %s\n", submission.ContestID)
-	}
 
-	// Create a slice to store unique contest IDs
+	// Use a map to store unique contest IDs
 	contestIDs := make(map[string]bool)
 	for _, submission := range submissions {
 		contestIDs[submission.ContestID] = true
 	}
 
-	// Create a slice to store the contests
 	var contests []models.Contest
-
-	// Iterate through unique contest IDs
 	for contestID := range contestIDs {
-		// Convert string ID to ObjectID
 		objectID, err := primitive.ObjectIDFromHex(contestID)
 		if err != nil {
 			return nil, fmt.Errorf("invalid contest ID: %v", err)
 		}
 
-		// Find the contest by ID
 		var contest models.Contest
-		err = s.ContestCollection.FindOne(ctx, bson.M{"_id": objectID}).Decode(&contest)
-		if err != nil {
-			if err == mongo.ErrNoDocuments {
-				// Skip this contest if it doesn't exist
-				continue
+		if err := s.ContestCollection.FindOne(ctx, bson.M{"_id": objectID}).Decode(&contest); err != nil {
+			if err != mongo.ErrNoDocuments {
+				return nil, fmt.Errorf("error fetching contest: %v", err)
 			}
-			return nil, fmt.Errorf("error fetching contest: %v", err)
+			continue
 		}
-
-		// Add the contest to the slice
 		contests = append(contests, contest)
 	}
 
 	return contests, nil
-
 }
+
 func (s *UserService) CreateRefreshToken(user models.User) (string, error) {
 	claims := jwt.MapClaims{
 		"id":  user.ID,
-		"exp": time.Now().Add(time.Hour * 24 * 7).Unix(), // Token expires in 7 days
+		"exp": time.Now().Add(RefreshTokenExpiry).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	JWT_SECRET := []byte(os.Getenv("REFRESH_TOKEN_SECRET"))
 
-	refreshToken, err := token.SignedString(JWT_SECRET)
+	refreshToken, err := token.SignedString(s.RefreshSecret)
 	if err != nil {
 		return "", err
 	}
@@ -149,34 +140,47 @@ func (s *UserService) CreateRefreshToken(user models.User) (string, error) {
 
 func (s *UserService) CreateAccessTokenFromRefreshToken(refreshToken string) (string, error) {
 	valid, userID, err := s.validateRefreshToken(refreshToken)
-	if err != nil {
-		return "", err
-	}
-	if !valid {
+	if err != nil || !valid {
 		return "", errors.New("invalid refresh token")
 	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+
 	user, err := s.FindUserByID(ctx, userID)
 	if err != nil {
 		return "", err
 	}
-	newAccessToken, err := s.CreateAccessToken(*user, refreshToken)
-	if err != nil {
-		return "", err
-	}
-	return newAccessToken, nil
+
+	return s.CreateAccessToken(*user, refreshToken)
 }
 
-func (s *UserService) validateRefreshToken(refreshToken string) (bool,string, error) {
+func (s *UserService) validateRefreshToken(refreshToken string) (bool, string, error) {
 	token, err := jwt.Parse(refreshToken, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("invalid token signing method")
 		}
-		return []byte(os.Getenv("REFRESH_TOKEN_SECRET")), nil
+		return s.RefreshSecret, nil
 	})
 	if err != nil {
 		return false, "", err
 	}
 	return token.Valid, token.Claims.(jwt.MapClaims)["id"].(string), nil
+}
+
+func (s *UserService) ValidateGitHubToken(token string) (bool, error) {
+	req, err := http.NewRequest("GET", "https://api.github.com/user", nil)
+	if err != nil {
+		return false, err
+	}
+	req.Header.Set("Authorization", "Bearer "+token)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return false, err
+	}
+	defer resp.Body.Close()
+
+	return resp.StatusCode == http.StatusOK, nil
 }
