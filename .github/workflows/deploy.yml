@@ -12,6 +12,8 @@ jobs:
     steps:
     - name: Checkout Code
       uses: actions/checkout@v3
+      with:
+        fetch-depth: 1 
 
     - name: Set up Node.js
       uses: actions/setup-node@v3
@@ -29,7 +31,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v3
       with:
-        go-version: '1.17'  # Adjust to your Go version
+        go-version: '1.22'  # Adjust to your Go version
 
     - name: Build Backend
       working-directory: ./backend
