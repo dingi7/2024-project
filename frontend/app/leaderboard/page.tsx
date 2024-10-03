@@ -10,7 +10,6 @@ import {
     TableCell,
 } from '@/components/ui/table';
 import { getLeaderboard } from '../api/requests';
-import { useState } from 'react';
 import LeaderboardTop3Card from './components/LeaderboardTop3Card';
 
 type LeaderboardEntry = {
