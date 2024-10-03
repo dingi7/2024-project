@@ -40,6 +40,11 @@ export default async function RootLayout({
         <ThemeProvider
         attribute="class"
         defaultTheme="system"
+        value={{
+          light: "light",
+          dark: "dark",
+          new: "new",
+        }}
         enableSystem
         disableTransitionOnChange>
           <SessionProvider session={session}>
