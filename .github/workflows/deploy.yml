@@ -1,0 +1,73 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - deployment  # Change this to your deployment branch if different
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20.17'  # Adjust to your Node.js version
+
+    - name: Install Frontend Dependencies
+      working-directory: ./frontend
+      run: npm ci
+
+    - name: Build Frontend
+      working-directory: ./frontend
+      run: npm run build
+
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: '1.17'  # Adjust to your Go version
+
+    - name: Build Backend
+      working-directory: ./backend
+      env:
+        GOOS: linux
+        GOARCH: amd64
+      run: go build -o backend
+
+    - name: Copy Frontend Files to VPS
+      uses: appleboy/scp-action@v0.1.4
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USER }}
+        port: ${{ secrets.VPS_PORT || '22' }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        source: './frontend/.next/**'
+        target: '/ppmg/${{ secrets.VPS_USER }}/2024-project/frontend/.next'
+
+    - name: Copy Backend Executable to VPS
+      uses: appleboy/scp-action@v0.1.4
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USER }}
+        port: ${{ secrets.VPS_PORT || '22' }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        source: './backend/backend'
+        target: '/ppmg/${{ secrets.VPS_USER }}/2024-project/backend/'
+
+    - name: Restart Services on VPS
+      uses: appleboy/ssh-action@v0.1.6
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USER }}
+        port: ${{ secrets.VPS_PORT || '22' }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          cd /ppmg/${{ secrets.VPS_USER }}/2024-project/frontend
+          pm2 restart 0
+          sudo systemctl daemon-reload
+          sudo systemctl restart contestify_backend
+          sudo systemctl enable contestify_backend
