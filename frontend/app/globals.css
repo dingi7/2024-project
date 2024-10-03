@@ -60,7 +60,7 @@
     --chart-5: 340 75% 55%;
   }
   .new{
-    --background: 222 100% 96%; /* #EEF5FF */
+    --background: 210, 100%, 100%; /* #EEF5FF */
     --foreground: 207 89% 27%; /* #176B87 */
     --card: 222 100% 96%; /* #EEF5FF */
     --card-foreground: 207 89% 27%; /* #176B87 */
