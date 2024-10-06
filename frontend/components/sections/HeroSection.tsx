@@ -42,13 +42,6 @@ function HeroSection() {
                   Login to Compete
                 </Link>
               )}
-              <Link
-                href="/learn-more"
-                className="inline-flex h-12 items-center justify-center rounded-full bg-secondary px-8 text-base font-medium text-secondary-foreground shadow-lg transition-all hover:bg-secondary/90 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                prefetch={false}
-              >
-                Learn More
-              </Link>
             </div>
           </div>
         </div>

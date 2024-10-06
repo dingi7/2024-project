@@ -5,6 +5,7 @@ import {
     CardContent,
 } from '@/components/ui/card';
 import { TrophyIcon } from 'lucide-react';
+import { useTheme } from 'next-themes';
 
 export default function LeaderboardTop3Card({
     rank,
@@ -32,9 +33,9 @@ export default function LeaderboardTop3Card({
         <Card className={cardStyle()}>
             <CardHeader className='pb-2'>
                 <CardTitle>{rank}. {username}</CardTitle>
-                <div className={`flex items-center gap-2 ${rank === 1 ? 'text-foreground' : ''}`}>
+                <div className={`flex items-center gap-2 ${rank === 1 ? 'text-primary-foreground' : ''}`}>
                     <span className='font-bold text-2xl'>{totalScore.toLocaleString()}</span>
-                    <TrophyIcon className={`w-6 h-6 ${rank === 1 ? 'text-foreground' : 'text-muted-foreground'}`} />
+                    <TrophyIcon className={`w-6 h-6 'text-muted-foreground'`} />
                 </div>
             </CardHeader>
             <CardContent>
