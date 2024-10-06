@@ -39,6 +39,20 @@ jobs:
           GOARCH: amd64
         run: go build -o backend
 
+      - name: Stop Services
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          port: ${{ secrets.VPS_PORT || '22' }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            echo "Stopping services..."
+            pm2 stop 0 || echo "PM2 stop failed"
+            sudo systemctl stop contestify_backend || echo "Backend stop failed"
+            # Give processes time to fully stop
+            sleep 5
+
       - name: Update Frontend Files
         uses: appleboy/scp-action@v0.1.4
         with:
@@ -46,13 +60,22 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           port: ${{ secrets.VPS_PORT || '22' }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "frontend/.next/*"
-          target: "/home/kamen/2024-project/frontend/.next/"
-          strip_components: 2
+          source: "frontend/.next/"
+          target: "/home/kamen/2024-project/frontend/"
           overwrite: true
-          rm: true
 
       - name: Update Backend Executable
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          port: ${{ secrets.VPS_PORT || '22' }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            echo "Removing old backend executable..."
+            rm -f /home/kamen/2024-project/backend/backend
+
+      - name: Copy New Backend Executable
         uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -61,10 +84,9 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: "backend/backend"
           target: "/home/kamen/2024-project/backend/"
-          strip_components: 1
           overwrite: true
 
-      - name: Restart Services
+      - name: Start Services
         uses: appleboy/ssh-action@v0.1.6
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -72,24 +94,20 @@ jobs:
           port: ${{ secrets.VPS_PORT || '22' }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            echo "Checking file permissions..."
-            ls -la /home/kamen/2024-project/frontend/.next
-            ls -la /home/kamen/2024-project/backend/backend
-            
-            echo "Stopping services..."
-            pm2 stop 0 || echo "PM2 stop failed"
-            sudo systemctl stop contestify_backend || echo "Backend stop failed"
-            
-            echo "Setting correct permissions..."
+            echo "Setting permissions..."
             chmod 755 /home/kamen/2024-project/backend/backend
             
             echo "Starting services..."
             cd /home/kamen/2024-project/frontend
             pm2 start 0
             
-            echo "Restarting backend service..."
+            echo "Starting backend service..."
             sudo systemctl daemon-reload
             sudo systemctl start contestify_backend
             sudo systemctl enable contestify_backend
+            
+            echo "Verifying services..."
+            pm2 list
+            sudo systemctl status contestify_backend --no-pager
             
             echo "Deployment complete"
