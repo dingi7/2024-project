@@ -48,7 +48,7 @@ jobs:
         port: ${{ secrets.VPS_PORT || '22' }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         source: './frontend/.next/**'
-        target: '/ppmg/${{ secrets.VPS_USER }}/2024-project/frontend/.next'
+        target: '/ppmg/kamen/2024-project/frontend/.next'
 
     - name: Copy Backend Executable to VPS
       uses: appleboy/scp-action@v0.1.4
@@ -58,7 +58,7 @@ jobs:
         port: ${{ secrets.VPS_PORT || '22' }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         source: './backend/backend'
-        target: '/ppmg/${{ secrets.VPS_USER }}/2024-project/backend/'
+        target: '/ppmg/kamen/2024-project/backend/'
 
     - name: Restart Services on VPS
       uses: appleboy/ssh-action@v0.1.6
@@ -68,7 +68,7 @@ jobs:
         port: ${{ secrets.VPS_PORT || '22' }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
-          cd /ppmg/${{ secrets.VPS_USER }}/2024-project/frontend
+          cd /ppmg/kamen/2024-project/frontend
           pm2 restart 0
           sudo systemctl daemon-reload
           sudo systemctl restart contestify_backend
