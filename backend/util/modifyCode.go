@@ -27,7 +27,7 @@ func ModifyPythonCode(code string) string {
 if __name__ == "__main__":
     import sys
     if 'main' in globals():
-        main(sys.argv[1:])
+        main(''.join(sys.argv[1:]))
     else:
         print("Function 'main' not found")
 `
@@ -58,7 +58,6 @@ func GetFileExtension(language string, code string) (string, string) {
 	return extension, modifiedCode
 }
 
-
 func GetDockerImage(language string) string {
 	switch language {
 	case "Python":
@@ -79,25 +78,36 @@ func GetDockerImage(language string) string {
 func GetDockerCommand(language, codeFile, inputString string) []string {
 	cmdArgs := []string{}
 	switch language {
-    case "JavaScript":
-        cmdArgs = []string{"run", "--rm", "--network", "none", "-v", codeFile + ":/app/code.js", "node:14", "bash", "-c", fmt.Sprintf("node /app/code.js '%s'", inputString)}
-    case "Java":
-        cmdArgs = []string{"run", "--rm", "--network", "none", "-v", codeFile + ":/app/code.java", "openjdk:11", "bash", "-c", fmt.Sprintf("javac /app/code.java && java -cp /app/ code %s", inputString)}
-    case "C++":
-        cmdArgs = []string{"run", "--rm", "--network", "none", "-v", codeFile + ":/app/code.cpp", "gcc:latest", "bash", "-c", fmt.Sprintf("g++ /app/code.cpp -o /app/a.out && ./app/a.out %s", inputString)}
-    case "C#":
-        cmdArgs = []string{
-            "run", "--rm", "--network", "none",
-            "-v", codeFile + ":/code/Program.cs",
-            "mcr.microsoft.com/dotnet/sdk:6.0",
-            "bash", "-c",
-            fmt.Sprintf(
-                "mkdir /app && cd /app && dotnet new console -n MyProject && mv /code/Program.cs /app/MyProject/Program.cs && dotnet run --project /app/MyProject %s",
-                inputString,
-            ),
-        }
-    case "Python":
-        cmdArgs = []string{"run", "--rm", "-v", "--network", "none", codeFile + ":/app/code.py", "python:3.8", "bash", "-c", fmt.Sprintf("python /app/code.py %s", inputString)}
-    }
+	case "JavaScript":
+		cmdArgs = []string{"run", "--rm", "--network", "none", "-v", codeFile + ":/app/code.js", "node:14", "bash", "-c", fmt.Sprintf("node /app/code.js '%s'", inputString)}
+	case "Java":
+		cmdArgs = []string{"run", "--rm", "--network", "none", "-v", codeFile + ":/app/code.java", "openjdk:11", "bash", "-c", fmt.Sprintf("javac /app/code.java && java -cp /app/ code %s", inputString)}
+	case "C++":
+		cmdArgs = []string{"run", "--rm", "--network", "none", "-v", codeFile + ":/app/code.cpp", "gcc:latest", "bash", "-c", fmt.Sprintf("g++ /app/code.cpp -o /app/a.out && ./app/a.out %s", inputString)}
+	case "C#":
+		cmdArgs = []string{
+			"run", "--rm", "--network", "none",
+			"-v", codeFile + ":/code/Program.cs",
+			"mcr.microsoft.com/dotnet/sdk:6.0",
+			"bash", "-c",
+			fmt.Sprintf(
+				"mkdir /app && cd /app && dotnet new console -n MyProject && mv /code/Program.cs /app/MyProject/Program.cs && dotnet run --project /app/MyProject %s",
+				inputString,
+			),
+		}
+	case "Python":
+		cmdArgs = []string{
+			"run",
+			"--rm",
+			"--network",
+			"none",
+			"-v",
+			codeFile + ":/app/code.py",
+			"python:3.8",
+			"bash",
+			"-c",
+			fmt.Sprintf("python3 /app/code.py %s", inputString),
+		}
+	}
 	return cmdArgs
 }

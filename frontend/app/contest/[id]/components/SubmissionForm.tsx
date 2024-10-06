@@ -84,9 +84,9 @@ const SubmissionForm = ({ onSubmit }: Props) => {
                                     JavaScript
                                 </SelectItem>
                                 <SelectItem value='Python'>Python</SelectItem>
-                                <SelectItem value='Java'>Java</SelectItem>
+                                {/* <SelectItem value='Java'>Java</SelectItem>
                                 <SelectItem value='C++'>C++</SelectItem>
-                                <SelectItem value='C#'>C#</SelectItem>
+                                <SelectItem value='C#'>C#</SelectItem> */}
                             </SelectContent>
                         </Select>
                     </div>

@@ -70,60 +70,71 @@ func executeCode(solution Solution, inputString string) (string, error) {
 }
 
 func RunTestCases(language string, code string, testCases []models.TestCase) (int, []byte, int, bool, error) {
-	
-	// Handle case with no test cases
-	if len(testCases) == 0 {
-		return fiber.StatusOK, []byte("[]"), 100, true, nil
-	}
+    
+    // Handle case with no test cases
+    if len(testCases) == 0 {
+        return fiber.StatusOK, []byte("[]"), 100, true, nil
+    }
 
-	solution := Solution{
-		Language: language,
-		Code:     code,
-	}
+    solution := Solution{
+        Language: language,
+        Code:     code,
+    }
 
-	var allResults []map[string]interface{}
+    var allResults []map[string]interface{}
+    totalTestCases := len(testCases)
+    passedTestCases := 0
 
-	for _, testCase := range testCases {
-		output, err := executeCode(solution, strings.TrimSpace(testCase.Input))
-		if err != nil {
-			log.Printf("Error executing code for test case: %v", err)
-			return fiber.StatusInternalServerError, nil, 0, false, err
-		}
+    for idx, testCase := range testCases {
+        input := strings.TrimSpace(testCase.Input)
+        expectedOutput := strings.TrimSpace(testCase.Output)
 
-		fmt.Printf("Output for test case: %s\n", output)
+        output, err := executeCode(solution, input)
+        if err != nil {
+            log.Printf("Error executing code for test case #%d: %v", idx+1, err)
+            
+            // Record the error in the test case result
+            result := map[string]interface{}{
+                "test_case": idx + 1,
+                "passed":    false,
+                "expected":  expectedOutput,
+                "got":       "Error: " + err.Error(),
+                "error":     err.Error(),
+            }
 
-		trimmedExpected := strings.TrimSpace(testCase.Output)
-		trimmedOutput := strings.TrimSpace(output)
-		fmt.Println("trimmedOutput: ", trimmedOutput)
-		fmt.Println("trimmedExpected: ", trimmedExpected)
+            allResults = append(allResults, result)
+            continue // Proceed to the next test case
+        }
 
-		passed := trimmedOutput == trimmedExpected
-		fmt.Println("passed: ", passed)
+        trimmedOutput := strings.TrimSpace(output)
+        passed := trimmedOutput == expectedOutput
 
-		result := map[string]interface{}{
-			"passed":   passed,
-			"expected": trimmedExpected,
-			"got":      trimmedOutput,
-		}
+        if passed {
+            passedTestCases++
+        }
 
-		allResults = append(allResults, result)
-	}
+        result := map[string]interface{}{
+            "test_case": idx + 1,
+            "passed":    passed,
+            "expected":  expectedOutput,
+            "got":       trimmedOutput,
+        }
 
-	score := 0
+        allResults = append(allResults, result)
+    }
 
-	for _, result := range allResults {
-		if result["passed"].(bool) {
-			score++
-		}
-	}
-	scorePercentage := float64(score) / float64(len(allResults)) * 100
-	passed := score == len(allResults)
+    // Calculate the score as a percentage of passed test cases out of total test cases
+    scorePercentage := float64(passedTestCases) / float64(totalTestCases) * 100
+    passedAll := passedTestCases == totalTestCases
 
-	jsonResult, err := json.Marshal(allResults)
-	if err != nil {
-		log.Printf("Error marshaling results to JSON: %v", err)
-		return fiber.StatusInternalServerError, nil, 0, false, err
-	}
-	fmt.Println(jsonResult)
-	return fiber.StatusOK, jsonResult, int(scorePercentage), passed, nil
+    jsonResult, err := json.Marshal(allResults)
+    if err != nil {
+        log.Printf("Error marshaling results to JSON: %v", err)
+        return fiber.StatusInternalServerError, nil, 0, false, err
+    }
+
+    fmt.Println(string(jsonResult)) // Print the JSON result as a string for readability
+
+    return fiber.StatusOK, jsonResult, int(scorePercentage), passedAll, nil
 }
+
