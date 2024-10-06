@@ -3,7 +3,7 @@ name: Deploy to VPS
 on:
   push:
     branches:
-      - deployment # Change this to your deployment branch if different
+      - deployment
 
 jobs:
   deploy:
@@ -39,18 +39,46 @@ jobs:
           GOARCH: amd64
         run: go build -o backend
 
-      - name: Copy Frontend Files to VPS
+      - name: Prepare Directory Structure
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          port: ${{ secrets.VPS_PORT || '22' }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            mkdir -p /ppmg/kamen/2024-project/frontend/.next
+            mkdir -p /ppmg/kamen/2024-project/backend
+            chmod -R 755 /ppmg/kamen/2024-project
+            echo "Directory structure created and permissions set"
+            ls -la /ppmg/kamen/2024-project/frontend
+
+      - name: Debug Remote Environment
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          port: ${{ secrets.VPS_PORT || '22' }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            pwd
+            whoami
+            ls -la /ppmg/kamen/2024-project
+            df -h /ppmg/kamen/2024-project
+
+      - name: Copy Frontend Files
         uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           port: ${{ secrets.VPS_PORT || '22' }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "frontend/.next"  # Changed this line
-          target: "/ppmg/kamen/2024-project/frontend"
-          strip_components: 1
+          source: "frontend/.next/*"
+          target: "/ppmg/kamen/2024-project/frontend/.next"
+          strip_components: 2
+          overwrite: true
 
-      - name: Copy Backend Executable to VPS
+      - name: Copy Backend Files
         uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -60,8 +88,9 @@ jobs:
           source: "backend/backend"
           target: "/ppmg/kamen/2024-project/backend"
           strip_components: 1
+          overwrite: true
 
-      - name: Create Directory Structure and Set Permissions
+      - name: Verify Deployment and Restart Services
         uses: appleboy/ssh-action@v0.1.6
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -69,19 +98,16 @@ jobs:
           port: ${{ secrets.VPS_PORT || '22' }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            mkdir -p /ppmg/kamen/2024-project/frontend/.next
-            chmod -R 755 /ppmg/kamen/2024-project/frontend/.next
-
-      - name: Restart Services on VPS
-        uses: appleboy/ssh-action@v0.1.6
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          port: ${{ secrets.VPS_PORT || '22' }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
+            echo "Verifying deployment..."
+            ls -la /ppmg/kamen/2024-project/frontend/.next
+            ls -la /ppmg/kamen/2024-project/backend
+            
+            echo "Restarting services..."
             cd /ppmg/kamen/2024-project/frontend
-            pm2 restart 0
+            pm2 restart 0 || echo "PM2 restart failed"
+            
             sudo systemctl daemon-reload
             sudo systemctl restart contestify_backend
             sudo systemctl enable contestify_backend
+            
+            echo "Deployment complete"
