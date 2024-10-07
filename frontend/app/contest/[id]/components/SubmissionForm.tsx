@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import MonacoEditor from '@monaco-editor/react';
 
 import { Button } from '@/components/ui/button';
@@ -24,25 +24,20 @@ const SubmissionForm = ({ onSubmit }: Props) => {
     const [code, setCode] = useState(
         "function main() {\n\tconsole.log('Hello, World!');\n}"
     );
-    const [language, setLanguage] = useState('javascript');
+    const [language, setLanguage] = useState('python');
     const [isOpen, setIsOpen] = useState(false);
+    const [editorOptions, setEditorOptions] = useState({
+        theme: 'vs-dark',
+        language: 'python',
+    });
 
-    const getLanguageMode = (lang: string) => {
-        switch (lang) {
-            case 'JavaScript':
-                return 'javascript';
-            case 'Python':
-                return 'python';
-            case 'Java':
-                return 'java';
-            case 'C++':
-                return 'cpp';
-            case 'C#':
-                return 'csharp';
-            default:
-                return 'javascript';
-        }
-    };
+    const languages = [
+        { value: 'javascript', monacoValue: 'javascript', label: 'JavaScript' },
+        { value: 'python', monacoValue: 'python', label: 'Python' },
+        { value: 'java', monacoValue: 'java', label: 'Java' },
+        { value: 'cpp', monacoValue: 'cpp', label: 'C++' },
+        { value: 'csharp', monacoValue: 'csharp', label: 'C#' },
+    ];
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -53,6 +48,18 @@ const SubmissionForm = ({ onSubmit }: Props) => {
         onSubmit(solution);
         setIsOpen(false);
     };
+
+    useEffect(() => {
+        const selectedLanguage = languages.find((l) => l.value === language);
+        if (!selectedLanguage) {
+            throw new Error('Language is required');
+        }
+
+        setEditorOptions({
+            theme: 'vs-dark',
+            language: selectedLanguage.monacoValue,
+        });
+    }, [language]);
 
     return (
         <Popover open={isOpen} onOpenChange={setIsOpen}>
@@ -73,11 +80,11 @@ const SubmissionForm = ({ onSubmit }: Props) => {
                                 <SelectValue placeholder='Select language' />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value='javascript'>JavaScript</SelectItem>
-                                <SelectItem value='python'>Python</SelectItem>
-                                <SelectItem value='java'>Java</SelectItem>
-                                <SelectItem value='cpp'>C++</SelectItem>
-                                <SelectItem value='csharp'>C#</SelectItem>
+                                {languages.map((lang) => (
+                                    <SelectItem key={lang.value} value={lang.value}>
+                                        {lang.label}
+                                    </SelectItem>
+                                ))}
                             </SelectContent>
                         </Select>
                     </div>
@@ -86,9 +93,9 @@ const SubmissionForm = ({ onSubmit }: Props) => {
                         <MonacoEditor
                             height="400px"
                             width="100%"
-                            language={getLanguageMode(language)}
-                            theme="vs-dark"
                             value={code}
+                            theme={editorOptions.theme}
+                            language={editorOptions.language}
                             onChange={(value) => setCode(value || '')}
                             options={{
                                 automaticLayout: true,
