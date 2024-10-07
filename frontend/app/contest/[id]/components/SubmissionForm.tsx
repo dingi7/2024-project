@@ -1,12 +1,5 @@
 import React, { useState } from 'react';
-import AceEditor from 'react-ace';
-
-import 'ace-builds/src-noconflict/mode-javascript';
-import 'ace-builds/src-noconflict/mode-python';
-import 'ace-builds/src-noconflict/mode-java';
-import 'ace-builds/src-noconflict/mode-c_cpp';
-import 'ace-builds/src-noconflict/mode-csharp';
-import 'ace-builds/src-noconflict/theme-monokai';
+import MonacoEditor from '@monaco-editor/react';
 
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -31,7 +24,7 @@ const SubmissionForm = ({ onSubmit }: Props) => {
     const [code, setCode] = useState(
         "function main() {\n\tconsole.log('Hello, World!');\n}"
     );
-    const [language, setLanguage] = useState('JavaScript');
+    const [language, setLanguage] = useState('javascript');
     const [isOpen, setIsOpen] = useState(false);
 
     const getLanguageMode = (lang: string) => {
@@ -43,7 +36,7 @@ const SubmissionForm = ({ onSubmit }: Props) => {
             case 'Java':
                 return 'java';
             case 'C++':
-                return 'c_cpp';
+                return 'cpp';
             case 'C#':
                 return 'csharp';
             default:
@@ -66,7 +59,7 @@ const SubmissionForm = ({ onSubmit }: Props) => {
             <PopoverTrigger asChild>
                 <Button>Submit New Solution</Button>
             </PopoverTrigger>
-            <PopoverContent className='w-[600px] p-4'>
+            <PopoverContent className='w-[800px] p-4'>
                 <h2 className='text-lg font-medium mb-4'>Submit Solution</h2>
                 <form onSubmit={handleSubmit}>
                     <div className='mb-4'>
@@ -80,36 +73,29 @@ const SubmissionForm = ({ onSubmit }: Props) => {
                                 <SelectValue placeholder='Select language' />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value='JavaScript'>
-                                    JavaScript
-                                </SelectItem>
-                                <SelectItem value='Python'>Python</SelectItem>
-                                {/* <SelectItem value='Java'>Java</SelectItem>
-                                <SelectItem value='C++'>C++</SelectItem>
-                                <SelectItem value='C#'>C#</SelectItem> */}
+                                <SelectItem value='javascript'>JavaScript</SelectItem>
+                                <SelectItem value='python'>Python</SelectItem>
+                                <SelectItem value='java'>Java</SelectItem>
+                                <SelectItem value='cpp'>C++</SelectItem>
+                                <SelectItem value='csharp'>C#</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
                     <div className='mb-4'>
                         <Label htmlFor='code'>Code</Label>
-                        <AceEditor
-                            mode={getLanguageMode(language)}
-                            theme='monokai'
-                            onChange={setCode}
-                            name='code-editor'
-                            editorProps={{ $blockScrolling: true }}
+                        <MonacoEditor
+                            height="400px"
+                            width="100%"
+                            language={getLanguageMode(language)}
+                            theme="vs-dark"
                             value={code}
-                            width='100%'
-                            height='300px'
-                            fontSize={14}
-                            showPrintMargin={false}
-                            showGutter={true}
-                            highlightActiveLine={true}
-                            setOptions={{
-                                enableBasicAutocompletion: true,
-                                enableLiveAutocompletion: true,
-                                enableSnippets: false,
-                                showLineNumbers: true,
+                            onChange={(value) => setCode(value || '')}
+                            options={{
+                                automaticLayout: true,
+                                fontSize: 14,
+                                minimap: { enabled: false },
+                                scrollBeyondLastLine: false,
+                                wordWrap: 'on',
                                 tabSize: 2,
                             }}
                         />
