@@ -34,7 +34,11 @@ export function ModeToggle() {
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setTheme("new")}>
                     <Laptop className="mr-2 h-4 w-4" />
-                    <span>System</span>
+                    <span>Blue</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme("orange")}>
+                    <Sun className="mr-2 h-4 w-4" />
+                    <span>Orange</span>
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>

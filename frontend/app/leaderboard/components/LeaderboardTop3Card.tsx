@@ -5,7 +5,6 @@ import {
     CardContent,
 } from '@/components/ui/card';
 import { TrophyIcon } from 'lucide-react';
-import { useTheme } from 'next-themes';
 
 export default function LeaderboardTop3Card({
     rank,
