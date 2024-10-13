@@ -4,7 +4,6 @@ import (
 	"backend/models"
 	"backend/util"
 	"bytes"
-
 	"encoding/json"
 	"fmt"
 	"log"
@@ -22,6 +21,12 @@ type Solution struct {
 }
 
 func createTempFile(content string, extension string) (string, error) {
+	funcName, err := util.IdentifyCodeEntryPoint(content)
+	if err != nil {
+		fmt.Println("Error identifying code entry point:", err)
+	}else{
+		fmt.Println("Identified code entry point:", funcName)
+	}
 	tmpfile, err := os.CreateTemp("", "*."+extension)
 	if err != nil {
 		return "", err
@@ -35,15 +40,7 @@ func createTempFile(content string, extension string) (string, error) {
 	return tmpfile.Name(), nil
 }
 
-func executeCode(solution Solution, inputString string) (string, error) {
-	extension, modifiedCode := util.GetFileExtension(solution.Language, solution.Code)
-
-	codeFile, err := createTempFile(modifiedCode, extension)
-	if err != nil {
-		return "", err
-	}
-	defer exec.Command("rm", codeFile).Run() // Cleanup temp file
-
+func executeCode(solution Solution, inputString string, codeFile string) (string, error) {
 	cmdArgs := util.GetDockerCommand(solution.Language, codeFile, inputString)
 
 	cmd := exec.Command("docker", cmdArgs...)
@@ -52,89 +49,81 @@ func executeCode(solution Solution, inputString string) (string, error) {
 	cmd.Stdout = &out
 	cmd.Stderr = &out
 
-	err = cmd.Run()
+	err := cmd.Run()
 	if err != nil {
-		fmt.Printf("Output: %s\n", out.String())
-		return "", fmt.Errorf("failed to execute code: %v", err)
+		return "", fmt.Errorf("failed to execute code: %v\nOutput: %s", err, out.String())
 	}
 
-	switch solution.Language {
-	case "Python":
-		output := out.String()
-		output = strings.Trim(output, "[]'\"\n ")
-		return output, nil
-	default:
-		return out.String(), nil
+	output := strings.TrimSpace(out.String())
+	if solution.Language == "Python" {
+		output = strings.Trim(output, "[]'\"")
 	}
-
+	return output, nil
 }
 
 func RunTestCases(language string, code string, testCases []models.TestCase) (int, []byte, int, bool, error) {
-    
-    // Handle case with no test cases
-    if len(testCases) == 0 {
-        return fiber.StatusOK, []byte("[]"), 100, true, nil
-    }
+	codeFile, err := createTempFile(code, language)
+	if err != nil {
+		return 0, nil, 0, false, err
+	}
+	defer exec.Command("rm", codeFile).Run() // Cleanup temp file
 
-    solution := Solution{
-        Language: language,
-        Code:     code,
-    }
+	// Handle case with no test cases
+	if len(testCases) == 0 {
+		return fiber.StatusOK, []byte("[]"), 100, true, nil
+	}
 
-    var allResults []map[string]interface{}
-    totalTestCases := len(testCases)
-    passedTestCases := 0
+	solution := Solution{
+		Language: language,
+		Code:     code,
+	}
 
-    for idx, testCase := range testCases {
-        input := strings.TrimSpace(testCase.Input)
-        expectedOutput := strings.TrimSpace(testCase.Output)
+	var allResults []map[string]interface{}
+	totalTestCases := len(testCases)
+	passedTestCases := 0
 
-        output, err := executeCode(solution, input)
-        if err != nil {
-            log.Printf("Error executing code for test case #%d: %v", idx+1, err)
-            
-            // Record the error in the test case result
-            result := map[string]interface{}{
-                "test_case": idx + 1,
-                "passed":    false,
-                "expected":  expectedOutput,
-                "got":       "Error: " + err.Error(),
-                "error":     err.Error(),
-            }
+	for idx, testCase := range testCases {
+		input := strings.TrimSpace(testCase.Input)
+		expectedOutput := strings.TrimSpace(testCase.Output)
 
-            allResults = append(allResults, result)
-            continue // Proceed to the next test case
-        }
+        output, err := executeCode(solution, input, codeFile)
+		if err != nil {
+			log.Printf("Error executing code for test case #%d: %v", idx+1, err)
 
-        trimmedOutput := strings.TrimSpace(output)
-        passed := trimmedOutput == expectedOutput
+            allResults = append(allResults, map[string]interface{}{
+				"test_case": idx + 1,
+				"passed":    false,
+				"expected":  expectedOutput,
+				"got":       "Error: " + err.Error(),
+				"error":     err.Error(),
+            })
+            continue
+		}
 
-        if passed {
-            passedTestCases++
-        }
+        passed := output == expectedOutput
+		if passed {
+			passedTestCases++
+		}
 
-        result := map[string]interface{}{
-            "test_case": idx + 1,
-            "passed":    passed,
-            "expected":  expectedOutput,
-            "got":       trimmedOutput,
-        }
+        allResults = append(allResults, map[string]interface{}{
+			"test_case": idx + 1,
+			"passed":    passed,
+			"expected":  expectedOutput,
+            "got":       output,
+        })
+	}
 
-        allResults = append(allResults, result)
-    }
+	// Calculate the score as a percentage of passed test cases out of total test cases
+	scorePercentage := float64(passedTestCases) / float64(totalTestCases) * 100
+	passedAll := passedTestCases == totalTestCases
 
-    // Calculate the score as a percentage of passed test cases out of total test cases
-    scorePercentage := float64(passedTestCases) / float64(totalTestCases) * 100
-    passedAll := passedTestCases == totalTestCases
+	jsonResult, err := json.Marshal(allResults)
+	if err != nil {
+		log.Printf("Error marshaling results to JSON: %v", err)
+		return fiber.StatusInternalServerError, nil, 0, false, err
+	}
 
-    jsonResult, err := json.Marshal(allResults)
-    if err != nil {
-        log.Printf("Error marshaling results to JSON: %v", err)
-        return fiber.StatusInternalServerError, nil, 0, false, err
-    }
+	fmt.Println(string(jsonResult)) // Print the JSON result as a string for readability
 
-    fmt.Println(string(jsonResult)) // Print the JSON result as a string for readability
-
-    return fiber.StatusOK, jsonResult, int(scorePercentage), passedAll, nil
+	return fiber.StatusOK, jsonResult, int(scorePercentage), passedAll, nil
 }
-
