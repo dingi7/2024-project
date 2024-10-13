@@ -24,19 +24,19 @@ const SubmissionForm = ({ onSubmit }: Props) => {
     const [code, setCode] = useState(
         "function main() {\n\tconsole.log('Hello, World!');\n}"
     );
-    const [language, setLanguage] = useState('python');
+    const [language, setLanguage] = useState('JavaScript');
     const [isOpen, setIsOpen] = useState(false);
     const [editorOptions, setEditorOptions] = useState({
         theme: 'vs-dark',
-        language: 'python',
+        language: 'JavaScript',
     });
 
     const languages = [
-        { value: 'javascript', monacoValue: 'javascript', label: 'JavaScript' },
-        { value: 'python', monacoValue: 'python', label: 'Python' },
-        { value: 'java', monacoValue: 'java', label: 'Java' },
-        { value: 'cpp', monacoValue: 'cpp', label: 'C++' },
-        { value: 'csharp', monacoValue: 'csharp', label: 'C#' },
+        { value: 'JavaScript', monacoValue: 'javascript', label: 'JavaScript' },
+        { value: 'Python', monacoValue: 'python', label: 'Python' },
+        { value: 'Java', monacoValue: 'java', label: 'Java' },
+        { value: 'C++', monacoValue: 'cpp', label: 'C++' },
+        { value: 'C#', monacoValue: 'csharp', label: 'C#' },
     ];
 
     const handleSubmit = (e: React.FormEvent) => {
