@@ -73,7 +73,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             echo "Removing old backend executable..."
-            rm -f /home/kamen/2024-project/backend/backend
+            rm -rf /home/kamen/2024-project/backend/backend
 
       - name: Copy New Backend Executable
         uses: appleboy/scp-action@v0.1.4
