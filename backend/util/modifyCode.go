@@ -2,52 +2,51 @@ package util
 
 import "fmt"
 
-func ModifyJSCode(code string) string {
+func modifyJSCode(code string, entryPoint string) string {
 	// The JavaScript code to inject
 	template := `
 	%s
-	if (typeof main === "function") {
+	if (typeof %s === "function") {
     const args = process.argv.slice(2); // Get command-line arguments
-    main(...args);
+    %s(...args);
 	}else{
-		console.log("Function 'main' not found");
+		console.log("Function '%s' not found");
 	}
 `
-
 	// Replace the placeholder with the original code
-	modifiedCode := fmt.Sprintf(template, code)
+	modifiedCode := fmt.Sprintf(template, code, entryPoint, entryPoint, entryPoint)
 
 	return modifiedCode
 }
 
-func ModifyPythonCode(code string) string {
+func modifyPythonCode(code string, entryPoint string) string {
 	// The Python code to inject
 	template := `
 %s
 if __name__ == "__main__":
     import sys
-    if 'main' in globals():
-        main(''.join(sys.argv[1:]))
+    if '%s' in globals() and callable(globals()['%s']):
+        args = sys.argv[1:]  # Get command-line arguments
+        %s(*args)
     else:
-        print("Function 'main' not found")
+        print("Function '%s' not found or is not callable")
 `
-
-	// Replace the placeholder with the original code
-	modifiedCode := fmt.Sprintf(template, code)
+	// Replace the placeholder with the original code and entry point
+	modifiedCode := fmt.Sprintf(template, code, entryPoint, entryPoint, entryPoint, entryPoint)
 
 	return modifiedCode
 }
 
-func GetFileExtension(language string, code string) (string, string) {
+func GetFileExtension(language string, code string, entryPoint string) (string, string) {
 	extension := ""
 	modifiedCode := code
 	switch language {
 	case "Python":
 		extension = "py"
-		modifiedCode = ModifyPythonCode(code)
+		modifiedCode = modifyPythonCode(code, entryPoint)
 	case "JavaScript":
 		extension = "js"
-		modifiedCode = ModifyJSCode(code)
+		modifiedCode = modifyJSCode(code, entryPoint)
 	case "Java":
 		extension = "java"
 	case "C++":
@@ -56,23 +55,6 @@ func GetFileExtension(language string, code string) (string, string) {
 		extension = "cs"
 	}
 	return extension, modifiedCode
-}
-
-func GetDockerImage(language string) string {
-	switch language {
-	case "Python":
-		return "python:3.8"
-	case "JavaScript":
-		return "node:14"
-	case "Java":
-		return "openjdk:11"
-	case "C++":
-		return "gcc:latest"
-	case "C#":
-		return "mcr.microsoft.com/dotnet/sdk:6.0"
-	default:
-		return ""
-	}
 }
 
 func GetDockerCommand(language, codeFile, inputString string) []string {

@@ -21,12 +21,7 @@ type Solution struct {
 }
 
 func createTempFile(content string, extension string) (string, error) {
-	funcName, err := util.IdentifyCodeEntryPoint(content)
-	if err != nil {
-		fmt.Println("Error identifying code entry point:", err)
-	}else{
-		fmt.Println("Identified code entry point:", funcName)
-	}
+	
 	tmpfile, err := os.CreateTemp("", "*."+extension)
 	if err != nil {
 		return "", err
@@ -62,7 +57,14 @@ func executeCode(solution Solution, inputString string, codeFile string) (string
 }
 
 func RunTestCases(language string, code string, testCases []models.TestCase) (int, []byte, int, bool, error) {
-	codeFile, err := createTempFile(code, language)
+	entryPoint, err := util.IdentifyCodeEntryPoint(code)
+	if err != nil {
+		fmt.Println("Error identifying code entry point:", err)
+	}else{
+		fmt.Println("Identified code entry point:", entryPoint)
+	}
+	extension, modifiedCode := util.GetFileExtension(language, code, entryPoint)
+	codeFile, err := createTempFile(modifiedCode, extension)
 	if err != nil {
 		return 0, nil, 0, false, err
 	}
