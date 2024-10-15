@@ -23,6 +23,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/use-toast";
 import { decodeBase64ToBlobUrl } from "@/lib/utils";
 import Link from "next/link";
+import GithubRepos from "./github/repoList";
 
 type FilterOptions = {
   status: "all" | "pending" | "completed" | string;
@@ -65,6 +66,8 @@ export default function ContestPage() {
   }, [status, session]);
 
   const fetchContestAndSubmissions = async () => {
+    console.log("Fetching contest and submissions");
+    console.log(session);
     try {
       const contestResponse = await getContestById(params.id);
       const submissionsResponse = await getSubmissionsByOwnerID(
@@ -240,6 +243,7 @@ export default function ContestPage() {
           <h1 className="text-2xl font-bold">Code Challenge</h1>
           <div className="flex gap-2">
             <SubmissionForm onSubmit={handleSubmit} />
+            <GithubRepos accessToken={session?.githubAccessToken ?? ""} />
             {isOwner && (
               <Button onClick={() => setIsEditEnabled(!isEditEnabled)}>
                 Edit Contest

@@ -8,17 +8,19 @@ const authOptions: NextAuthOptions = {
     providers: [
         GitHubProvider({
             clientId: (() => {
-                const clientId = process.env.ENVIRONMENT === 'production'
-                    ? process.env.GITHUB_PRODUCTION_ID ?? ''
-                    : process.env.GITHUB_DEVELOPMENT_ID ?? '';
-                console.log('GitHub OAuth ClientID:', clientId);
+                const clientId =
+                    process.env.ENVIRONMENT === 'production'
+                        ? process.env.GITHUB_PRODUCTION_ID ?? ''
+                        : process.env.GITHUB_DEVELOPMENT_ID ?? '';
+                // console.log('GitHub OAuth ClientID:', clientId);
                 return clientId;
             })(),
             clientSecret: (() => {
-                const clientSecret = process.env.ENVIRONMENT === 'production'
-                    ? process.env.GITHUB_PRODUCTION_SECRET ?? ''
-                    : process.env.GITHUB_DEVELOPMENT_SECRET ?? '';
-                console.log('GitHub OAuth ClientSecret:', clientSecret);
+                const clientSecret =
+                    process.env.ENVIRONMENT === 'production'
+                        ? process.env.GITHUB_PRODUCTION_SECRET ?? ''
+                        : process.env.GITHUB_DEVELOPMENT_SECRET ?? '';
+                // console.log('GitHub OAuth ClientSecret:', clientSecret);
                 return clientSecret;
             })(),
         }),
@@ -40,7 +42,7 @@ const authOptions: NextAuthOptions = {
                     console.error('Sign-in failed: Missing tokens in response');
                     return false;
                 }
-
+                user.githubAccessToken = account!.access_token || 'invalid';
                 user.accessToken = result.accessToken;
                 user.refreshToken = result.refreshToken;
                 return true;
@@ -59,15 +61,18 @@ const authOptions: NextAuthOptions = {
                 token.refreshToken = user.refreshToken;
                 token.accessTokenExpires = Date.now() + 1000 * 60 * 60 * 24;
                 token.id = user.id;
+                token.githubAccessToken = user.githubAccessToken;
             } else if (account) {
                 token.accessToken = account.access_token;
                 token.refreshToken = account?.refresh_token;
                 token.id = account.id;
             }
             if (Date.now() < (token.accessTokenExpires as number)) {
-                return token
-            }else{
-                const newAccessToken = await refreshAccessToken(token.refreshToken as string);
+                return token;
+            } else {
+                const newAccessToken = await refreshAccessToken(
+                    token.refreshToken as string
+                );
                 if (newAccessToken) {
                     token.accessToken = newAccessToken;
                     token.accessTokenExpires = Date.now() + 1000 * 60 * 60 * 24;
@@ -81,9 +86,9 @@ const authOptions: NextAuthOptions = {
                 id: token.id as string,
             };
             session.accessToken = token.accessToken as string;
+            session.githubAccessToken = token.githubAccessToken as string;
             return session;
         },
-        
     },
 };
 
