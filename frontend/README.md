@@ -1,36 +1,94 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Contestify
+
+Contestify is a modern web application designed to revolutionize coding competitions. Our platform allows organizers to effortlessly create, manage, and automate code contests, providing a seamless environment for testing and verifying competitors' solutions.
+
+## Features
+
+- Create and manage coding contests
+- Automated code evaluation
+- Real-time leaderboards
+- User authentication and profiles
+- Support for multiple programming languages
+- Responsive design for desktop and mobile
+
+## Tech Stack
+
+- Frontend: Next.js, React, TypeScript
+- Backend: Go
+- Database: MongoDB
+- Styling: Tailwind CSS
+- Authentication: NextAuth.js
+- Code Editor: Monaco Editor
+- Containerization: Docker
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- Node.js (v14 or later)
+- Go (v1.16 or later)
+- Docker
+- MongoDB
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Installation
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Clone the repository:
+   ```
+   git clone https://github.com/your-username/contestify.git
+   cd contestify
+   ```
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+2. Install frontend dependencies:
+   ```
+   cd frontend
+   npm install
+   ```
 
-## Learn More
+3. Install backend dependencies:
+   ```
+   cd ../backend
+   go mod tidy
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+4. Set up environment variables:
+   Create a `.env.local` file in the `frontend` directory and add necessary environment variables (refer to `.env.example` if available).
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Running the Application
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+1. Start the frontend development server:
+   ```
+   cd frontend
+   npm run dev
+   ```
 
-## Deploy on Vercel
+2. Start the backend server:
+   ```
+   cd backend
+   go run main.go
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+3. Open [http://localhost:3000](http://localhost:3000) in your browser to view the application.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+## Project Structure
+
+- `frontend/`: Next.js frontend application
+  - `app/`: Next.js 13+ app directory
+  - `components/`: Reusable React components
+  - `lib/`: Utility functions and helpers
+- `backend/`: Go backend application
+  - `models/`: Database models
+  - `operations/`: Business logic and operations
+  - `util/`: Utility functions
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
+
+## Acknowledgements
+
+- [Next.js](https://nextjs.org/)
+- [React](https://reactjs.org/)
+- [Go](https://golang.org/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [Monaco Editor](https://microsoft.github.io/monaco-editor/)
+- [Docker](https://www.docker.com/)
