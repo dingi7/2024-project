@@ -244,11 +244,6 @@ export default function ContestPage() {
           <div className="flex gap-2">
             <SubmissionForm onSubmit={handleSubmit} />
             <GithubRepos accessToken={session?.githubAccessToken ?? ""} />
-            {isOwner && (
-              <Button onClick={() => setIsEditEnabled(!isEditEnabled)}>
-                Edit Contest
-              </Button>
-            )}
             <Button variant="outline" onClick={handleRefresh}>
               <RefreshCcwIcon className="w-4 h-4 mr-2" />
               Refresh
