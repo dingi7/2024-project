@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import MonacoEditor from '@monaco-editor/react';
 
 import { Button } from '@/components/ui/button';
@@ -34,13 +34,13 @@ const SubmissionForm = ({ onSubmit, selectedRepo }: Props) => {
         language: 'JavaScript',
     });
 
-    const languages = [
+    const languages = useMemo(() => [
         { value: 'JavaScript', monacoValue: 'javascript', label: 'JavaScript' },
         { value: 'Python', monacoValue: 'python', label: 'Python' },
         { value: 'Java', monacoValue: 'java', label: 'Java' },
         { value: 'C++', monacoValue: 'cpp', label: 'C++' },
         { value: 'C#', monacoValue: 'csharp', label: 'C#' },
-    ];
+    ], []);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
