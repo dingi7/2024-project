@@ -9,4 +9,5 @@ type Submission struct {
 	Score     float64 `json:"score"`
 	CreatedAt string  `json:"createdAt" bson:"createdAt" validate:"required"`
 	Language  string  `json:"language"`
+	IsRepo    bool    `json:"isRepo"`
 }

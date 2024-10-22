@@ -43,10 +43,11 @@ func AuthMiddleware(c *fiber.Ctx) error {
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		// You can access the claims here, e.g., user ID
 		userID := claims["id"]
+		githubToken := claims["github_token"]
 
 		// Add the user ID to the context for use in protected routes
 		c.Locals("userID", userID)
-
+		c.Locals("githubToken", githubToken)
 		return c.Next()
 	}
 

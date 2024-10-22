@@ -16,8 +16,8 @@ import (
 )
 
 const (
-	AccessTokenExpiry   = 24 * time.Hour
-	RefreshTokenExpiry  = 7 * 24 * time.Hour
+	AccessTokenExpiry  = 24 * time.Hour
+	RefreshTokenExpiry = 7 * 24 * time.Hour
 )
 
 type UserService struct {
@@ -74,8 +74,9 @@ func (s *UserService) CreateAccessToken(user models.User, refreshToken string) (
 	}
 
 	claims := jwt.MapClaims{
-		"id":  user.ID,
-		"exp": time.Now().Add(AccessTokenExpiry).Unix(),
+		"id":           user.ID,
+		"github_token": user.GitHubAccessToken,
+		"exp":          time.Now().Add(AccessTokenExpiry).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
@@ -126,8 +127,9 @@ func (s *UserService) GetUsersAttendedContests(ctx context.Context, userID strin
 
 func (s *UserService) CreateRefreshToken(user models.User) (string, error) {
 	claims := jwt.MapClaims{
-		"id":  user.ID,
-		"exp": time.Now().Add(RefreshTokenExpiry).Unix(),
+		"id":           user.ID,
+		"github_token": user.GitHubAccessToken,
+		"exp":          time.Now().Add(RefreshTokenExpiry).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 

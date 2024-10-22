@@ -15,12 +15,15 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { PopoverClose } from '@radix-ui/react-popover';
+// Removed the import for AlertDialog components due to the error
 
 type Props = {
     onSubmit: (solution: { language: string; code: string }) => void;
+    selectedRepo: { name: string; url: string };
 };
 
-const SubmissionForm = ({ onSubmit }: Props) => {
+const SubmissionForm = ({ onSubmit, selectedRepo }: Props) => {
     const [code, setCode] = useState(
         "function main() {\n\tconsole.log('Hello, World!');\n}"
     );
@@ -60,6 +63,36 @@ const SubmissionForm = ({ onSubmit }: Props) => {
             language: selectedLanguage.monacoValue,
         });
     }, [language]);
+
+    const handleRepoSubmit = () => {
+        const solution = {
+            language: 'Repository',
+            code: selectedRepo.url,
+        };
+        onSubmit(solution);
+    };
+
+    if (selectedRepo) {
+        return (
+            <Popover>
+                <PopoverTrigger asChild>
+                    <Button>Submit Repository Solution</Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[400px] p-4">
+                    <h2 className="text-lg font-medium mb-4">Submit Repository as Solution</h2>
+                    <p className="mb-4">
+                        Are you sure you want to submit the repository "{selectedRepo.name}" as your solution?
+                    </p>
+                    <div className="flex justify-end space-x-2">
+                        <PopoverClose asChild>
+                            <Button variant="outline">Cancel</Button>
+                        </PopoverClose>
+                        <Button onClick={handleRepoSubmit}>Submit Repository</Button>
+                    </div>
+                </PopoverContent>
+            </Popover>
+        );
+    }
 
     return (
         <Popover open={isOpen} onOpenChange={setIsOpen}>

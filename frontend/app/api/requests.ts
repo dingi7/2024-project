@@ -22,8 +22,8 @@ export const userSignIn = async (payload : User) => {
     return api.post(endpoints.userSingIn, payload);
 };
 
-export const codeSubmit = async (payload : ContestSolution, id: string) => {
-    return api.post(endpoints.codeSubmit(id), payload);
+export const codeSubmit = async (payload : ContestSolution, id: string, isRepo: boolean) => {
+    return api.post(endpoints.codeSubmit(id), {...payload, isRepo});
 }
 
 export const getContests = async () => {

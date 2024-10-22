@@ -4,6 +4,7 @@ import (
 	"backend/models"
 	"backend/operations"
 	"backend/services"
+	"backend/util"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -44,6 +45,14 @@ func (h *SubmissionHandler) CreateSubmission(c *fiber.Ctx) error {
 	fmt.Println("Test cases:", testCases)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error fetching test cases"})
+	}
+
+	if submission.IsRepo {
+		submission.Code, err = util.ConvertGitHubURLToZip(submission.Code)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error converting GitHub URL to zip", "message": err.Error()})
+		}
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "GitHub URL converted to zip", "code": submission.Code})
 	}
 
 	statusCode, output, score, passed, err := operations.RunTestCases(submission.Language, submission.Code, testCases)
