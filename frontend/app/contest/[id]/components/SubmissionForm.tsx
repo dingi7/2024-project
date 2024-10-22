@@ -62,7 +62,7 @@ const SubmissionForm = ({ onSubmit, selectedRepo }: Props) => {
             theme: 'vs-dark',
             language: selectedLanguage.monacoValue,
         });
-    }, [language]);
+    }, [language, languages]);
 
     const handleRepoSubmit = () => {
         const solution = {
