@@ -81,7 +81,7 @@ const SubmissionForm = ({ onSubmit, selectedRepo }: Props) => {
                 <PopoverContent className="w-[400px] p-4">
                     <h2 className="text-lg font-medium mb-4">Submit Repository as Solution</h2>
                     <p className="mb-4">
-                        Are you sure you want to submit the repository "{selectedRepo.name}" as your solution?
+                        Are you sure you want to submit the repository &ldquo;{selectedRepo.name}&rdquo; as your solution?
                     </p>
                     <div className="flex justify-end space-x-2">
                         <PopoverClose asChild>
