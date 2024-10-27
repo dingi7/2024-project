@@ -73,7 +73,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             echo "Removing old backend executable..."
-            rm -rf /home/kamen/2024-project/backend/backend/backend
+            rm -rf /home/kamen/2024-project/backend/backend
 
       - name: Copy New Backend Executable
         uses: appleboy/scp-action@v0.1.4
@@ -83,7 +83,7 @@ jobs:
           port: ${{ secrets.VPS_PORT || '22' }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: "backend/backend"
-          target: "/home/kamen/2024-project/backend/backend/"
+          target: "/home/kamen/2024-project/backend/"
           overwrite: true
 
       - name: Start Services
@@ -95,7 +95,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             echo "Setting permissions..."
-            chmod 755 /home/kamen/2024-project/backend/backend/backend
+            chmod 755 /home/kamen/2024-project/backend/backend
             
             echo "Starting services..."
             cd /home/kamen/2024-project/frontend
