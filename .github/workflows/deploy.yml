@@ -53,15 +53,15 @@ jobs:
                       # Give processes time to fully stop
                       sleep 5
 
-                      - name: Clean Old Frontend Files
-                      uses: appleboy/ssh-action@v0.1.6
-                      with:
-                        host: ${{ secrets.VPS_HOST }}
-                        username: ${{ secrets.VPS_USER }}
-                        port: ${{ secrets.VPS_PORT || '22' }}
-                        key: ${{ secrets.SSH_PRIVATE_KEY }}
-                        script: |
-                          rm -rf /home/kamen/2024-project/frontend/.next/*
+            - name: Clean Old Frontend Files
+              uses: appleboy/ssh-action@v0.1.6
+              with:
+                  host: ${{ secrets.VPS_HOST }}
+                  username: ${{ secrets.VPS_USER }}
+                  port: ${{ secrets.VPS_PORT || '22' }}
+                  key: ${{ secrets.SSH_PRIVATE_KEY }}
+                  script: |
+                      rm -rf /home/kamen/2024-project/frontend/.next/*
 
             - name: Update Frontend Files
               uses: appleboy/scp-action@v0.1.4
@@ -71,7 +71,7 @@ jobs:
                   port: ${{ secrets.VPS_PORT || '22' }}
                   key: ${{ secrets.SSH_PRIVATE_KEY }}
                   source: 'frontend/.next/'
-                  target: '/home/kamen/2024-project/frontend/'
+                  target: '/home/kamen/2024-project/frontend/.next/'
                   overwrite: true
 
             - name: Update Backend Executable
