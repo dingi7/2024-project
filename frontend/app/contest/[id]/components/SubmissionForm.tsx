@@ -20,7 +20,7 @@ import { PopoverClose } from '@radix-ui/react-popover';
 
 type Props = {
     onSubmit: (solution: { language: string; code: string }) => void;
-    selectedRepo: { name: string; url: string };
+    selectedRepo: { name: string; clone_url: string };
 };
 
 const SubmissionForm = ({ onSubmit, selectedRepo }: Props) => {
@@ -67,7 +67,7 @@ const SubmissionForm = ({ onSubmit, selectedRepo }: Props) => {
     const handleRepoSubmit = () => {
         const solution = {
             language: 'Repository',
-            code: selectedRepo.url,
+            code: selectedRepo.clone_url,
         };
         onSubmit(solution);
     };

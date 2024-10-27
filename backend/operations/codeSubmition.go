@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"os"
 	"os/exec"
 	"strings"
 
@@ -20,20 +19,6 @@ type Solution struct {
 	Input    string
 }
 
-func createTempFile(content string, extension string) (string, error) {
-	
-	tmpfile, err := os.CreateTemp("", "*."+extension)
-	if err != nil {
-		return "", err
-	}
-	if _, err := tmpfile.Write([]byte(content)); err != nil {
-		return "", err
-	}
-	if err := tmpfile.Close(); err != nil {
-		return "", err
-	}
-	return tmpfile.Name(), nil
-}
 
 func executeCode(solution Solution, inputString string, codeFile string) (string, error) {
 	cmdArgs := util.GetDockerCommand(solution.Language, codeFile, inputString)
@@ -64,7 +49,7 @@ func RunTestCases(language string, code string, testCases []models.TestCase) (in
 		fmt.Println("Identified code entry point:", entryPoint)
 	}
 	extension, modifiedCode := util.GetFileExtension(language, code, entryPoint)
-	codeFile, err := createTempFile(modifiedCode, extension)
+	codeFile, err := util.CreateTempFile(modifiedCode, extension)
 	if err != nil {
 		return 0, nil, 0, false, err
 	}

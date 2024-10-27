@@ -47,14 +47,23 @@ func (h *SubmissionHandler) CreateSubmission(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error fetching test cases"})
 	}
 
+	var tempDir string
 	if submission.IsRepo {
-		submission.Code, err = util.ConvertGitHubURLToZip(submission.Code)
+		tempDir, err = util.CloneRepository(submission.Code)
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error converting GitHub URL to zip", "message": err.Error()})
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error cloning repository", "message": err.Error()})
 		}
-		return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "GitHub URL converted to zip", "code": submission.Code})
-	}
+		defer util.CleanupTempDir(tempDir)
 
+		submission.Code, err = util.ReadConfigFileFromRepo(tempDir)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error reading code from repository", "message": err.Error()})
+		}
+		// Break the execution until code test cases are implemented
+		time.Sleep(10 * time.Second)
+		return nil
+	}
+ 
 	statusCode, output, score, passed, err := operations.RunTestCases(submission.Language, submission.Code, testCases)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error running test cases"})
