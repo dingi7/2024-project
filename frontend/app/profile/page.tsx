@@ -12,12 +12,20 @@ export default function Component() {
   const { data: session } = useSession();
   const user = session?.user;
   const [contests, setContests] = useState<Contest[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchContests = async () => {
       if (!user?.id) return;
-      const contests: Contest[] = await getUserAttendedContests(user.id);
-      setContests(contests.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()));
+      try {
+        setIsLoading(true);
+        const contests: Contest[] = await getUserAttendedContests(user.id);
+        setContests(contests.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()));
+      } catch (error) {
+        console.error('Error fetching contests:', error);
+      } finally {
+        setIsLoading(false);
+      }
     };
     fetchContests();
   }, [user?.id]);
@@ -77,27 +85,33 @@ export default function Component() {
             </Link>
           </div>
           <div className="grid gap-4">
-            {contests.map((contest: Contest) => {
-              return (
-                <div
-                  key={contest.id}
-                  className="grid grid-cols-[auto_1fr_auto] items-center gap-4"
-                >
-                  <div className="bg-muted rounded-md flex items-center justify-center aspect-square w-10">
-                    <TrophyIcon className="w-5 h-5 text-muted-foreground" />
-                  </div>
-                  <div>
-                    <div className="font-medium">{contest.title}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {new Date(contest.startDate).toLocaleDateString()}
+            {isLoading ? (
+              <div className="text-center text-muted-foreground">Loading contests...</div>
+            ) : contests.length === 0 ? (
+              <div className="text-center text-muted-foreground">No contests attended yet</div>
+            ) : (
+              contests.map((contest: Contest) => {
+                return (
+                  <div
+                    key={contest.id}
+                    className="grid grid-cols-[auto_1fr_auto] items-center gap-4"
+                  >
+                    <div className="bg-muted rounded-md flex items-center justify-center aspect-square w-10">
+                      <TrophyIcon className="w-5 h-5 text-muted-foreground" />
                     </div>
+                    <div>
+                      <div className="font-medium">{contest.title}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {new Date(contest.startDate).toLocaleDateString()}
+                      </div>
+                    </div>
+                    <Button variant="default">
+                      <Link href={`/contest/${contest.id}`}>View Contest</Link>
+                    </Button>
                   </div>
-                  <Button variant="default">
-                    <Link href={`/contest/${contest.id}`}>View Contest</Link>
-                  </Button>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
         </div>
       </div>

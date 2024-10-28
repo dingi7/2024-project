@@ -46,7 +46,7 @@ export interface Contest {
 }
 
 export type Submission = {
-    _id: string;
+    id: string;
     contestId: string;
     createdAt: string;
     language: string;
@@ -54,7 +54,7 @@ export type Submission = {
     ownerEmail: string;
     ownerId: string;
     score: number;
-    status: string;
+    status: boolean;
 }
 
 export type PlaceholderSubmission = {

@@ -22,7 +22,7 @@ import Link from 'next/link';
 import GithubRepos from './github/repoList';
 
 type FilterOptions = {
-    status: 'all' | 'pending' | 'completed' | string;
+    status: 'all' | 'Passed' | 'Failed' | string;
     sortBy: 'date' | 'score' | string;
     order: 'asc' | 'desc';
 };
@@ -147,11 +147,12 @@ export default function ContestPage() {
         };
 
         try {
-            setSubmissions((prevSubmissions) =>
-                Array.isArray(prevSubmissions)
-                    ? [...prevSubmissions, placeholderSubmission]
-                    : [placeholderSubmission]
-            );
+            setSubmissions((prevSubmissions) => {
+                if (Array.isArray(prevSubmissions)) {
+                    return [...prevSubmissions, placeholderSubmission] as PlaceholderSubmission[];
+                }
+                return [placeholderSubmission];
+            });
 
             toast({
                 title: 'Submission in progress',
@@ -163,15 +164,16 @@ export default function ContestPage() {
 
             const submissionResponse = await codeSubmit(submission, params.id, selectedRepo ? true : false);
 
-            setSubmissions((prevSubmissions) =>
-                Array.isArray(prevSubmissions)
-                    ? prevSubmissions.map((sub) =>
-                          sub === placeholderSubmission
-                              ? submissionResponse
-                              : sub
-                      )
-                    : [submissionResponse]
-            );
+            setSubmissions((prevSubmissions) => {
+                if (Array.isArray(prevSubmissions)) {
+                    return prevSubmissions.map((sub) =>
+                        sub === placeholderSubmission
+                            ? submissionResponse
+                            : sub
+                    ) as Submission[] | PlaceholderSubmission[];
+                }
+                return [submissionResponse];
+            });
 
             toast({
                 title: 'Submission assessed',
@@ -182,13 +184,14 @@ export default function ContestPage() {
         } catch (error) {
             console.error('Submission failed:', error);
 
-            setSubmissions((prevSubmissions) =>
-                Array.isArray(prevSubmissions)
-                    ? prevSubmissions.filter(
-                          (sub) => sub !== placeholderSubmission
-                      )
-                    : []
-            );
+            setSubmissions((prevSubmissions) => {
+                if (Array.isArray(prevSubmissions)) {
+                    return prevSubmissions.filter(
+                        (sub) => sub !== placeholderSubmission
+                    ) as Submission[] | PlaceholderSubmission[];
+                }
+                return [];
+            });
 
             toast({
                 title: 'Submission failed',
@@ -202,14 +205,19 @@ export default function ContestPage() {
 
     const filteredSubmissions = useMemo(() => {
         if (!submissions || submissions.length === 0) {
-            return [];
+            return [] as Submission[];  // Explicitly type the empty array
         }
 
-        let filtered = [...submissions];
+        let filtered = [...submissions] as (Submission | PlaceholderSubmission)[];
         if (filterOptions.status !== 'all') {
-            filtered = filtered.filter(
-                (s) => s.status === filterOptions.status
-            );
+            filtered = filtered.filter((s) => {
+                if (filterOptions.status === 'Passed') {
+                    return s.status === true || s.status === 'Passed';
+                } else if (filterOptions.status === 'Failed') {
+                    return s.status === false || s.status === 'Failed';
+                }
+                return true;
+            });
         }
         if (filterOptions.sortBy === 'date') {
             filtered.sort((a, b) =>
@@ -226,7 +234,7 @@ export default function ContestPage() {
                     : (b.score ?? 0) - (a.score ?? 0)
             );
         }
-        return filtered;
+        return filtered as Submission[];  // Cast the final result
     }, [submissions, filterOptions]);
 
     const handleRefresh = async () => {
