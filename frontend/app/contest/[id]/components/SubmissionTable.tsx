@@ -39,19 +39,35 @@ const SubmissionTable = ({
   console.log(submissions);
 
   const filteredSubmissions = submissions.filter((submission) => {
-    console.log(submission)
     if (filterOptions.status === "all") {
       return true;
     }
-    return filterOptions.status === "Passed"
-      ? submission.status === true
-      : submission.status === false;
+    if (filterOptions.status === "pending") {
+      return submission.status === "pending";
+    }
+    if (filterOptions.status === "Passed") {
+      return submission.status === true;
+    }
+    if (filterOptions.status === "Failed") {
+      return submission.status === false;
+    }
+    return true;
   });
+
+  const getStatusBadgeVariant = (status: string | boolean) => {
+    if (status === "pending") return "default";
+    return status === true ? "success" : "failure";
+  };
+
+  const getStatusText = (status: string | boolean) => {
+    if (status === "pending") return "Pending";
+    return status === true ? "Passed" : "Failed";
+  };
 
   return (
     <div>
       <h2 className="text-lg font-medium mb-4">Your Submissions</h2>
-      <div className="mb-4">
+      <div className="mb-4 flex flex-col gap-4">
         <Label htmlFor="status" className="mr-2">
           Filter by status:
         </Label>
@@ -68,6 +84,7 @@ const SubmissionTable = ({
             <SelectItem value="all">All</SelectItem>
             <SelectItem value="Passed">Passed</SelectItem>
             <SelectItem value="Failed">Failed</SelectItem>
+            <SelectItem value="pending">Pending</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -134,8 +151,8 @@ const SubmissionTable = ({
                   {new Date(submission.createdAt).toISOString().split("T")[0]}
                 </TableCell>
                 <TableCell>
-                  <Badge variant={submission.status ? "success" : "failure"}>
-                    {submission.status ? "Passed" : "Failed"}
+                  <Badge variant={getStatusBadgeVariant(submission.status)}>
+                    {getStatusText(submission.status)}
                   </Badge>
                 </TableCell>
                 <TableCell>
