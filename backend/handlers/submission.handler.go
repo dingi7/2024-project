@@ -49,7 +49,7 @@ func (h *SubmissionHandler) CreateSubmission(c *fiber.Ctx) error {
 
 	var tempDir string
 	if submission.IsRepo {
-		tempDir, err = util.CloneRepository(submission.Code)
+		tempDir, err = util.CloneRepository(submission.Code, c.Locals("githubToken").(string))
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error cloning repository", "message": err.Error()})
 		}
