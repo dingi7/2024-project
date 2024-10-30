@@ -60,6 +60,8 @@ func (h *ContestHandler) CreateContest(c *fiber.Ctx) error {
 
 	prize, _ := getFormValue(form, "prize") // Prize is optional, so we ignore the error
 
+	contestStructure, _ := getFormValue(form, "contestStructure")
+
 	ownerID, err := getFormValue(form, "ownerId")
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -76,6 +78,7 @@ func (h *ContestHandler) CreateContest(c *fiber.Ctx) error {
 		OwnerID:     ownerID,
 		CreatedAt:   time.Now(),
 		TestCases:   []models.TestCase{},
+		ContestStructure: contestStructure,
 	}
 
 	// Check if the "contestRules" field exists and has at least one file

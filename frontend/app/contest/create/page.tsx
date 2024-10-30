@@ -33,8 +33,9 @@ import {
 import { createContest } from '@/app/api/requests';
 import { getSession, useSession } from 'next-auth/react';
 import { useToast } from '@/components/ui/use-toast';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import GithubRepos from '../[id]/github/repoList';
 
 const ContestScheme = z.object({
     title: z.string().min(3).max(32),
@@ -59,6 +60,7 @@ const ContestScheme = z.object({
     ]),
     prize: z.string(),
     rulesFile: z.any().optional(),
+    contestStructure: z.string().optional(),
     // rulesFile: z
     //     .instanceof(FileList)
     //     .optional()
@@ -80,6 +82,7 @@ export default function Component() {
     const { toast } = useToast();
     let { data: session, status } = useSession();
     const router = useRouter();
+    const [repos, setRepos] = useState<any[]>([]);
 
     useEffect(() => {
         if (!session?.user.id) {
@@ -89,6 +92,13 @@ export default function Component() {
         }
         if (status === 'unauthenticated' || !session || !session.user.id)
             return;
+        fetch('https://api.github.com/user/repos', {
+            headers: {
+                Authorization: `Bearer ${session?.githubAccessToken}`,
+            },
+        })
+            .then((response) => response.json())
+            .then((data) => setRepos(data));
     }, [status]);
 
     const {
@@ -98,6 +108,7 @@ export default function Component() {
         formState: { errors },
         reset,
         setValue,
+        watch,
     } = useForm<ContestType>({ resolver: zodResolver(ContestScheme) });
 
     const handleCreateContest: SubmitHandler<ContestType> = async (data) => {
@@ -119,6 +130,7 @@ export default function Component() {
             ownerId: session.user.id,
             testCases: [], // TestCases will be added separately
             contestRules: data.rulesFile,
+            contestStructure: repos.find(repo => repo.name === data.contestStructure)?.clone_url || null,
         };
         try {
             await createContest(payload);
@@ -127,8 +139,8 @@ export default function Component() {
                 description: 'Contest created successfully',
                 variant: 'success',
             });
-            reset()
-            setValue('language', 'python'); 
+            reset();
+            setValue('language', 'python');
             router.push('/contests');
         } catch (error) {
             toast({
@@ -159,7 +171,10 @@ export default function Component() {
                         }}
                     >
                         <div className='grid gap-2'>
-                            <Label htmlFor='title'>Contest Title</Label>
+                            <Label htmlFor='title'>
+                                Contest Title{' '}
+                                <span className='text-red-500'>*</span>
+                            </Label>
                             <Input
                                 id='title'
                                 placeholder='Enter contest title'
@@ -173,7 +188,10 @@ export default function Component() {
                             )}
                         </div>
                         <div className='grid gap-2'>
-                            <Label htmlFor='description'>Description</Label>
+                            <Label htmlFor='description'>
+                                Description{' '}
+                                <span className='text-red-500'>*</span>
+                            </Label>
                             <Textarea
                                 id='description'
                                 placeholder='Enter contest description'
@@ -188,7 +206,8 @@ export default function Component() {
                         </div>
                         <div className='grid gap-2'>
                             <Label htmlFor='language'>
-                                Programming Language
+                                Programming Language{' '}
+                                <span className='text-red-500'>*</span>
                             </Label>
                             <Controller
                                 name='language'
@@ -250,7 +269,10 @@ export default function Component() {
                             )}
                         </div>
                         <div className='grid gap-2'>
-                            <Label>Contest Duration</Label>
+                            <Label>
+                                Contest Duration{' '}
+                                <span className='text-red-500'>*</span>
+                            </Label>
                             <Controller
                                 control={control}
                                 name='dateRange'
@@ -304,7 +326,6 @@ export default function Component() {
                                                 selected={field.value}
                                                 onSelect={field.onChange}
                                                 numberOfMonths={2}
-                                                
                                             />
                                             <div className='grid grid-cols-2 gap-2 p-3 border-t border-border'>
                                                 <div>
@@ -503,7 +524,9 @@ export default function Component() {
                             )}
                         </div>
                         <div className='grid gap-2'>
-                            <Label htmlFor='prize'>Prize</Label>
+                            <Label htmlFor='prize'>
+                                Prize <span className='text-red-500'>*</span>
+                            </Label>
                             <Input
                                 id='prize'
                                 placeholder='Enter prize'
@@ -518,9 +541,33 @@ export default function Component() {
                                 </p>
                             )}
                         </div>
+
+                        <div className='grid gap-2'>
+                            <Label htmlFor='github-repo-url'>
+                                Contest Structure Template{' '}
+                                <span className='text-gray-500'>
+                                    (Optional)
+                                </span>
+                            </Label>
+                            <GithubRepos
+                                repos={repos}
+                                selectedRepo={watch('contestStructure') || ''}
+                                setSelectedRepo={(repo) =>
+                                    setValue('contestStructure', repo)
+                                }
+                            />
+                            {errors.contestStructure?.message && (
+                                <p className='text-red-500'>
+                                    {errors.contestStructure.message as string}
+                                </p>
+                            )}
+                        </div>
                         <div className='grid gap-2'>
                             <Label htmlFor='rules-files'>
-                                Contest Rules (Optional)
+                                Contest Rules{' '}
+                                <span className='text-gray-500'>
+                                    (Optional)
+                                </span>
                             </Label>
                             <Input
                                 id='rules-files'
