@@ -106,6 +106,14 @@ function Header({}: Props) {
             {session?.user ? (
               <>
                 <Link
+                  href="/contest/create"
+                  className="text-sm font-bold hover:underline underline-offset-4"
+                  prefetch={false}
+                  onClick={closeMenu}
+                >
+                  Create
+                </Link>
+                <Link
                   href="/profile"
                   className="text-sm font-bold hover:underline underline-offset-4"
                   prefetch={false}
