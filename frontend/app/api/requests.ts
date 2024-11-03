@@ -16,6 +16,7 @@ export const endpoints = {
     getLeaderboard: '/leaderboard',
     editContest: (id: string) => `/contest/${id}`,
     getUserAttendedContests: (userId: string) => `/users/${userId}/contests`,
+    createRepo: '/contest/github/createRepo',
 };
 
 export const userSignIn = async (payload : User) => {
@@ -81,4 +82,11 @@ export const getLeaderboard = async () => {
 
 export const getUserAttendedContests = async (userId: string): Promise<Contest[]> => {
     return api.get(endpoints.getUserAttendedContests(userId));
+}
+
+export const createRepo = async (payload: {
+    templateCloneURL: string,
+    newRepoName: string,
+}) => {
+    return api.post(endpoints.createRepo, payload);
 }

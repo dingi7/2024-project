@@ -27,6 +27,10 @@ jobs:
               working-directory: ./frontend
               run: npm run build
 
+            - name: Archive Frontend Directory
+              run: |
+                tar --exclude='frontend/node_modules' -czf frontend.tar.gz -C frontend .
+
             - name: Set up Go
               uses: actions/setup-go@v3
               with:
@@ -53,7 +57,7 @@ jobs:
                       # Give processes time to fully stop
                       sleep 5
 
-            - name: Clean Old Frontend Files
+            - name: Clean Old Frontend Directory
               uses: appleboy/ssh-action@v0.1.6
               with:
                   host: ${{ secrets.VPS_HOST }}
@@ -61,18 +65,32 @@ jobs:
                   port: ${{ secrets.VPS_PORT || '22' }}
                   key: ${{ secrets.SSH_PRIVATE_KEY }}
                   script: |
-                      rm -rf /home/kamen/2024-project/frontend/.next/*
+                      rm -rf /home/kamen/2024-project/frontend
 
-            - name: Update Frontend Files
+            - name: Upload Frontend Archive
               uses: appleboy/scp-action@v0.1.4
               with:
                   host: ${{ secrets.VPS_HOST }}
                   username: ${{ secrets.VPS_USER }}
                   port: ${{ secrets.VPS_PORT || '22' }}
                   key: ${{ secrets.SSH_PRIVATE_KEY }}
-                  source: 'frontend/.next/'
-                  target: '/home/kamen/2024-project/frontend/.next/'
+                  source: 'frontend.tar.gz'
+                  target: '/home/kamen/2024-project/'
                   overwrite: true
+
+            - name: Extract Frontend Archive on Server
+              uses: appleboy/ssh-action@v0.1.6
+              with:
+                  host: ${{ secrets.VPS_HOST }}
+                  username: ${{ secrets.VPS_USER }}
+                  port: ${{ secrets.VPS_PORT || '22' }}
+                  key: ${{ secrets.SSH_PRIVATE_KEY }}
+                  script: |
+                      cd /home/kamen/2024-project
+                      tar -xzf frontend.tar.gz
+                      rm frontend.tar.gz
+                      cd frontend
+                      npm ci --only=production
 
             - name: Update Backend Executable
               uses: appleboy/ssh-action@v0.1.6
@@ -115,7 +133,7 @@ jobs:
                   key: ${{ secrets.SSH_PRIVATE_KEY }}
                   script: |
                       echo "Setting permissions..."
-                      sudo chmod +x /home/kamen/2024-project/backend/backend/backend
+                      sudo chmod +x /home/kamen/2024-project/backend/backend
 
                       echo "Starting services..."
                       cd /home/kamen/2024-project/frontend
