@@ -16,7 +16,7 @@ func Setup(app *fiber.App, client *mongo.Client) {
 	contestHandler := handlers.NewContestHandler(client)
 	submissionHandler := handlers.NewSubmissionHandler(client)
 	leaderboardHandler := handlers.NewLeaderboardHandler(client)
-
+	githubHandler := handlers.NewGitHubHandler()
 	// public routes
 	api.Post("/auth/signIn", userHandler.UserSignIn)
 	api.Get("/contest", contestHandler.GetContests)
@@ -36,4 +36,5 @@ func Setup(app *fiber.App, client *mongo.Client) {
 	api.Put("/contest/:id/TestCases", contestHandler.UpdateTestCase)
 	api.Delete("/contest/:contestId/TestCases/:testCaseId", contestHandler.DeleteTestCase)
 	api.Get("/users/:userId/contests", userHandler.GetUsersAttendedContests)
+	api.Post("/contest/github/createRepo", githubHandler.CreateRepositoryFromTemplate)
 }
