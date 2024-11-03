@@ -61,19 +61,8 @@ const ContestScheme = z.object({
   prize: z.string(),
   rulesFile: z.any().optional(),
   contestStructure: z.string().optional(),
-  // rulesFile: z
-  //     .instanceof(FileList)
-  //     .optional()
-  //     .refine(
-  //         (files) =>
-  //             !files ||
-  //             files.length === 0 ||
-  //             Array.from(files).every((file) => file.size < 5e6),
-  //         "Each file must be less than 5 MB"
-  //     )
-  //     .transform((files) =>
-  //         files && files.length > 0 ? Array.from(files) : null
-  //     ),
+  testFile: z.any().optional(),
+  testFramework: z.enum(['jest', 'unittest', 'pytest']).optional(),
 });
 
 type ContestType = z.infer<typeof ContestScheme>;
@@ -159,11 +148,11 @@ export default function Component() {
       endDate: data.dateRange.to,
       prize: parseInt(data.prize),
       ownerId: session.user.id,
-      testCases: [], // TestCases will be added separately
+      testCases: [],
       contestRules: data.rulesFile,
-      contestStructure:
-        repos.find((repo) => repo.name === data.contestStructure)?.clone_url ||
-        null,
+      contestStructure: repos.find((repo) => repo.name === data.contestStructure)?.clone_url || null,
+      testFramework: data.contestStructure ? data.testFramework : null,
+      testFile: data.contestStructure ? data.testFile : null,
     };
     
     try {
@@ -460,6 +449,56 @@ export default function Component() {
                 <p className="text-red-500">
                   {errors.contestStructure.message as string}
                 </p>
+              )}
+
+              {watch("contestStructure") && (
+                <>
+                  <div className="grid gap-2 mt-4">
+                    <Label htmlFor="testFramework">
+                      Test Framework <span className="text-red-500">*</span>
+                    </Label>
+                    <Controller
+                      name="testFramework"
+                      control={control}
+                      rules={{ required: "Test framework is required when using a template" }}
+                      render={({ field }) => (
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
+                          <SelectTrigger id="testFramework">
+                            <SelectValue placeholder="Select test framework" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="jest">Jest</SelectItem>
+                            <SelectItem value="unittest">Unittest</SelectItem>
+                            <SelectItem value="pytest">Pytest</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                    {errors.testFramework && (
+                      <p className="text-red-500">{errors.testFramework.message}</p>
+                    )}
+                  </div>
+
+                  <div className="grid gap-2 mt-2">
+                    <Label htmlFor="test-file">
+                      Test File <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="test-file"
+                      type="file"
+                      accept=".js,.py"
+                      {...register("testFile", {
+                        required: "Test file is required when using a template",
+                      })}
+                    />
+                    {errors.testFile && (
+                      <p className="text-red-500">{errors.testFile.message as string}</p>
+                    )}
+                  </div>
+                </>
               )}
             </div>
             <div className="grid gap-2">
