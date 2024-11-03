@@ -7,7 +7,7 @@ import (
 	"backend/util"
 	"context"
 	"encoding/json"
-	"fmt"
+
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -36,34 +36,39 @@ func (h *SubmissionHandler) CreateSubmission(c *fiber.Ctx) error {
 
 	// Get contest ID from params
 	contestID := c.Params("contestId")
-	// set the createdAt to the current time
 	submission.CreatedAt = time.Now().Format(time.RFC3339)
 
 	// Fetch test cases for the contest
 	testCases, err := h.SubmissionService.GetContestTestCases(ctx, contestID)
-	// Print test cases
-	fmt.Println("Test cases:", testCases)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error fetching test cases"})
 	}
 
-	var tempDir string
 	if submission.IsRepo {
-		tempDir, err = util.CloneRepository(submission.Code, c.Locals("githubToken").(string))
-		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error cloning repository", "message": err.Error()})
-		}
-		defer util.CleanupTempDir(tempDir)
-
-		submission.Code, err = util.ReadConfigFileFromRepo(tempDir)
-		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error reading code from repository", "message": err.Error()})
-		}
-		// Break the execution until code test cases are implemented
-		time.Sleep(10 * time.Second)
-		return nil
+		return h.handleRepoSubmission(c, submission)
 	}
- 
+
+	return h.handleCodeSubmission(c, ctx, submission, contestID, testCases)
+}
+
+func (h *SubmissionHandler) handleRepoSubmission(c *fiber.Ctx, submission *models.Submission) error {
+	var tempDir string
+	tempDir, err := util.CloneRepository(submission.Code, c.Locals("githubToken").(string))
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error cloning repository", "message": err.Error()})
+	}
+	defer util.CleanupTempDir(tempDir)
+
+	submission.Code, err = util.ReadConfigFileFromRepo(tempDir)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error reading code from repository", "message": err.Error()})
+	}
+	// Break the execution until code test cases are implemented
+	time.Sleep(10 * time.Second)
+	return nil
+}
+
+func (h *SubmissionHandler) handleCodeSubmission(c *fiber.Ctx, ctx context.Context, submission *models.Submission, contestID string, testCases []models.TestCase) error {
 	statusCode, output, score, passed, err := operations.RunTestCases(submission.Language, submission.Code, testCases)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error running test cases"})
@@ -86,7 +91,6 @@ func (h *SubmissionHandler) CreateSubmission(c *fiber.Ctx) error {
 	}
 
 	return c.Status(statusCode).JSON(record)
-
 }
 
 func (h *SubmissionHandler) GetSubmissionsByOwnerID(c *fiber.Ctx) error {
