@@ -29,7 +29,7 @@ jobs:
 
             - name: Archive Frontend Directory
               run: |
-                tar --exclude='frontend/node_modules' -czf frontend.tar.gz -C frontend .
+                tar --exclude='frontend/node_modules' -czf frontend.tar.gz frontend
 
             - name: Set up Go
               uses: actions/setup-go@v3
