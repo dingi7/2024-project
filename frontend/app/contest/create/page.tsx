@@ -165,12 +165,8 @@ export default function Component() {
         repos.find((repo) => repo.name === data.contestStructure)?.clone_url ||
         null,
     };
-    const repoPayload = {
-      templateCloneURL: data.contestStructure || "",
-      newRepoName: data.title,
-    };
+    
     try {
-      await createRepo(repoPayload);
       await createContest(payload);
       toast({
         title: "Contest created successfully",

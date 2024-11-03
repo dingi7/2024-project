@@ -43,6 +43,7 @@ export interface Contest {
     testCases: TestCase[];
     createdAt: string;
     contestRules: string;
+    contestStructure: string;
 }
 
 export type Submission = {
