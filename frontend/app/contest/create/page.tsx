@@ -30,7 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { createContest } from "@/app/api/requests";
+import { createContest, createRepo } from "@/app/api/requests";
 import { getSession, useSession } from "next-auth/react";
 import { useToast } from "@/components/ui/use-toast";
 import { useEffect, useState } from "react";
@@ -165,7 +165,12 @@ export default function Component() {
         repos.find((repo) => repo.name === data.contestStructure)?.clone_url ||
         null,
     };
+    const repoPayload = {
+      templateCloneURL: data.contestStructure || "",
+      newRepoName: data.title,
+    };
     try {
+      await createRepo(repoPayload);
       await createContest(payload);
       toast({
         title: "Contest created successfully",
