@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"backend/services"
+	"fmt"
+
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -18,6 +20,7 @@ func NewGitHubHandler() *GitHubHandler {
 
 func (h *GitHubHandler) CreateRepositoryFromTemplate(c *fiber.Ctx) error {
 	githubToken := c.Locals("githubToken").(string)
+	fmt.Println("GitHub token:", githubToken)
 	
 	// Parse request body
 	var body struct {

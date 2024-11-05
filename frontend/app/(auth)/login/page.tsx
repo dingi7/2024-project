@@ -25,7 +25,7 @@ export default function Component() {
                     onClick={async () => {
                         const result = await signIn('github', {
                             callbackUrl: '/',
-                        });
+                        }, {scope: 'read:user user:email repo'});
                         if (result?.error) {
                             toast({
                                 title: 'Login failed',

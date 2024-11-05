@@ -73,7 +73,7 @@ export default function ContestPage() {
     });
     const data = await response.json();
     setRepos(data);
-    console.log(data);
+    console.log(data)
     console.log("Fetching contest and submissions");
     try {
       const contestResponse = await getContestById(params.id);
@@ -277,7 +277,7 @@ export default function ContestPage() {
                     });
                   }}
                 >
-                  Clone from Repo
+                  Clone contest structure
                 </Button>
                 <GithubRepos
                   repos={repos}

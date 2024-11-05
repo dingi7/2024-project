@@ -106,7 +106,7 @@ export default function Component() {
                       </div>
                     </div>
                     <Button variant="default">
-                      <Link href={`/contest/${contest.id}`}>View Contest (v1)</Link>
+                      <Link href={`/contest/${contest.id}`}>View Contest</Link>
                     </Button>
                   </div>
                 );

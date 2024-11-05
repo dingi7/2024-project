@@ -3,9 +3,10 @@ package handlers
 import (
 	"backend/models"
 	"backend/services"
+	"backend/util"
 	"context"
 	"fmt"
-	"io"
+
 	"mime/multipart"
 	"time"
 
@@ -69,32 +70,23 @@ func (h *ContestHandler) CreateContest(c *fiber.Ctx) error {
 
 	// Create a new Contest instance with the form data
 	contest := &models.Contest{
-		Title:       title,
-		Description: description,
-		Language:    language,
-		StartDate:   startDate,
-		EndDate:     endDate,
-		Prize:       prize,
-		OwnerID:     ownerID,
-		CreatedAt:   time.Now(),
-		TestCases:   []models.TestCase{},
+		Title:            title,
+		Description:      description,
+		Language:         language,
+		StartDate:        startDate,
+		EndDate:          endDate,
+		Prize:            prize,
+		OwnerID:          ownerID,
+		CreatedAt:        time.Now(),
+		TestCases:        []models.TestCase{},
 		ContestStructure: contestStructure,
 	}
 
-	// Check if the "contestRules" field exists and has at least one file
-	if files, ok := form.File["contestRules[0]"]; ok && len(files) > 0 {
-		fileHeader := files[0]
-		file, err := fileHeader.Open()
+	if files, ok := form.File["contestRules[0]"]; ok {
+		pdfData, err := util.HandlePDFUpload(files)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Failed to open PDF file"})
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 		}
-		defer file.Close()
-
-		pdfData, err := io.ReadAll(file)
-		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to read PDF file"})
-		}
-
 		contest.ContestRules = pdfData
 	}
 
@@ -176,8 +168,6 @@ func (h *ContestHandler) EditContest(c *fiber.Ctx) error {
 
 	// Parse the multipart form data
 	form, err := c.MultipartForm()
-	fmt.Println("Form parsed")
-	fmt.Println(form)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Failed to parse form data"})
 	}
@@ -214,19 +204,11 @@ func (h *ContestHandler) EditContest(c *fiber.Ctx) error {
 		existingContest.Prize = prize
 	}
 
-	if files, ok := form.File["contestRules[0]"]; ok && len(files) > 0 {
-		fileHeader := files[0]
-		file, err := fileHeader.Open()
+	if files, ok := form.File["contestRules[0]"]; ok {
+		pdfData, err := util.HandlePDFUpload(files)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Failed to open PDF file"})
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 		}
-		defer file.Close()
-
-		pdfData, err := io.ReadAll(file)
-		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to read PDF file"})
-		}
-
 		existingContest.ContestRules = pdfData
 		fmt.Println("Contest rules updated")
 	}
