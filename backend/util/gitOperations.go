@@ -133,6 +133,9 @@ func CreateGitHubRepo(repoName, oauthToken string) (string, error) {
     defer resp.Body.Close()
 
     if resp.StatusCode != http.StatusCreated {
+		if resp.StatusCode == http.StatusUnprocessableEntity {
+			return "", fmt.Errorf("failed to create repo: %s, response: %s", resp.Status, "Repository name already exists")
+		}
         body, _ := io.ReadAll(resp.Body)
         return "", fmt.Errorf("failed to create repo: %s, response: %s", resp.Status, string(body))
     }
