@@ -4,7 +4,7 @@ import (
 	"backend/models"
 	"backend/operations"
 	"backend/services"
-	"backend/util"
+
 	"context"
 	"encoding/json"
 
@@ -52,24 +52,16 @@ func (h *SubmissionHandler) CreateSubmission(c *fiber.Ctx) error {
 }
 
 func (h *SubmissionHandler) handleRepoSubmission(c *fiber.Ctx, submission *models.Submission) error {
-	var tempDir string
-	tempDir, err := util.CloneRepository(submission.Code, c.Locals("githubToken").(string))
+	statusCode, output, score, passed, err := operations.RunRepoTestCases(submission.Code, "submission.TestFile", c.Locals("githubToken").(string))
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error cloning repository", "message": err.Error()})
 	}
-	defer util.CleanupTempDir(tempDir)
 
-	submission.Code, err = util.ReadConfigFileFromRepo(tempDir)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error reading code from repository", "message": err.Error()})
-	}
-	// Break the execution until code test cases are implemented
-	time.Sleep(10 * time.Second)
-	return nil
+	return c.Status(statusCode).JSON(fiber.Map{"output": output, "score": score, "passed": passed})
 }
 
 func (h *SubmissionHandler) handleCodeSubmission(c *fiber.Ctx, ctx context.Context, submission *models.Submission, contestID string, testCases []models.TestCase) error {
-	statusCode, output, score, passed, err := operations.RunTestCases(submission.Language, submission.Code, testCases)
+	statusCode, output, score, passed, err := operations.RunCodeTestCases(submission.Language, submission.Code, testCases)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error running test cases"})
 	}

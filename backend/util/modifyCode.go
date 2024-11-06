@@ -93,3 +93,13 @@ func GetDockerCommand(language, codeFile, inputString string) []string {
 	}
 	return cmdArgs
 }
+
+
+func GetDockerRepoCommand(language, testFile string) []string {
+	cmdArgs := []string{}
+	switch language {
+	case "JavaScript":
+		cmdArgs = []string{"run", "--rm", "--network", "none", "-v", testFile + ":/app/test.js", "node:14", "bash", "-c", "jest"}
+	}
+	return cmdArgs
+}

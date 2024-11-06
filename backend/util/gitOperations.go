@@ -99,6 +99,21 @@ func ReadConfigFileFromRepo(repoPath string) (string, error) {
 	for _, file := range mainFiles {
 		content, err := os.ReadFile(filepath.Join(repoPath, file))
 		if err == nil {
+			// If it's package.json, parse it and look for test script
+			if file == "package.json" {
+				var packageJSON map[string]interface{}
+				if err := json.Unmarshal(content, &packageJSON); err != nil {
+					return "", fmt.Errorf("failed to parse package.json: %v", err)
+				}
+
+				// Look for scripts section
+				if scripts, ok := packageJSON["scripts"].(map[string]interface{}); ok {
+					// Look for test script
+					if testScript, ok := scripts["test"].(string); ok {
+						return testScript, nil
+					}
+				}
+			}
 			return string(content), nil
 		}
 	}
