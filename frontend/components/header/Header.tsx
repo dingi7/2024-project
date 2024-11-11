@@ -8,6 +8,7 @@ import SignOutButton from "./SignOutButton";
 import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ModeToggle } from "./ModeToggle";
+import LanguageToggle from "./LanguageToggle";
 
 type Props = {};
 
@@ -65,6 +66,7 @@ function Header({}: Props) {
       </nav>
 
       <div className="flex items-center gap-4">
+        <LanguageToggle />
         <ModeToggle />
         <ProfileAvatar />
         <button className="lg:hidden" onClick={toggleMenu}>

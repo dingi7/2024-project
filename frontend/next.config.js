@@ -1,5 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+    i18n: {
+        locales: ['en', 'bg'], // Define English and Bulgarian locales
+        defaultLocale: 'en', // Set the default locale
+    },
     // async headers() {
     //     return [
     //         {

@@ -1,0 +1,31 @@
+{
+  "hero": {
+    "title": "Conquer the Code",
+    "description": "Join our thrilling programming contest and showcase your coding prowess. Compete against the best, win amazing prizes, and elevate your skills to new heights.",
+    "competeNow": "Compete Now",
+    "loginToCompete": "Login to Compete"
+  },
+  "contest": {
+    "title": "Create Your Own Contests",
+    "description": "Our platform allows you to create your own coding contests and challenges. Customize the rules, set prizes, and invite participants to compete.",
+    "createButton": "Create a Contest"
+  },
+  "overview": {
+    "title": "Unleash Your Coding Prowess",
+    "description": "Our programming contest offers a thrilling platform for coders of all levels to showcase their skills, compete against the best, and win amazing prizes.",
+    "features": {
+      "registration": {
+        "title": "Easy Registration",
+        "description": "Sign up in minutes and get ready to showcase your coding skills."
+      },
+      "challenges": {
+        "title": "Coding Challenges",
+        "description": "Tackle a variety of coding challenges that test your problem-solving abilities."
+      },
+      "leaderboards": {
+        "title": "Leaderboards",
+        "description": "Track your progress and see how you stack up against the competition."
+      }
+    }
+  }
+}
