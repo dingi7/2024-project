@@ -129,10 +129,7 @@ export default function ContestPage() {
         setFilterOptions(filters);
     };
 
-    const handleSubmit = async (solution: {
-        code: string;
-        language: string;
-    }) => {
+    const handleSubmit = async (solution: { code: string; language: string }) => {
         const submission = {
             ...solution,
             contestId: params.id,
@@ -150,18 +147,14 @@ export default function ContestPage() {
         try {
             setSubmissions((prevSubmissions) => {
                 if (Array.isArray(prevSubmissions)) {
-                    return [
-                        ...prevSubmissions,
-                        placeholderSubmission,
-                    ] as PlaceholderSubmission[];
+                    return [...prevSubmissions, placeholderSubmission] as PlaceholderSubmission[];
                 }
                 return [placeholderSubmission];
             });
 
             toast({
                 title: 'Submission in progress',
-                description:
-                    'Your code is being submitted. Please wait for the results.',
+                description: 'Your code is being submitted. Please wait for the results.',
                 variant: 'default',
                 duration: 3000,
             });
@@ -171,6 +164,10 @@ export default function ContestPage() {
                 params.id,
                 selectedRepo ? true : false
             );
+
+            if ('error' in submissionResponse) {
+                throw new Error(submissionResponse.message || submissionResponse.error);
+            }
 
             setSubmissions((prevSubmissions) => {
                 if (Array.isArray(prevSubmissions)) {
@@ -187,22 +184,27 @@ export default function ContestPage() {
                 variant: 'success',
                 duration: 2000,
             });
-        } catch (error) {
+        } catch (error: any) {
             console.error('Submission failed:', error);
 
             setSubmissions((prevSubmissions) => {
                 if (Array.isArray(prevSubmissions)) {
-                    return prevSubmissions.filter(
-                        (sub) => sub !== placeholderSubmission
-                    ) as Submission[] | PlaceholderSubmission[];
+                    return prevSubmissions.map((sub) =>
+                        sub === placeholderSubmission 
+                            ? { 
+                                ...placeholderSubmission, 
+                                status: false,
+                                error: error.message || 'Unknown error occurred',
+                            } 
+                            : sub
+                    ) as PlaceholderSubmission[];
                 }
                 return [];
             });
 
             toast({
                 title: 'Submission failed',
-                description:
-                    'There was an error assessing your code. Please try again.',
+                description: error.message || 'There was an error assessing your code. Please try again.',
                 variant: 'destructive',
                 duration: 3000,
             });

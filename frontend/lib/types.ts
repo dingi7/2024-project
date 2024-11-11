@@ -56,6 +56,8 @@ export type Submission = {
     ownerId: string;
     score: number;
     status: boolean;
+    error?: string;
+    message?: string;
 }
 
 export type PlaceholderSubmission = {
@@ -64,6 +66,8 @@ export type PlaceholderSubmission = {
     language: string;
     ownerId: string;
     score: number | null;
-    status: string;
+    status: string | boolean;
     createdAt: string;
+    error?: string;
+    message?: string;
 }

@@ -54,12 +54,16 @@ const SubmissionTable = ({
     return true;
   });
 
-  const getStatusBadgeVariant = (status: string | boolean) => {
-    if (status === "pending") return "default";
-    return status === true ? "success" : "failure";
+  const getStatusBadgeVariant = (status: string | boolean | undefined) => {
+    if (!status) return "destructive";
+    if (status === "pending") return "secondary";
+    if (status === false) return "destructive";
+    return status === true ? "success" : "destructive";
   };
 
-  const getStatusText = (status: string | boolean) => {
+  const getStatusText = (status: string | boolean | undefined, error?: string) => {
+    if (error) return "Error";
+    if (!status) return "Failed";
     if (status === "pending") return "Pending";
     return status === true ? "Passed" : "Failed";
   };
@@ -131,32 +135,41 @@ const SubmissionTable = ({
         </TableHeader>
         <TableBody>
           {filteredSubmissions
+            .filter(submission => submission !== undefined)
             .sort((a, b) => {
               if (filterOptions.sortBy === "date") {
                 const comparison =
-                  new Date(b.createdAt).getTime() -
-                  new Date(a.createdAt).getTime();
+                  new Date(b?.createdAt || 0).getTime() -
+                  new Date(a?.createdAt || 0).getTime();
                 return filterOptions.order === "asc" ? -comparison : comparison;
               } else {
-                // Sort by score
-                const scoreA = a.score ?? -1;
-                const scoreB = b.score ?? -1;
+                const scoreA = a?.score ?? -1;
+                const scoreB = b?.score ?? -1;
                 const comparison = scoreB - scoreA;
                 return filterOptions.order === "asc" ? -comparison : comparison;
               }
             })
             .map((submission) => (
-              <TableRow key={submission.createdAt}>
+              <TableRow key={submission?.createdAt || Math.random()}>
                 <TableCell>
-                  {new Date(submission.createdAt).toISOString().split("T")[0]}
+                  {submission?.createdAt 
+                    ? new Date(submission.createdAt).toISOString().split("T")[0]
+                    : "N/A"}
                 </TableCell>
                 <TableCell>
-                  <Badge variant={getStatusBadgeVariant(submission.status)}>
-                    {getStatusText(submission.status)}
-                  </Badge>
+                  <div className="flex flex-col gap-1">
+                    <Badge 
+                      className={`inline-flex w-fit ${
+                        submission?.error ? 'bg-destructive text-destructive-foreground' : ''
+                      }`} 
+                      variant={getStatusBadgeVariant(submission?.status)}
+                    >
+                      {getStatusText(submission?.status, submission?.error)}
+                    </Badge>
+                  </div>
                 </TableCell>
                 <TableCell>
-                  {submission.score !== null ? submission.score : "-"}
+                  {submission?.score !== null ? submission.score : "-"}
                 </TableCell>
               </TableRow>
             ))}
