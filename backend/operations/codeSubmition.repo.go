@@ -4,11 +4,13 @@ import (
 	"backend/util"
 	"bytes"
 	"fmt"
-	"os"
 	"os/exec"
-	"path/filepath"
-)
+	"regexp"
+	"strconv"
+	"strings"
 
+	"github.com/gofiber/fiber/v2"
+)
 
 func RunRepoTestCases(repository string, testFile string, githubToken string) (int, []byte, int, bool, error) {
 	var tempDir string
@@ -19,45 +21,72 @@ func RunRepoTestCases(repository string, testFile string, githubToken string) (i
 	defer util.CleanupTempDir(tempDir)
 
 	testScript, err := util.ReadConfigFileFromRepo(tempDir)
+	fmt.Println("Test script: ", testScript)
 	if err != nil {
 		return 0, nil, 0, false, err
 	}
 
-	output, err := runTestScript(testScript, testFile, tempDir)
+	output, successCount, failCount, err := runTestScript(testScript, testFile, tempDir)
+	totalTestCases := successCount + failCount
+	passedPercentage := float64(successCount) / float64(totalTestCases) * 100
+	passedAll := successCount == totalTestCases
+	fmt.Println("Success count: ", successCount)
+	fmt.Println("Fail count: ", failCount)
 	if err != nil {
-		return 0, nil, 0, false, err
+		if !strings.Contains(err.Error(), "exit status 1") {
+			return fiber.StatusInternalServerError, nil, 0, false, err
+		}
 	}
 
-	fmt.Println("Output: ", output)
-
-	return 0, nil, 0, false, nil
+	return fiber.StatusOK, []byte(output), int(passedPercentage), passedAll, nil
 }
 
+func runTestScript(testScript string, testFile string, tempDir string) (string, int, int, error) {
+	// Get the Docker commands for setup and testing
+	commands := util.GetDockerRepoCommand("JavaScript", tempDir)
+	var finalOutput bytes.Buffer
+	var err error
 
-func runTestScript(testScript string, testFile string, tempDir string) (string, error) {
-	// add the test file to the temp dir
-	err := os.WriteFile(filepath.Join(tempDir, testFile), []byte(testScript), 0644)
-	if err != nil {
-		return "Error", err
+	for _, cmdArgs := range commands {
+		// Execute each Docker command in sequence
+		cmd := exec.Command("docker", cmdArgs...)
+		fmt.Println("Running command: ", cmd.Args)
+
+		var out bytes.Buffer
+		cmd.Stdout = &out
+		cmd.Stderr = &out
+
+		err = cmd.Run()
+		output := out.String()
+		fmt.Println("Output: ", output)
+		finalOutput.WriteString(output) // Append each command's output to final output
+
+		if err != nil {
+			// Log the error but continue with the next command
+			fmt.Println("Error running command:", err)
+		}
 	}
 
-	// execute the test script with the new test file and evaluate the output 
+	// Parse the final output for test results
+	output := finalOutput.String()
+	successCount, failCount := parseTestResults(output)
 
-	// jest
+	// Return results even if there was an error, to get success/fail counts
+	return output, successCount, failCount, err
+}
 
-	cmdArgs := util.GetDockerRepoCommand("JavaScript", testFile)
+// Helper function to parse Jest output for test results
+func parseTestResults(output string) (int, int) {
+	var successCount, failCount int
 
-	cmd := exec.Command("docker", cmdArgs...)
-	fmt.Println("Running command: ", cmd.Args)
-	var out bytes.Buffer
-	cmd.Stdout = &out
-	cmd.Stderr = &out
+	// Regular expression to match the line with the test results summary
+	summaryRegex := regexp.MustCompile(`Tests:\s+(\d+)\s+failed,\s+(\d+)\s+passed`)
 
-	err = cmd.Run()
-	if err != nil {
-		return "Error", err
+	// Find the match for passed and failed tests
+	if matches := summaryRegex.FindStringSubmatch(output); matches != nil {
+		failCount, _ = strconv.Atoi(matches[1])    // Number of failed tests
+		successCount, _ = strconv.Atoi(matches[2]) // Number of passed tests
 	}
 
-	return out.String(), nil
-
+	return successCount, failCount
 }

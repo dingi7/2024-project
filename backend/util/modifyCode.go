@@ -95,11 +95,28 @@ func GetDockerCommand(language, codeFile, inputString string) []string {
 }
 
 
-func GetDockerRepoCommand(language, testFile string) []string {
-	cmdArgs := []string{}
+func GetDockerRepoCommand(language, dir string) [][]string {
+	cmdArgs := [][]string{}
+
 	switch language {
 	case "JavaScript":
-		cmdArgs = []string{"run", "--rm", "--network", "none", "-v", testFile + ":/app/test.js", "node:14", "bash", "-c", "jest"}
+		// First command: Run npm install with network access
+		cmdArgs = append(cmdArgs, []string{
+			"run", "--rm",
+			"-v", dir + ":/app", "-w", "/app",
+			"node:14",
+			"bash", "-c",
+			"npm install",
+		})
+
+		// Second command: Run npm test with network disabled
+		cmdArgs = append(cmdArgs, []string{
+			"run", "--rm", "--network", "none",
+			"-v", dir + ":/app", "-w", "/app",
+			"node:14",
+			"bash", "-c",
+			"npm run test",
+		})
 	}
 	return cmdArgs
 }

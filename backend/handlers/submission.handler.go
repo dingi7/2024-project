@@ -45,19 +45,30 @@ func (h *SubmissionHandler) CreateSubmission(c *fiber.Ctx) error {
 	}
 
 	if submission.IsRepo {
-		return h.handleRepoSubmission(c, submission)
+		return h.handleRepoSubmission(c, ctx, submission, contestID)
 	}
 
 	return h.handleCodeSubmission(c, ctx, submission, contestID, testCases)
 }
 
-func (h *SubmissionHandler) handleRepoSubmission(c *fiber.Ctx, submission *models.Submission) error {
-	statusCode, output, score, passed, err := operations.RunRepoTestCases(submission.Code, "submission.TestFile", c.Locals("githubToken").(string))
+func (h *SubmissionHandler) handleRepoSubmission(c *fiber.Ctx, ctx context.Context, submission *models.Submission, contestID string) error {
+	statusCode, _, score, passed, err := operations.RunRepoTestCases(submission.Code, "submission.TestFile", c.Locals("githubToken").(string))
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error cloning repository", "message": err.Error()})
 	}
 
-	return c.Status(statusCode).JSON(fiber.Map{"output": output, "score": score, "passed": passed})
+	submission.ContestID = contestID
+	submission.OwnerID = c.Locals("userID").(string)
+	submission.Status = passed
+	submission.Score = float64(score)
+	submission.CreatedAt = time.Now().Format(time.RFC3339)
+
+	record, err := h.SubmissionService.CreateSubmission(ctx, submission)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error saving submission"})
+	}
+
+	return c.Status(statusCode).JSON(record)
 }
 
 func (h *SubmissionHandler) handleCodeSubmission(c *fiber.Ctx, ctx context.Context, submission *models.Submission, contestID string, testCases []models.TestCase) error {
