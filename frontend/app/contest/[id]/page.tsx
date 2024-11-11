@@ -77,9 +77,9 @@ export default function ContestPage() {
         console.log(data);
         console.log('Fetching contest and submissions');
         try {
-            const contestResponse = await getContestById(params.id);
+            const contestResponse = await getContestById(params?.id ?? '');
             const submissionsResponse = await getSubmissionsByOwnerID(
-                params.id,
+                params?.id ?? '',
                 session?.user?.id ?? ''
             );
 
@@ -111,7 +111,7 @@ export default function ContestPage() {
         const currentContest = contest;
         setContest(updatedContest);
         try {
-            editContest(updatedContest, params.id);
+            editContest(updatedContest, params?.id ?? '');
         } catch (error) {
             setContest(currentContest);
             console.error('Failed to edit contest:', error);
@@ -132,8 +132,8 @@ export default function ContestPage() {
     const handleSubmit = async (solution: { code: string; language: string }) => {
         const submission = {
             ...solution,
-            contestId: params.id,
-            ownerId: session!.user!.id,
+            contestId: params?.id ?? '',
+            ownerId: session?.user?.id ?? '',
             _id: 'placeholder',
         };
 
@@ -161,7 +161,7 @@ export default function ContestPage() {
 
             const submissionResponse = await codeSubmit(
                 submission,
-                params.id,
+                params?.id ?? '',
                 selectedRepo ? true : false
             );
 
