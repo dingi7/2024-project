@@ -17,6 +17,7 @@ const ContestScheme = z.object({
     endDate: z.string(),
     prize: z.string(),
     rulesFile: z.any().optional(),
+    testCaseFile: z.any().optional(),
 });
 
 type ContestType = z.infer<typeof ContestScheme>;
@@ -62,7 +63,7 @@ export default function ContestEditForm({ contest, onEdit, updateTestCases }: Pr
                     handleSubmit(handleEditContest)(e);
                 }}
             >
-                <div className='grid grid-cols-2 gap-4 mb-4'>
+                <div className='grid grid-cols-2 gap-6 mb-6'>
                     <div>
                         <Label htmlFor='title'>Title</Label>
                         <Input
@@ -87,7 +88,7 @@ export default function ContestEditForm({ contest, onEdit, updateTestCases }: Pr
                         )}
                     </div>
                 </div>
-                <div className='grid grid-cols-2 gap-4 mb-4'>
+                <div className='grid grid-cols-2 gap-6 mb-6'>
                     <div>
                         <Label htmlFor='startDate'>Start Date</Label>
                         <Input
@@ -98,7 +99,7 @@ export default function ContestEditForm({ contest, onEdit, updateTestCases }: Pr
                                     .toISOString()
                                     .split('T')[0]
                             }
-                            {...register('startDate')}  
+                            {...register('startDate')}
                         />
                         {errors.startDate && (
                             <p className='text-red-500'>
@@ -127,7 +128,7 @@ export default function ContestEditForm({ contest, onEdit, updateTestCases }: Pr
                     <Label htmlFor='prize'>Prize</Label>
                     <Input id='prize' defaultValue={contest.prize} required type='number' min={0} {...register('prize')} />
                 </div>
-                <div className='mt-4'>
+                <div className='mt-4 mb-6'>
                     <Label htmlFor='rulesFile'>Contest Rules (PDF)</Label>
                     <div className='flex items-center gap-2'>
                         <Input
@@ -153,11 +154,30 @@ export default function ContestEditForm({ contest, onEdit, updateTestCases }: Pr
                         </p>
                     )}
                 </div>
-                <ContestTestCases
-                    contestId={contest.id}
-                    dbTestCases={contest.testCases}
-                    saveContestTestCase={updateTestCases}
-                />
+                <div className="grid gap-2 mb-6">
+                    <Label htmlFor="testCaseFile">
+                        Test Case File
+                    </Label>
+                    <Input
+                        id="testCaseFile"
+                        type="file"
+                        accept=".pdf"
+                        multiple={false}
+                        {...register("testCaseFile")}
+                    />
+                    {errors.testCaseFile?.message && (
+                        <p className="text-red-500">
+                            {errors.testCaseFile.message as string}
+                        </p>
+                    )}
+                </div>
+                {!contest.contestStructure && (
+                    <ContestTestCases
+                        contestId={contest.id}
+                        dbTestCases={contest.testCases}
+                        saveContestTestCase={updateTestCases}
+                    />
+                )}
                 <Button type='submit' className='mt-4'>
                     Save Changes
                 </Button>
