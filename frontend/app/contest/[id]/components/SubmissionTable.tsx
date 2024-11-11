@@ -55,7 +55,7 @@ const SubmissionTable = ({
   });
 
   const getStatusBadgeVariant = (status: string | boolean | undefined) => {
-    if (!status) return "destructive";
+    if (status === undefined) return "destructive";
     if (status === "pending") return "secondary";
     if (status === false) return "destructive";
     return status === true ? "success" : "destructive";
