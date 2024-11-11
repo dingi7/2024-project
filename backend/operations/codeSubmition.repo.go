@@ -25,7 +25,7 @@ func RunRepoTestCases(repository string, testFile []byte, githubToken string) (i
 	output, successCount, failCount, err := runTestScript(testFile, tempDir)
 	totalTestCases := successCount + failCount
 	passedPercentage := float64(successCount) / float64(totalTestCases) * 100
-	passedAll := successCount == totalTestCases
+	passedAll := successCount == totalTestCases && failCount == 0 && totalTestCases != 0
 	fmt.Println("Success count: ", successCount)
 	fmt.Println("Fail count: ", failCount)
 	if err != nil {

@@ -13,8 +13,6 @@ import (
 	git "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/config"
 	githttp "github.com/go-git/go-git/v5/plumbing/transport/http"
-
-	// "github.com/google/go-github/v66/github"
 )
 
 type RepoCreationResponse struct {
@@ -91,35 +89,6 @@ func PushToUserRepo(templateRepoPath, newRepoURL, githubAccessToken string) erro
 	return nil
 }
 
-
-// func ReadConfigFileFromRepo(repoPath string) (string, error) {
-// 	mainFiles := []string{"go.mod", "package.json"}
-
-// 	for _, file := range mainFiles {
-// 		content, err := os.ReadFile(filepath.Join(repoPath, file))
-// 		if err == nil {
-// 			// If it's package.json, parse it and look for test script
-// 			if file == "package.json" {
-// 				var packageJSON map[string]interface{}
-// 				if err := json.Unmarshal(content, &packageJSON); err != nil {
-// 					return "", fmt.Errorf("failed to parse package.json: %v", err)
-// 				}
-
-// 				// Look for scripts section
-// 				if scripts, ok := packageJSON["scripts"].(map[string]interface{}); ok {
-// 					// Look for test script
-// 					if testScript, ok := scripts["test"].(string); ok {
-// 						return testScript, nil
-// 					}
-// 				}
-// 			}
-// 			return string(content), nil
-// 		}
-// 	}
-
-// 	return "", fmt.Errorf("no config file found in the repository")
-// }
-
 func CreateGitHubRepo(repoName, oauthToken string) (string, error) {
     url := "https://api.github.com/user/repos"
     data := map[string]interface{}{
@@ -164,24 +133,3 @@ func CreateGitHubRepo(repoName, oauthToken string) (string, error) {
     }
     return "", fmt.Errorf("failed to retrieve clone URL from response")
 }
-
-// func CreateGitHubRepo(repoName, githubToken string) (string, error) {
-// 	ctx := context.Background()
-	
-// 	client := github.NewClient(nil).WithAuthToken(githubToken)
-
-// 	repo := &github.Repository{
-// 		Name:        github.String(repoName),
-// 		Description: github.String("This is a template repository for a contest. Created by Contestify."),
-// 		Private:     github.Bool(false),
-// 		IsTemplate:  github.Bool(true),
-// 	}
-
-// 	createdRepo, _, err := client.Repositories.Create(ctx, "", repo)
-// 	if err != nil {
-// 		fmt.Println("Error creating repo:", err)
-// 		return "", fmt.Errorf("failed to create repo: %v", err)
-// 	}
-
-// 	return createdRepo.GetCloneURL(), nil
-// }

@@ -1,8 +1,10 @@
 package handlers
 
 import (
-    "backend/services"
-    "github.com/gofiber/fiber/v2"
+	"backend/services"
+	"backend/util"
+
+	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -18,9 +20,9 @@ func NewLeaderboardHandler(client *mongo.Client) *LeaderboardHandler {
 }
 
 func (h *LeaderboardHandler) GetLeaderboard(c *fiber.Ctx) error {
-    leaderboard, err := h.LeaderboardService.GetLeaderboard(c.Context())
-    if err != nil {
-        return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to fetch leaderboard"})
-    }
-    return c.JSON(leaderboard)
+	leaderboard, err := h.LeaderboardService.GetLeaderboard(c.Context())
+	if err != nil {
+		return util.HandleError(c, "Failed to fetch leaderboard")
+	}
+	return c.JSON(leaderboard)
 }

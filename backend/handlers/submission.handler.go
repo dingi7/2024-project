@@ -4,9 +4,9 @@ import (
 	"backend/models"
 	"backend/operations"
 	"backend/services"
+	"backend/util"
 
 	"context"
-	"encoding/json"
 
 	"time"
 
@@ -34,11 +34,9 @@ func (h *SubmissionHandler) CreateSubmission(c *fiber.Ctx) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	// Get contest ID from params
 	contestID := c.Params("contestId")
 	submission.CreatedAt = time.Now().Format(time.RFC3339)
 
-	// Fetch test cases for the contest
 	testCases, err := h.SubmissionService.GetContestTestCases(ctx, contestID)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error fetching test cases"})
@@ -54,37 +52,28 @@ func (h *SubmissionHandler) CreateSubmission(c *fiber.Ctx) error {
 func (h *SubmissionHandler) handleRepoSubmission(c *fiber.Ctx, ctx context.Context, submission *models.Submission, contestID string) error {
 	testFiles, err := h.SubmissionService.GetContestTestFiles(ctx, contestID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error fetching test files"})
+		return util.HandleError(c, "Error fetching test files")
 	}
+
 	statusCode, _, score, passed, err := operations.RunRepoTestCases(submission.Code, testFiles, c.Locals("githubToken").(string))
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error cloning repository", "message": err.Error()})
+		return util.HandleError(c, "Error cloning repository", fiber.Map{"message": err.Error()})
 	}
 
-	submission.ContestID = contestID
-	submission.OwnerID = c.Locals("userID").(string)
-	submission.Status = passed
-	submission.Score = float64(score)
-	submission.CreatedAt = time.Now().Format(time.RFC3339)
-
-	record, err := h.SubmissionService.CreateSubmission(ctx, submission)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error saving submission"})
-	}
-
-	return c.Status(statusCode).JSON(record)
+	return h.finalizeSubmission(c, ctx, submission, contestID, statusCode, score, passed)
 }
 
 func (h *SubmissionHandler) handleCodeSubmission(c *fiber.Ctx, ctx context.Context, submission *models.Submission, contestID string, testCases []models.TestCase) error {
-	statusCode, output, score, passed, err := operations.RunCodeTestCases(submission.Language, submission.Code, testCases)
+	statusCode, _, score, passed, err := operations.RunCodeTestCases(submission.Language, submission.Code, testCases)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error running test cases"})
+		return util.HandleError(c, "Error running test cases")
 	}
 
-	var result []map[string]interface{}
-	if err := json.Unmarshal(output, &result); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error parsing test results"})
-	}
+	return h.finalizeSubmission(c, ctx, submission, contestID, statusCode, score, passed)
+}
+
+func (h *SubmissionHandler) finalizeSubmission(c *fiber.Ctx, ctx context.Context, submission *models.Submission, contestID string,
+	statusCode int, score int, passed bool) error {
 
 	submission.ContestID = contestID
 	submission.OwnerID = c.Locals("userID").(string)
@@ -94,7 +83,7 @@ func (h *SubmissionHandler) handleCodeSubmission(c *fiber.Ctx, ctx context.Conte
 
 	record, err := h.SubmissionService.CreateSubmission(ctx, submission)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error saving submission"})
+		return util.HandleError(c, "Error saving submission")
 	}
 
 	return c.Status(statusCode).JSON(record)
@@ -106,7 +95,7 @@ func (h *SubmissionHandler) GetSubmissionsByOwnerID(c *fiber.Ctx) error {
 	submissions, err := h.SubmissionService.GetSubmissionsByContestIDAndOwnerID(c.Context(), contestID, ownerID)
 
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error fetching submissions"})
+		return util.HandleError(c, "Error fetching submissions")
 	}
 
 	return c.Status(fiber.StatusOK).JSON(submissions)

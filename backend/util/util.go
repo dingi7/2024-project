@@ -5,8 +5,8 @@ import (
 	"io"
 	"mime/multipart"
 	"os"
-	"path/filepath"
-	"strings"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 
@@ -75,51 +75,15 @@ func HandleTestFileUpload(files []*multipart.FileHeader) ([]byte, error) {
 	return io.ReadAll(file)
 }
 
-// SaveTestSuiteFile saves uploaded test suite files to /test-suites/contestId/filename
-func SaveTestSuiteFile(files []*multipart.FileHeader, contestId string) (string, error) {
-	if len(files) != 1 {
-		return "", fmt.Errorf("exactly one file is required")
+func HandleError(c *fiber.Ctx, message string, additional ...fiber.Map) error {
+	status := fiber.StatusInternalServerError
+	response := fiber.Map{"error": message}
+
+	if len(additional) > 0 {
+		for key, value := range additional[0] {
+			response[key] = value
+		}
 	}
 
-	file := files[0] 
-
-	// Validate file extension
-	ext := strings.ToLower(filepath.Ext(file.Filename))
-	if ext != ".js" && ext != ".py" {
-		return "", fmt.Errorf("file must be a .js or .py file")
-	}
-
-	// Sanitize the filename to prevent path traversal attacks
-	filename := filepath.Base(file.Filename)
-
-	// Create the directory if it doesn't exist
-	dirPath := filepath.Join("test-suites", contestId)
-	err := os.MkdirAll(dirPath, os.ModePerm)
-	if err != nil {
-		return "", fmt.Errorf("failed to create directory: %v", err)
-	}
-
-	// Full path to save the file
-	filePath := filepath.Join(dirPath, filename)
-
-	// Open the uploaded file
-	src, err := file.Open()
-	if err != nil {
-		return "", fmt.Errorf("failed to open uploaded file: %v", err)
-	}
-	defer src.Close()
-
-	// Create the destination file
-	dst, err := os.Create(filePath)
-	if err != nil {
-		return "", fmt.Errorf("failed to create destination file: %v", err)
-	}
-	defer dst.Close()
-
-	// Copy the uploaded file to the destination file
-	if _, err := io.Copy(dst, src); err != nil {
-		return "", fmt.Errorf("failed to save file: %v", err)
-	}
-
-	return filePath, nil
+	return c.Status(status).JSON(response)
 }

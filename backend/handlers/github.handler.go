@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"backend/services"
+	"backend/util"
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
@@ -29,17 +30,12 @@ func (h *GitHubHandler) CreateRepositoryFromTemplate(c *fiber.Ctx) error {
 	}
 	
 	if err := c.BodyParser(&body); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid request body",
-		})
+		return util.HandleError(c, "Invalid request body")
 	}
 	
 	repo, err := h.GitHubService.CreateRepositoryFromTemplate(c.Context(), githubToken, body.TemplateCloneURL, body.NewRepoName)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to create repository",
-			"details": err.Error(),
-		})
+		return util.HandleError(c, "Failed to create repository", fiber.Map{"details": err.Error()})
 	}
 	
 	return c.JSON(repo)

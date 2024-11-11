@@ -30,7 +30,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { createContest, createRepo } from '@/app/api/requests';
+import { createContest } from '@/app/api/requests';
 import { getSession, useSession } from 'next-auth/react';
 import { useToast } from '@/components/ui/use-toast';
 import { useEffect, useState } from 'react';
@@ -44,20 +44,7 @@ const ContestScheme = z.object({
         from: z.date(),
         to: z.date(),
     }),
-    language: z.enum([
-        'python',
-        'java',
-        'javascript',
-        'c++',
-        'c#',
-        'ruby',
-        'php',
-        'swift',
-        'kotlin',
-        'go',
-        'rust',
-        'typescript',
-    ]),
+    language: z.enum(['python', 'java', 'javascript', 'c++', 'c#']),
     prize: z.string(),
     rulesFile: z.any().optional(),
     contestStructure: z.string().optional(),
