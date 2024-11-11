@@ -172,3 +172,18 @@ func (s *SubmissionService) GetContestTestCases(ctx context.Context, contestID s
 	}
 	return contest.TestCases, nil
 }
+
+
+func (s *SubmissionService) GetContestTestFiles(ctx context.Context, contestID string) ([]byte, error) {
+	objectID, err := primitive.ObjectIDFromHex(contestID)
+	if err != nil {
+		return nil, err
+	}
+	query := bson.M{"_id": objectID}
+	var contest models.Contest
+	err = s.ContestCollection.FindOne(ctx, query).Decode(&contest)
+	if err != nil {
+		return nil, err
+	}
+	return contest.TestFiles, nil
+}

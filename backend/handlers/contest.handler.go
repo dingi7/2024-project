@@ -63,6 +63,12 @@ func (h *ContestHandler) CreateContest(c *fiber.Ctx) error {
 
 	contestStructure, _ := getFormValue(form, "contestStructure")
 
+	testFramework, _ := getFormValue(form, "testFramework")
+
+	if contestStructure != "" && testFramework == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Test framework is required for structured contests"})
+	}
+
 	ownerID, err := getFormValue(form, "ownerId")
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -80,6 +86,7 @@ func (h *ContestHandler) CreateContest(c *fiber.Ctx) error {
 		CreatedAt:        time.Now(),
 		TestCases:        []models.TestCase{},
 		ContestStructure: contestStructure,
+		TestFramework:    testFramework,
 	}
 
 	if files, ok := form.File["contestRules[0]"]; ok {
@@ -88,6 +95,17 @@ func (h *ContestHandler) CreateContest(c *fiber.Ctx) error {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 		}
 		contest.ContestRules = pdfData
+	}
+
+	if testFiles, ok := form.File["testFiles[0]"]; ok {
+		if len(testFiles) == 0 && contestStructure != "" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Test files are required for structured contests"})
+		}
+		testFileData, err := util.HandleTestFileUpload(testFiles)
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		}
+		contest.TestFiles = testFileData
 	}
 
 	// Validate contest data

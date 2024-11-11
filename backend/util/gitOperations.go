@@ -8,7 +8,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"path/filepath"
 
 	"github.com/go-git/go-git/plumbing/transport"
 	git "github.com/go-git/go-git/v5"
@@ -93,33 +92,33 @@ func PushToUserRepo(templateRepoPath, newRepoURL, githubAccessToken string) erro
 }
 
 
-func ReadConfigFileFromRepo(repoPath string) (string, error) {
-	mainFiles := []string{"go.mod", "package.json"}
+// func ReadConfigFileFromRepo(repoPath string) (string, error) {
+// 	mainFiles := []string{"go.mod", "package.json"}
 
-	for _, file := range mainFiles {
-		content, err := os.ReadFile(filepath.Join(repoPath, file))
-		if err == nil {
-			// If it's package.json, parse it and look for test script
-			if file == "package.json" {
-				var packageJSON map[string]interface{}
-				if err := json.Unmarshal(content, &packageJSON); err != nil {
-					return "", fmt.Errorf("failed to parse package.json: %v", err)
-				}
+// 	for _, file := range mainFiles {
+// 		content, err := os.ReadFile(filepath.Join(repoPath, file))
+// 		if err == nil {
+// 			// If it's package.json, parse it and look for test script
+// 			if file == "package.json" {
+// 				var packageJSON map[string]interface{}
+// 				if err := json.Unmarshal(content, &packageJSON); err != nil {
+// 					return "", fmt.Errorf("failed to parse package.json: %v", err)
+// 				}
 
-				// Look for scripts section
-				if scripts, ok := packageJSON["scripts"].(map[string]interface{}); ok {
-					// Look for test script
-					if testScript, ok := scripts["test"].(string); ok {
-						return testScript, nil
-					}
-				}
-			}
-			return string(content), nil
-		}
-	}
+// 				// Look for scripts section
+// 				if scripts, ok := packageJSON["scripts"].(map[string]interface{}); ok {
+// 					// Look for test script
+// 					if testScript, ok := scripts["test"].(string); ok {
+// 						return testScript, nil
+// 					}
+// 				}
+// 			}
+// 			return string(content), nil
+// 		}
+// 	}
 
-	return "", fmt.Errorf("no config file found in the repository")
-}
+// 	return "", fmt.Errorf("no config file found in the repository")
+// }
 
 func CreateGitHubRepo(repoName, oauthToken string) (string, error) {
     url := "https://api.github.com/user/repos"

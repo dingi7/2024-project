@@ -64,6 +64,17 @@ func HandlePDFUpload(files []*multipart.FileHeader) ([]byte, error) {
     return pdfData, nil
 }
 
+func HandleTestFileUpload(files []*multipart.FileHeader) ([]byte, error) {
+	fileHeader := files[0]
+	file, err := fileHeader.Open()
+	if err != nil {
+		return nil, fmt.Errorf("failed to open test file: %w", err)
+	}
+	defer file.Close()
+
+	return io.ReadAll(file)
+}
+
 // SaveTestSuiteFile saves uploaded test suite files to /test-suites/contestId/filename
 func SaveTestSuiteFile(files []*multipart.FileHeader, contestId string) (string, error) {
 	if len(files) != 1 {

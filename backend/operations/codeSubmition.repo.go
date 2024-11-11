@@ -4,6 +4,7 @@ import (
 	"backend/util"
 	"bytes"
 	"fmt"
+	"math/rand"
 	"os/exec"
 	"regexp"
 	"strconv"
@@ -12,7 +13,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func RunRepoTestCases(repository string, testFile string, githubToken string) (int, []byte, int, bool, error) {
+func RunRepoTestCases(repository string, testFile []byte, githubToken string) (int, []byte, int, bool, error) {
 	var tempDir string
 	tempDir, err := util.CloneRepository(repository, githubToken)
 	if err != nil {
@@ -20,13 +21,8 @@ func RunRepoTestCases(repository string, testFile string, githubToken string) (i
 	}
 	defer util.CleanupTempDir(tempDir)
 
-	testScript, err := util.ReadConfigFileFromRepo(tempDir)
-	fmt.Println("Test script: ", testScript)
-	if err != nil {
-		return 0, nil, 0, false, err
-	}
 
-	output, successCount, failCount, err := runTestScript(testScript, testFile, tempDir)
+	output, successCount, failCount, err := runTestScript(testFile, tempDir)
 	totalTestCases := successCount + failCount
 	passedPercentage := float64(successCount) / float64(totalTestCases) * 100
 	passedAll := successCount == totalTestCases
@@ -41,9 +37,11 @@ func RunRepoTestCases(repository string, testFile string, githubToken string) (i
 	return fiber.StatusOK, []byte(output), int(passedPercentage), passedAll, nil
 }
 
-func runTestScript(testScript string, testFile string, tempDir string) (string, int, int, error) {
+func runTestScript(testFile []byte, tempDir string) (string, int, int, error) {
 	// Get the Docker commands for setup and testing
-	commands := util.GetDockerRepoCommand("JavaScript", tempDir)
+	testFileName := "contestifyJestTest" + strconv.Itoa(rand.Intn(1000000)) + ".test.js"
+	util.AddTestFileToDir(tempDir, testFileName, testFile)
+	commands := util.GetDockerRepoCommand("JavaScript", tempDir, testFileName)
 	var finalOutput bytes.Buffer
 	var err error
 

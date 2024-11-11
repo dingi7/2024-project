@@ -52,7 +52,11 @@ func (h *SubmissionHandler) CreateSubmission(c *fiber.Ctx) error {
 }
 
 func (h *SubmissionHandler) handleRepoSubmission(c *fiber.Ctx, ctx context.Context, submission *models.Submission, contestID string) error {
-	statusCode, _, score, passed, err := operations.RunRepoTestCases(submission.Code, "submission.TestFile", c.Locals("githubToken").(string))
+	testFiles, err := h.SubmissionService.GetContestTestFiles(ctx, contestID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error fetching test files"})
+	}
+	statusCode, _, score, passed, err := operations.RunRepoTestCases(submission.Code, testFiles, c.Locals("githubToken").(string))
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error cloning repository", "message": err.Error()})
 	}

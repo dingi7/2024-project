@@ -1,6 +1,10 @@
 package util
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+	"path/filepath"
+)
 
 func modifyJSCode(code string, entryPoint string) string {
 	// The JavaScript code to inject
@@ -94,8 +98,13 @@ func GetDockerCommand(language, codeFile, inputString string) []string {
 	return cmdArgs
 }
 
+func AddTestFileToDir(dir string, testFileName string, testFile []byte) error {
+	// Write the test file to the specified directory
+	testFilePath := filepath.Join(dir, testFileName)
+	return os.WriteFile(testFilePath, testFile, 0644)
+}
 
-func GetDockerRepoCommand(language, dir string) [][]string {
+func GetDockerRepoCommand(language, dir, testFileName string) [][]string {
 	cmdArgs := [][]string{}
 
 	switch language {
@@ -115,8 +124,9 @@ func GetDockerRepoCommand(language, dir string) [][]string {
 			"-v", dir + ":/app", "-w", "/app",
 			"node:14",
 			"bash", "-c",
-			"npm run test",
+			"npx jest " + testFileName, // Directly run Jest on the specific test file
 		})
 	}
+
 	return cmdArgs
 }
