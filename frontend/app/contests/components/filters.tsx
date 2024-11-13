@@ -8,12 +8,14 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { ContestFilters } from "@/lib/types";
+import { useTranslation } from "@/lib/useTranslation";
 
 const Filters = ({
     onFilterChange,
 }: {
     onFilterChange: (filters: ContestFilters) => void;
 }) => {
+    const { t } = useTranslation();
     const [filters, setFilters] = useState<ContestFilters>({
         language: "",
         startDate: "",
@@ -31,7 +33,7 @@ const Filters = ({
         <div className="flex flex-col gap-6 md:w-1/4">
             <div className="grid gap-2">
                 <label htmlFor="language" className="text-sm font-medium">
-                    Language
+                    {t('contestsPage.filters.language')}
                 </label>
                 <Select
                     value={filters.language ?? ""}
@@ -52,7 +54,7 @@ const Filters = ({
             </div>
             <div className="grid gap-2">
                 <label htmlFor="start-date" className="text-sm font-medium">
-                    Start Date
+                    {t('contestsPage.filters.startDate')}
                 </label>
                 <Input
                     type="date"
@@ -63,7 +65,7 @@ const Filters = ({
             </div>
             <div className="grid gap-2">
                 <label htmlFor="end-date" className="text-sm font-medium">
-                    End Date
+                    {t('contestsPage.filters.endDate')}
                 </label>
                 <Input
                     type="date"
@@ -74,7 +76,7 @@ const Filters = ({
             </div>
             <div className="grid gap-2">
                 <label htmlFor="prize-amount" className="text-sm font-medium">
-                    Prize Amount
+                    {t('contestsPage.filters.prize')}
                 </label>
                 <Input
                     type="number"

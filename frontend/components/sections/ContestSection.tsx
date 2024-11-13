@@ -8,7 +8,6 @@ type Props = {};
 
 function ContestSection({}: Props) {
   const { t } = useTranslation();
-  console.log(t("contest.title"));
   return (
     <AnimateOnScroll>
       <section className="w-full py-12 md:py-24 lg:py-32">

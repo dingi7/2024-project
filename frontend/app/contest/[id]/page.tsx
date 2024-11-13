@@ -21,6 +21,7 @@ import { toast } from '@/components/ui/use-toast';
 import { decodeBase64ToBlobUrl } from '@/lib/utils';
 import Link from 'next/link';
 import GithubRepos from './github/repoList';
+import { useTranslation } from '@/lib/useTranslation';
 
 type FilterOptions = {
     status: 'all' | 'Passed' | 'Failed' | string;
@@ -29,6 +30,7 @@ type FilterOptions = {
 };
 
 export default function ContestPage() {
+    const { t } = useTranslation();
     let { data: session, status } = useSession();
     const params = useParams<{ id: string }>();
 
@@ -153,8 +155,8 @@ export default function ContestPage() {
             });
 
             toast({
-                title: 'Submission in progress',
-                description: 'Your code is being submitted. Please wait for the results.',
+                title: t('contestPage.submission.inProgress'),
+                description: t('contestPage.submission.inProgressDesc'),
                 variant: 'default',
                 duration: 3000,
             });
@@ -179,8 +181,8 @@ export default function ContestPage() {
             });
 
             toast({
-                title: 'Submission assessed',
-                description: 'Your code has been successfully assessed.',
+                title: t('contestPage.submission.success'),
+                description: t('contestPage.submission.successDesc'),
                 variant: 'success',
                 duration: 2000,
             });
@@ -203,8 +205,8 @@ export default function ContestPage() {
             });
 
             toast({
-                title: 'Submission failed',
-                description: error.message || 'There was an error assessing your code. Please try again.',
+                title: t('contestPage.submission.failed'),
+                description: error.message || t('contestPage.submission.failedDesc'),
                 variant: 'destructive',
                 duration: 3000,
             });
@@ -269,7 +271,7 @@ export default function ContestPage() {
             <div className='flex flex-col flex-1'>
                 <div className='container mx-auto py-8 px-4 md:px-6'>
                     <h1 className='text-2xl font-bold mb-4'>
-                        Contest not found
+                        {t('contestPage.notFound')}
                     </h1>
                 </div>
             </div>
@@ -279,7 +281,7 @@ export default function ContestPage() {
         <div className='flex flex-col flex-1'>
             <div className='container mx-auto py-8 px-4 md:px-6'>
                 <div className='flex items-center justify-between mb-6'>
-                    <h1 className='text-2xl font-bold'>Code Challenge</h1>
+                    <h1 className='text-2xl font-bold'>{t('contestPage.title')}</h1>
                     <div className='flex gap-2'>
                         {contest.contestStructure ? (
                             <>
@@ -293,7 +295,7 @@ export default function ContestPage() {
                                             });
                                         }}
                                     >
-                                        Clone contest structure
+                                        {t('contestPage.buttons.cloneStructure')}
                                     </Button>
                                 )}
                                 {selectedRepo && (
@@ -330,11 +332,11 @@ export default function ContestPage() {
                         )}
                         <Button variant='outline' onClick={handleRefresh}>
                             <RefreshCcwIcon className='w-4 h-4 mr-2' />
-                            Refresh
+                            {t('contestPage.buttons.refresh')}
                         </Button>
                         <Button variant={'outline'}>
                             <Link href={`/contest/${contest.id}/submissions`}>
-                                All Results
+                                {t('contestPage.buttons.allResults')}
                             </Link>
                         </Button>
                     </div>

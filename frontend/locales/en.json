@@ -27,5 +27,87 @@
         "description": "Track your progress and see how you stack up against the competition."
       }
     }
+  },
+  "contestsPage": {
+    "title": "Explore Exciting Contests",
+    "description": "Browse through a variety of contests and find the perfect one to showcase your talents.",
+    "noContests": "No contests found.",
+    "filters": {
+      "language": "Language",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "prize": "Prize"
+    },
+    "viewDetails": "View Details"
+  },
+  "contestPage": {
+    "title": "Code Challenge",
+    "notFound": "Contest not found",
+    "buttons": {
+      "cloneStructure": "Clone contest structure",
+      "refresh": "Refresh",
+      "allResults": "All Results"
+    },
+    "submission": {
+      "inProgress": "Submission in progress",
+      "inProgressDesc": "Your code is being submitted. Please wait for the results.",
+      "success": "Submission assessed",
+      "successDesc": "Your code has been successfully assessed.",
+      "failed": "Submission failed",
+      "failedDesc": "There was an error assessing your code. Please try again."
+    },
+    "filters": {
+      "status": {
+        "all": "All",
+        "passed": "Passed",
+        "failed": "Failed"
+      },
+      "sortBy": {
+        "date": "Date",
+        "score": "Score"
+      },
+      "order": {
+        "asc": "Ascending",
+        "desc": "Descending"
+      }
+    },
+    "editForm": {
+      "title": "Edit Contest",
+      "fields": {
+        "title": "Title",
+        "description": "Description",
+        "startDate": "Start Date",
+        "endDate": "End Date",
+        "prize": "Prize",
+        "rules": "Contest Rules (PDF)",
+        "viewCurrent": "View Current",
+        "testCase": "Test Case File"
+      },
+      "buttons": {
+        "saveChanges": "Save Changes"
+      },
+      "errors": {
+        "editFailed": "Failed to edit contest"
+      }
+    },
+    "submissionTable": {
+      "title": "Your Submissions",
+      "filters": {
+        "status": "Filter by status:",
+        "sortBy": "Sort by:",
+        "pending": "Pending"
+      },
+      "columns": {
+        "date": "Date",
+        "status": "Status",
+        "score": "Score"
+      },
+      "status": {
+        "error": "Error",
+        "failed": "Failed",
+        "pending": "Pending",
+        "passed": "Passed"
+      }
+    }
   }
 }
