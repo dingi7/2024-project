@@ -1,4 +1,5 @@
 import { useSearchParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
 import en from '../locales/en.json';
 import bg from '../locales/bg.json';
 
@@ -9,17 +10,20 @@ const translations = {
 
 export const useTranslation = () => {
   const searchParams = useSearchParams();
+  const [locale, setLocale] = useState('en'); // Default to 'en' initially
   
-  // Try to get locale from URL first, then localStorage, finally fallback to 'en'
-  let locale = searchParams.get('locale');
-  
-  if (typeof window !== 'undefined') {
-    if (!locale) {
-      locale = localStorage.getItem('locale') || 'en';
-    } else {
-      localStorage.setItem('locale', locale);
+  useEffect(() => {
+    // Handle client-side locale setting
+    const urlLocale = searchParams.get('locale');
+    const savedLocale = localStorage.getItem('locale');
+    
+    const newLocale = urlLocale || savedLocale || 'en';
+    setLocale(newLocale);
+    
+    if (urlLocale) {
+      localStorage.setItem('locale', urlLocale);
     }
-  }
+  }, [searchParams]);
 
   const currentTranslations = translations[locale as keyof typeof translations] || translations['en'];
 

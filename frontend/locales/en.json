@@ -193,5 +193,29 @@
       "title": "No leaderboard data available yet.",
       "description": "Be the first to submit and appear on the leaderboard!"
     }
+  },
+  "submissionsPage": {
+    "title": "All Submissions for",
+    "sortBy": {
+      "label": "Sort by",
+      "score": "Score",
+      "date": "Submission Date",
+      "status": "Status"
+    },
+    "totalSubmissions": "Total Submissions",
+    "noSubmissions": "No submissions found for this contest.",
+    "table": {
+      "submissionDate": "Submission Date",
+      "score": "Score",
+      "status": "Status",
+      "language": "Language",
+      "user": "User"
+    },
+    "status": {
+      "pending": "Pending",
+      "passed": "Passed",
+      "failed": "Failed",
+      "anonymous": "Anonymous"
+    }
   }
 }
