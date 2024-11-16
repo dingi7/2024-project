@@ -9,7 +9,17 @@ const translations = {
 
 export const useTranslation = () => {
   const searchParams = useSearchParams();
-  const locale = searchParams.get('locale') || 'en'; // Default to 'en' if no locale is specified
+  
+  // Try to get locale from URL first, then localStorage, finally fallback to 'en'
+  let locale = searchParams.get('locale');
+  
+  if (typeof window !== 'undefined') {
+    if (!locale) {
+      locale = localStorage.getItem('locale') || 'en';
+    } else {
+      localStorage.setItem('locale', locale);
+    }
+  }
 
   const currentTranslations = translations[locale as keyof typeof translations] || translations['en'];
 
@@ -18,5 +28,5 @@ export const useTranslation = () => {
     return keys.reduce((obj: any, k) => (obj && obj[k] !== undefined ? obj[k] : null), currentTranslations);
   };
 
-  return { t };
+  return { t, locale };
 };

@@ -109,5 +109,12 @@
         "passed": "Passed"
       }
     }
+  },
+  "header": {
+    "exploreContests": "Explore Contests",
+    "leaderboard": "Leaderboard",
+    "create": "Create",
+    "profile": "Profile",
+    "login": "Login"
   }
 }

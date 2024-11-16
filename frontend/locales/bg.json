@@ -109,5 +109,12 @@
         "passed": "Успешно"
       }
     }
+  },
+  "header": {
+    "exploreContests": "Разгледай Състезания",
+    "leaderboard": "Класация",
+    "create": "Създай",
+    "profile": "Профил",
+    "login": "Вход"
   }
 }

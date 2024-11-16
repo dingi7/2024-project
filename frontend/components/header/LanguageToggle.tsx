@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
-import React from "react";
+import React, { useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 type Props = {};
@@ -10,13 +10,34 @@ function LanguageToggle({}: Props) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const locale = searchParams.get('locale') || 'en'; // Default locale if none is set
+  
+  // Get locale from URL or localStorage
+  const locale = searchParams.get('locale') || 
+    (typeof window !== 'undefined' ? localStorage.getItem('locale') : null) || 
+    'en';
+
+  useEffect(() => {
+    // Ensure URL reflects the stored locale on component mount
+    if (typeof window !== 'undefined') {
+      const storedLocale = localStorage.getItem('locale');
+      if (storedLocale && !searchParams.get('locale')) {
+        const params = new URLSearchParams(searchParams);
+        params.set('locale', storedLocale);
+        router.push(`${pathname}?${params.toString()}`, { scroll: false });
+      }
+    }
+  }, []);
 
   const handleLanguageChange = (newLocale: string) => {
+    // Store in localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('locale', newLocale);
+    }
+
+    // Update URL
     const params = new URLSearchParams(searchParams);
     params.set('locale', newLocale);
-
-    router.push(`${pathname}?${params.toString()}`);
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
   return (

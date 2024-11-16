@@ -9,12 +9,14 @@ import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ModeToggle } from "./ModeToggle";
 import LanguageToggle from "./LanguageToggle";
+import { useTranslation } from "@/lib/useTranslation";
 
 type Props = {};
 
 function Header({}: Props) {
   const { data: session } = useSession();
   const [menuOpen, setMenuOpen] = useState(false);
+  const { t } = useTranslation();
 
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
@@ -45,14 +47,14 @@ function Header({}: Props) {
           className="text-sm font-bold hover:underline underline-offset-4"
           prefetch={false}
         >
-          Explore Contests
+          {t("header.exploreContests")}
         </Link>
         <Link
           href="/leaderboard"
           className="text-sm font-bold hover:underline underline-offset-4"
           prefetch={false}
         >
-          Leaderboard
+          {t("header.leaderboard")}
         </Link>
         {session?.user && (
           <Link
@@ -60,7 +62,7 @@ function Header({}: Props) {
             className="text-sm font-bold hover:underline underline-offset-4"
             prefetch={false}
           >
-            Create
+            {t("header.create")}
           </Link>
         )}
       </nav>
@@ -95,7 +97,7 @@ function Header({}: Props) {
               prefetch={false}
               onClick={closeMenu}
             >
-              Explore Contests
+              {t("header.exploreContests")}
             </Link>
             <Link
               href="/leaderboard"
@@ -103,7 +105,7 @@ function Header({}: Props) {
               prefetch={false}
               onClick={closeMenu}
             >
-              Leaderboard
+              {t("header.leaderboard")}
             </Link>
             {session?.user ? (
               <>
@@ -113,7 +115,7 @@ function Header({}: Props) {
                   prefetch={false}
                   onClick={closeMenu}
                 >
-                  Create
+                  {t("header.create")}
                 </Link>
                 <Link
                   href="/profile"
@@ -121,7 +123,7 @@ function Header({}: Props) {
                   prefetch={false}
                   onClick={closeMenu}
                 >
-                  Profile
+                  {t("header.profile")}
                 </Link>
                 <SignOutButton classProp="text-sm font-bold hover:underline underline-offset-4" />
               </>
@@ -132,7 +134,7 @@ function Header({}: Props) {
                 prefetch={false}
                 onClick={closeMenu}
               >
-                Login
+                {t("header.login")}
               </Link>
             )}
           </motion.nav>
