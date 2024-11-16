@@ -1,4 +1,4 @@
-'use server';
+'use client';
 
 import { Card } from '@/components/ui/card';
 import {
@@ -11,6 +11,8 @@ import {
 } from '@/components/ui/table';
 import { getLeaderboard } from '../api/requests';
 import LeaderboardTop3Card from './components/LeaderboardTop3Card';
+import { useTranslation } from "@/lib/useTranslation";
+import { useEffect, useState } from 'react';
 
 type LeaderboardEntry = {
     userId: string;
@@ -19,10 +21,29 @@ type LeaderboardEntry = {
     contestsParticipated: number;
 };
 
-async function Leaderboard() {
+function Leaderboard() {
+    const { t } = useTranslation();
+    const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const leaderboardData: LeaderboardEntry[] = await getLeaderboard();
+    useEffect(() => {
+        const fetchLeaderboard = async () => {
+            try {
+                const data = await getLeaderboard();
+                setLeaderboardData(data);
+            } catch (error) {
+                console.error('Error fetching leaderboard:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
 
+        fetchLeaderboard();
+    }, []);
+
+    if (isLoading) {
+        return <div>Loading...</div>;
+    }
 
     return (
         <div className='w-full max-w-6xl mx-auto py-10 px-4 md:px-6 flex flex-col flex-1'>
@@ -43,14 +64,14 @@ async function Leaderboard() {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead className='w-[80px]'>
-                                        Rank
+                                        {t('leaderboard.table.rank')}
                                     </TableHead>
-                                    <TableHead>Username</TableHead>
+                                    <TableHead>{t('leaderboard.table.username')}</TableHead>
                                     <TableHead className='text-right'>
-                                        Contests
+                                        {t('leaderboard.table.contests')}
                                     </TableHead>
                                     <TableHead className='text-right'>
-                                        Score
+                                        {t('leaderboard.table.score')}
                                     </TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -76,10 +97,10 @@ async function Leaderboard() {
             ) : (
                 <Card className='p-6 text-center'>
                     <p className='text-lg font-medium'>
-                        No leaderboard data available yet.
+                        {t('leaderboard.noData.title')}
                     </p>
                     <p className='text-sm text-gray-500 mt-2'>
-                        Be the first to submit and appear on the leaderboard!
+                        {t('leaderboard.noData.description')}
                     </p>
                 </Card>
             )}

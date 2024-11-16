@@ -36,6 +36,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import GithubRepos from '../[id]/github/repoList';
+import { useTranslation } from "@/lib/useTranslation";
 
 const ContestScheme = z.object({
     title: z.string().min(3).max(32),
@@ -60,6 +61,7 @@ export default function Component() {
     const router = useRouter();
     const [repos, setRepos] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+    const { t } = useTranslation();
 
     const fetchGithubRepos = async () => {
         if (!session?.githubAccessToken) {
@@ -123,7 +125,7 @@ export default function Component() {
         if (!session!.user.id || !session) {
             toast({
                 title: 'Error',
-                description: 'You must be logged in to create a contest',
+                description: t('createContest.errors.loginRequired'),
                 variant: 'destructive',
             });
             return;
@@ -149,8 +151,8 @@ export default function Component() {
         try {
             await createContest(payload);
             toast({
-                title: 'Contest created successfully',
-                description: 'Contest created successfully',
+                title: t('createContest.success.created'),
+                description: t('createContest.success.created'),
                 variant: 'success',
             });
             reset();
@@ -158,8 +160,8 @@ export default function Component() {
             router.push('/contests');
         } catch (error) {
             toast({
-                title: 'Failed to create contest',
-                description: 'Failed to create contest',
+                title: t('createContest.errors.createFailed'),
+                description: t('createContest.errors.createFailed'),
                 variant: 'destructive',
             });
         }
@@ -170,28 +172,25 @@ export default function Component() {
             <Card className='w-full max-w-md'>
                 <CardHeader>
                     <CardTitle className='text-2xl font-bold'>
-                        Create a New Contest
+                        {t('createContest.title')}
                     </CardTitle>
                     <CardDescription>
-                        Fill out the form below to create a new programming
-                        contest.
+                        {t('createContest.description')}
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form
                         className='grid gap-4'
-                        onSubmit={(e) => {
-                            handleSubmit(handleCreateContest)(e);
-                        }}
+                        onSubmit={handleSubmit(handleCreateContest)}
                     >
                         <div className='grid gap-2'>
                             <Label htmlFor='title'>
-                                Contest Title{' '}
+                                {t('createContest.form.title.label')}{' '}
                                 <span className='text-red-500'>*</span>
                             </Label>
                             <Input
                                 id='title'
-                                placeholder='Enter contest title'
+                                placeholder={t('createContest.form.title.placeholder')}
                                 required
                                 {...register('title')}
                             />
@@ -203,12 +202,12 @@ export default function Component() {
                         </div>
                         <div className='grid gap-2'>
                             <Label htmlFor='description'>
-                                Description{' '}
+                                {t('createContest.form.description.label')}{' '}
                                 <span className='text-red-500'>*</span>
                             </Label>
                             <Textarea
                                 id='description'
-                                placeholder='Enter contest description'
+                                placeholder={t('createContest.form.description.placeholder')}
                                 required
                                 {...register('description')}
                             />
@@ -220,7 +219,7 @@ export default function Component() {
                         </div>
                         <div className='grid gap-2'>
                             <Label htmlFor='language'>
-                                Programming Language{' '}
+                                {t('createContest.form.language.label')}{' '}
                                 <span className='text-red-500'>*</span>
                             </Label>
                             <Controller
@@ -233,7 +232,7 @@ export default function Component() {
                                         required
                                     >
                                         <SelectTrigger id='language'>
-                                            <SelectValue placeholder='Select programming language' />
+                                            <SelectValue placeholder={t('createContest.form.language.placeholder')} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value='python'>
@@ -284,7 +283,7 @@ export default function Component() {
                         </div>
                         <div className='grid gap-2'>
                             <Label>
-                                Contest Duration{' '}
+                                {t('createContest.form.duration.label')}{' '}
                                 <span className='text-red-500'>*</span>
                             </Label>
                             <Controller
@@ -324,7 +323,7 @@ export default function Component() {
                                                     )
                                                 ) : (
                                                     <span>
-                                                        Pick a date range
+                                                        {t('createContest.form.duration.placeholder')}
                                                     </span>
                                                 )}
                                             </Button>
@@ -343,7 +342,9 @@ export default function Component() {
                                             />
                                             <div className='grid grid-cols-2 gap-2 p-3 border-t border-border'>
                                                 <div>
-                                                    <Label>Start Time</Label>
+                                                    <Label>
+                                                        {t('createContest.form.duration.startTime')}
+                                                    </Label>
                                                     <div className='flex items-center mt-1'>
                                                         <Select
                                                             onValueChange={(
@@ -378,7 +379,7 @@ export default function Component() {
                                                             }}
                                                         >
                                                             <SelectTrigger>
-                                                                <SelectValue placeholder='Start time' />
+                                                                <SelectValue placeholder={t('createContest.form.duration.startTime')} />
                                                             </SelectTrigger>
                                                             <SelectContent>
                                                                 {Array.from({
@@ -435,7 +436,9 @@ export default function Component() {
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <Label>End Time</Label>
+                                                    <Label>
+                                                        {t('createContest.form.duration.endTime')}
+                                                    </Label>
                                                     <div className='flex items-center mt-1'>
                                                         <Select
                                                             onValueChange={(
@@ -470,7 +473,7 @@ export default function Component() {
                                                             }}
                                                         >
                                                             <SelectTrigger>
-                                                                <SelectValue placeholder='End time' />
+                                                                <SelectValue placeholder={t('createContest.form.duration.endTime')} />
                                                             </SelectTrigger>
                                                             <SelectContent>
                                                                 {Array.from({
@@ -539,11 +542,11 @@ export default function Component() {
                         </div>
                         <div className='grid gap-2'>
                             <Label htmlFor='prize'>
-                                Prize <span className='text-red-500'>*</span>
+                                {t('createContest.form.prize.label')} <span className='text-red-500'>*</span>
                             </Label>
                             <Input
                                 id='prize'
-                                placeholder='Enter prize'
+                                placeholder={t('createContest.form.prize.placeholder')}
                                 type='number'
                                 required
                                 min={0}
@@ -559,10 +562,7 @@ export default function Component() {
                         <div className='grid gap-2'>
                             <div className='flex justify-between items-center'>
                                 <Label htmlFor='github-repo-url'>
-                                    Contest Structure Template{' '}
-                                    <span className='text-gray-500'>
-                                        (Optional)
-                                    </span>
+                                    {t('createContest.form.structure.label')} {t('createContest.form.structure.optional')}
                                 </Label>
                                 <Button
                                     variant='ghost'
@@ -595,10 +595,7 @@ export default function Component() {
                                 <>
                                     <div className='grid gap-2 mt-4'>
                                         <Label htmlFor='testFramework'>
-                                            Test Framework{' '}
-                                            <span className='text-red-500'>
-                                                *
-                                            </span>
+                                            {t('createContest.form.testFramework.label')} <span className='text-red-500'>*</span>
                                         </Label>
                                         <Controller
                                             name='testFramework'
@@ -615,7 +612,7 @@ export default function Component() {
                                                     defaultValue={field.value}
                                                 >
                                                     <SelectTrigger id='testFramework'>
-                                                        <SelectValue placeholder='Select test framework' />
+                                                        <SelectValue placeholder={t('createContest.form.testFramework.placeholder')} />
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         <SelectItem value='jest'>
@@ -640,10 +637,7 @@ export default function Component() {
 
                                     <div className='grid gap-2 mt-2'>
                                         <Label htmlFor='test-file'>
-                                            Test File{' '}
-                                            <span className='text-red-500'>
-                                                *
-                                            </span>
+                                            {t('createContest.form.testFile.label')} <span className='text-red-500'>*</span>
                                         </Label>
                                         <Input
                                             id='test-files'
@@ -668,10 +662,7 @@ export default function Component() {
                         </div>
                         <div className='grid gap-2'>
                             <Label htmlFor='rules-files'>
-                                Contest Rules{' '}
-                                <span className='text-gray-500'>
-                                    (Optional)
-                                </span>
+                                {t('createContest.form.rules.label')} {t('createContest.form.rules.optional')}
                             </Label>
                             <Input
                                 id='rules-files'
@@ -687,7 +678,7 @@ export default function Component() {
                             )}
                         </div>
                         <Button type='submit' className='w-full'>
-                            Create Contest
+                            {t('createContest.buttons.create')}
                         </Button>
                     </form>
                 </CardContent>

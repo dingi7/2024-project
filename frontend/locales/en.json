@@ -116,5 +116,82 @@
     "create": "Create",
     "profile": "Profile",
     "login": "Login"
+  },
+  "profile": {
+    "attendedContests": "Attended Contests",
+    "viewAll": "View All",
+    "loading": "Loading contests...",
+    "noContests": "No contests attended yet",
+    "viewContest": "View Contest"
+  },
+  "createContest": {
+    "title": "Create a New Contest",
+    "description": "Fill out the form below to create a new programming contest.",
+    "form": {
+      "title": {
+        "label": "Contest Title",
+        "placeholder": "Enter contest title"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Enter contest description"
+      },
+      "language": {
+        "label": "Programming Language",
+        "placeholder": "Select programming language"
+      },
+      "duration": {
+        "label": "Contest Duration",
+        "placeholder": "Pick a date range",
+        "startTime": "Start Time",
+        "endTime": "End Time"
+      },
+      "prize": {
+        "label": "Prize",
+        "placeholder": "Enter prize"
+      },
+      "structure": {
+        "label": "Contest Structure Template",
+        "optional": "(Optional)"
+      },
+      "testFramework": {
+        "label": "Test Framework",
+        "placeholder": "Select test framework",
+        "required": "Test framework is required when using a template"
+      },
+      "testFile": {
+        "label": "Test File",
+        "required": "Test file is required when using a template"
+      },
+      "rules": {
+        "label": "Contest Rules",
+        "optional": "(Optional)"
+      }
+    },
+    "buttons": {
+      "create": "Create Contest",
+      "refresh": "Refresh Repositories"
+    },
+    "errors": {
+      "githubToken": "GitHub access token not found. Please reconnect your GitHub account.",
+      "fetchRepos": "Failed to fetch GitHub repositories",
+      "createFailed": "Failed to create contest",
+      "loginRequired": "You must be logged in to create a contest"
+    },
+    "success": {
+      "created": "Contest created successfully"
+    }
+  },
+  "leaderboard": {
+    "table": {
+      "rank": "Rank",
+      "username": "Username",
+      "contests": "Contests",
+      "score": "Score"
+    },
+    "noData": {
+      "title": "No leaderboard data available yet.",
+      "description": "Be the first to submit and appear on the leaderboard!"
+    }
   }
 }

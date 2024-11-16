@@ -7,12 +7,14 @@ import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { getUserAttendedContests } from "../api/requests";
 import { Contest } from "@/lib/types";
+import { useTranslation } from "@/lib/useTranslation";
 
 export default function Component() {
   const { data: session } = useSession();
   const user = session?.user;
   const [contests, setContests] = useState<Contest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetchContests = async () => {
@@ -29,6 +31,7 @@ export default function Component() {
     };
     fetchContests();
   }, [user?.id]);
+
   return (
     <div className="w-full max-w-5xl mx-auto py-8 px-4 md:px-6 flex flex-col flex-1">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -51,44 +54,23 @@ export default function Component() {
               </div>
             </div>
           </div>
-          <Separator className="my-4" />
-          <div className="grid gap-2">
-            <div className="flex items-center gap-2">
-              <TrophyIcon className="w-5 h-5 text-muted-foreground" />
-              <div>
-                <span className="font-medium">Rank:</span> 32
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <CalendarIcon className="w-5 h-5 text-muted-foreground" />
-              <div>
-                <span className="font-medium">Joined:</span> June 2021
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <StarIcon className="w-5 h-5 text-muted-foreground" />
-              <div>
-                <span className="font-medium">Rating:</span> 1,234
-              </div>
-            </div>
-          </div>
         </div>
         <div className="bg-background rounded-lg border p-6 col-span-2">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-medium">Attended Contests</h2>
+            <h2 className="text-lg font-medium">{t('profile.attendedContests')}</h2>
             <Link
               href="#"
               className="text-sm text-primary hover:underline"
               prefetch={false}
             >
-              View All
+              {t('profile.viewAll')}
             </Link>
           </div>
           <div className="grid gap-4">
             {isLoading ? (
-              <div className="text-center text-muted-foreground">Loading contests...</div>
+              <div className="text-center text-muted-foreground">{t('profile.loading')}</div>
             ) : contests.length === 0 ? (
-              <div className="text-center text-muted-foreground">No contests attended yet</div>
+              <div className="text-center text-muted-foreground">{t('profile.noContests')}</div>
             ) : (
               contests.map((contest: Contest) => {
                 return (
@@ -106,7 +88,7 @@ export default function Component() {
                       </div>
                     </div>
                     <Button variant="default">
-                      <Link href={`/contest/${contest.id}`}>View Contest</Link>
+                      <Link href={`/contest/${contest.id}`}>{t('profile.viewContest')}</Link>
                     </Button>
                   </div>
                 );
