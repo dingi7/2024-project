@@ -3,9 +3,11 @@ package handlers
 import (
 	"backend/models"
 	"backend/services"
+	"backend/util"
 	"context"
 	"fmt"
-	"io"
+	"strings"
+
 	"mime/multipart"
 	"time"
 
@@ -26,7 +28,8 @@ func NewContestHandler(client *mongo.Client) *ContestHandler {
 }
 
 func (h *ContestHandler) CreateContest(c *fiber.Ctx) error {
-	// Parse the multipart form data (including the file)
+	const allowedLanguages = "python, java, javascript, c++, c#"
+
 	form, err := c.MultipartForm()
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Failed to parse form data"})
@@ -44,8 +47,8 @@ func (h *ContestHandler) CreateContest(c *fiber.Ctx) error {
 	}
 
 	language, err := getFormValue(form, "language")
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	if err != nil || !isValidLanguage(language, allowedLanguages) {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid language"})
 	}
 
 	startDate, err := getFormValue(form, "startDate")
@@ -62,6 +65,12 @@ func (h *ContestHandler) CreateContest(c *fiber.Ctx) error {
 
 	contestStructure, _ := getFormValue(form, "contestStructure")
 
+	testFramework, _ := getFormValue(form, "testFramework")
+
+	if contestStructure != "" && testFramework == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Test framework is required for structured contests"})
+	}
+
 	ownerID, err := getFormValue(form, "ownerId")
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -69,33 +78,36 @@ func (h *ContestHandler) CreateContest(c *fiber.Ctx) error {
 
 	// Create a new Contest instance with the form data
 	contest := &models.Contest{
-		Title:       title,
-		Description: description,
-		Language:    language,
-		StartDate:   startDate,
-		EndDate:     endDate,
-		Prize:       prize,
-		OwnerID:     ownerID,
-		CreatedAt:   time.Now(),
-		TestCases:   []models.TestCase{},
+		Title:            title,
+		Description:      description,
+		Language:         language,
+		StartDate:        startDate,
+		EndDate:          endDate,
+		Prize:            prize,
+		OwnerID:          ownerID,
+		CreatedAt:        time.Now(),
+		TestCases:        []models.TestCase{},
 		ContestStructure: contestStructure,
+		TestFramework:    testFramework,
 	}
 
-	// Check if the "contestRules" field exists and has at least one file
-	if files, ok := form.File["contestRules[0]"]; ok && len(files) > 0 {
-		fileHeader := files[0]
-		file, err := fileHeader.Open()
+	if files, ok := form.File["contestRules[0]"]; ok {
+		pdfData, err := util.HandlePDFUpload(files)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Failed to open PDF file"})
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 		}
-		defer file.Close()
-
-		pdfData, err := io.ReadAll(file)
-		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to read PDF file"})
-		}
-
 		contest.ContestRules = pdfData
+	}
+
+	if testFiles, ok := form.File["testFiles[0]"]; ok {
+		if len(testFiles) == 0 && contestStructure != "" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Test files are required for structured contests"})
+		}
+		testFileData, err := util.HandleTestFileUpload(testFiles)
+		if err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		}
+		contest.TestFiles = testFileData
 	}
 
 	// Validate contest data
@@ -109,11 +121,15 @@ func (h *ContestHandler) CreateContest(c *fiber.Ctx) error {
 
 	// Pass the contest to the service layer for saving
 	if err := h.ContestService.CreateContest(ctx, contest); err != nil {
-		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+		return util.HandleError(c, "Error creating contest", fiber.Map{"details": err.Error()})
 	}
 
 	// Return the saved contest as JSON
 	return c.JSON(contest)
+}
+
+func isValidLanguage(language, allowedLanguages string) bool {
+	return strings.Contains(allowedLanguages, strings.ToLower(language))
 }
 
 func (h *ContestHandler) GetContests(c *fiber.Ctx) error {
@@ -122,10 +138,11 @@ func (h *ContestHandler) GetContests(c *fiber.Ctx) error {
 
 	contests, err := h.ContestService.GetContests(ctx)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+		return util.HandleError(c, "Error fetching contests", fiber.Map{"details": err.Error()})
 	}
 	for i := range contests {
 		contests[i].TestCases = nil
+		contests[i].TestFiles = nil
 	}
 
 	return c.JSON(contests)
@@ -139,13 +156,14 @@ func (h *ContestHandler) GetContestById(c *fiber.Ctx) error {
 
 	contest, err := h.ContestService.FindContestByID(ctx, id)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+		return util.HandleError(c, "Error fetching contest", fiber.Map{"details": err.Error()})
 	}
 
 	if userId == contest.OwnerID {
 		return c.JSON(contest)
 	} else {
 		contest.TestCases = nil
+		contest.TestFiles = nil
 		return c.JSON(contest)
 	}
 }
@@ -158,13 +176,13 @@ func (h *ContestHandler) DeleteContest(c *fiber.Ctx) error {
 
 	contest, err := h.ContestService.FindContestByID(ctx, id)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+		return util.HandleError(c, "Error fetching contest", fiber.Map{"details": err.Error()})
 	}
 	if userId != contest.OwnerID {
 		return c.Status(fiber.StatusUnauthorized).SendString("Unauthorized")
 	}
 	if err := h.ContestService.DeleteContest(ctx, id); err != nil {
-		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+		return util.HandleError(c, "Error deleting contest", fiber.Map{"details": err.Error()})
 	}
 
 	return c.SendString("Contest deleted successfully")
@@ -176,8 +194,6 @@ func (h *ContestHandler) EditContest(c *fiber.Ctx) error {
 
 	// Parse the multipart form data
 	form, err := c.MultipartForm()
-	fmt.Println("Form parsed")
-	fmt.Println(form)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Failed to parse form data"})
 	}
@@ -188,7 +204,7 @@ func (h *ContestHandler) EditContest(c *fiber.Ctx) error {
 
 	existingContest, err := h.ContestService.FindContestByID(ctx, id)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+		return util.HandleError(c, "Error fetching contest", fiber.Map{"details": err.Error()})
 	}
 	if userId != existingContest.OwnerID {
 		return c.Status(fiber.StatusUnauthorized).SendString("Unauthorized")
@@ -214,19 +230,11 @@ func (h *ContestHandler) EditContest(c *fiber.Ctx) error {
 		existingContest.Prize = prize
 	}
 
-	if files, ok := form.File["contestRules[0]"]; ok && len(files) > 0 {
-		fileHeader := files[0]
-		file, err := fileHeader.Open()
+	if files, ok := form.File["contestRules[0]"]; ok {
+		pdfData, err := util.HandlePDFUpload(files)
 		if err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Failed to open PDF file"})
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 		}
-		defer file.Close()
-
-		pdfData, err := io.ReadAll(file)
-		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to read PDF file"})
-		}
-
 		existingContest.ContestRules = pdfData
 		fmt.Println("Contest rules updated")
 	}
@@ -238,7 +246,7 @@ func (h *ContestHandler) EditContest(c *fiber.Ctx) error {
 
 	// Update the contest in the database
 	if err := h.ContestService.UpdateContest(ctx, id, existingContest); err != nil {
-		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+		return util.HandleError(c, "Error updating contest", fiber.Map{"details": err.Error()})
 	}
 
 	return c.JSON(existingContest)
@@ -256,13 +264,13 @@ func (h *ContestHandler) AddTestCase(c *fiber.Ctx) error {
 
 	contest, err := h.ContestService.FindContestByID(ctx, id)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+		return util.HandleError(c, "Error fetching contest", fiber.Map{"details": err.Error()})
 	}
 	if userId != contest.OwnerID {
 		return c.Status(fiber.StatusUnauthorized).SendString("Unauthorized")
 	}
 	if err := h.ContestService.AddTestCase(ctx, id, testCase); err != nil {
-		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+		return util.HandleError(c, "Error adding test case", fiber.Map{"details": err.Error()})
 	}
 
 	return c.JSON(testCase)
@@ -280,13 +288,13 @@ func (h *ContestHandler) UpdateTestCase(c *fiber.Ctx) error {
 
 	contest, err := h.ContestService.FindContestByID(ctx, id)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+		return util.HandleError(c, "Error fetching contest", fiber.Map{"details": err.Error()})
 	}
 	if userId != contest.OwnerID {
 		return c.Status(fiber.StatusUnauthorized).SendString("Unauthorized")
 	}
 	if err := h.ContestService.UpdateTestCase(ctx, id, testCase); err != nil {
-		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+		return util.HandleError(c, "Error updating test case", fiber.Map{"details": err.Error()})
 	}
 
 	return c.JSON(testCase)
@@ -302,13 +310,13 @@ func (h *ContestHandler) DeleteTestCase(c *fiber.Ctx) error {
 
 	contest, err := h.ContestService.FindContestByID(ctx, contestId)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+		return util.HandleError(c, "Error fetching contest", fiber.Map{"details": err.Error()})
 	}
 	if userId != contest.OwnerID {
 		return c.Status(fiber.StatusUnauthorized).SendString("Unauthorized")
 	}
 	if err := h.ContestService.DeleteTestCase(ctx, contestId, testCaseId); err != nil {
-		return c.Status(fiber.StatusInternalServerError).SendString(err.Error())
+		return util.HandleError(c, "Error deleting test case", fiber.Map{"details": err.Error()})
 	}
 
 	return c.JSON(fiber.Map{

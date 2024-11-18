@@ -7,8 +7,10 @@ import Search from './components/search';
 import { Contest as ContestType, ContestFilters } from '@/lib/types';
 import { getContests } from '../api/requests';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useTranslation } from '@/lib/useTranslation';
 
 const ContestPage = () => {
+    const { t } = useTranslation();
     const [loading, setLoading] = useState(true);
     const [contests, setContests] = useState<ContestType[] | []>([]);
     const [filteredContests, setFilteredContests] = useState<
@@ -98,11 +100,10 @@ const ContestPage = () => {
                 <div className='container mx-auto px-4 md:px-6'>
                     <div className='max-w-3xl'>
                         <h1 className='text-3xl font-bold tracking-tight md:text-4xl'>
-                            Explore Exciting Contests
+                            {t('contestsPage.title')}
                         </h1>
                         <p className='mt-4 text-muted-foreground md:text-xl'>
-                            Browse through a variety of contests and find the
-                            perfect one to showcase your talents.
+                            {t('contestsPage.description')}
                         </p>
                     </div>
                 </div>
@@ -131,7 +132,7 @@ const ContestPage = () => {
                                     ))
                                 ) : (
                                     <div className='text-center text-muted-foreground'>
-                                        No contests found.
+                                        {t('contestsPage.noContests')}
                                     </div>
                                 )}
                             </div>

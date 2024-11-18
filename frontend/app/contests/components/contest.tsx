@@ -1,3 +1,4 @@
+import { useTranslation } from '@/lib/useTranslation';
 import Link from 'next/link';
 
 function Contest({ title, description, id, language, startDate, endDate, prize }: {
@@ -9,6 +10,7 @@ function Contest({ title, description, id, language, startDate, endDate, prize }
     endDate: string;
     prize: number;
 }) {
+    const { t } = useTranslation();
     return (
         <div className='bg-background p-6 rounded-lg border border-border'>
             <div className='flex justify-between items-center mb-2'>
@@ -17,8 +19,8 @@ function Contest({ title, description, id, language, startDate, endDate, prize }
             </div>
             <p className='text-foreground mb-4'>{description}</p>
             <div className='flex justify-between text-sm text-foreground mb-4'>
-                <span>Starts: {new Date(startDate).toLocaleDateString()}</span>
-                <span>Ends: {new Date(endDate).toLocaleDateString()}</span>
+                <span>{t('contestsPage.filters.startDate')}: {new Date(startDate).toLocaleDateString()}</span>
+                <span>{t('contestsPage.filters.endDate')}: {new Date(endDate).toLocaleDateString()}</span>
             </div>
             <div className='flex justify-between items-center'>
                 <span className='text-lg font-semibold text-primary'>${prize.toLocaleString()}</span>
@@ -27,7 +29,7 @@ function Contest({ title, description, id, language, startDate, endDate, prize }
                     className='px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors'
                     prefetch={false}
                 >
-                    View Details
+                    {t('contestsPage.viewDetails')}
                 </Link>
             </div>
         </div>

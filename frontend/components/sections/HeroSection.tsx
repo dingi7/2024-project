@@ -4,8 +4,9 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import React from "react";
 import AnimationOnScroll from "@/components/AnimationOnScroll";
-
+import { useTranslation } from "@/lib/useTranslation";
 function HeroSection() {
+  const { t } = useTranslation();
   const { data: session } = useSession();
 
   return (
@@ -16,12 +17,10 @@ function HeroSection() {
           <div className="flex flex-col justify-center space-y-8">
             <div className="space-y-4">
               <h1 className="text-4xl font-extrabold tracking-tighter sm:text-5xl xl:text-7xl/none bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
-                Conquer the Code
+                {t("hero.title")}
               </h1>
               <p className="max-w-[700px] text-muted-foreground text-lg md:text-xl mx-auto leading-relaxed">
-                Join our thrilling programming contest and showcase your coding
-                prowess. Compete against the best, win amazing prizes, and
-                elevate your skills to new heights.
+                {t("hero.description")}
               </p>
             </div>
             <div className="flex flex-col gap-4 sm:flex-row justify-center">
@@ -31,7 +30,7 @@ function HeroSection() {
                   className="inline-flex h-12 items-center justify-center rounded-full bg-primary px-8 text-base font-medium text-primary-foreground shadow-lg transition-all hover:bg-primary/90 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   prefetch={false}
                 >
-                  Compete Now
+                  {t("hero.competeNow")}
                 </Link>
               ) : (
                 <Link
@@ -39,7 +38,7 @@ function HeroSection() {
                   className="inline-flex h-12 items-center justify-center rounded-full bg-primary px-8 text-base font-medium text-primary-foreground shadow-lg transition-all hover:bg-primary/90 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   prefetch={false}
                 >
-                  Login to Compete
+                  {t("hero.loginToCompete")}
                 </Link>
               )}
             </div>

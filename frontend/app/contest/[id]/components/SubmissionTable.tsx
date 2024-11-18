@@ -17,6 +17,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { PlaceholderSubmission, Submission } from "@/lib/types";
+import { useTranslation } from '@/lib/useTranslation';
 
 type FilterOptions = {
   status: string;
@@ -35,6 +36,8 @@ const SubmissionTable = ({
   filterOptions,
   onFilterChange,
 }: Props) => {
+  const { t } = useTranslation();
+
   console.log(filterOptions);
   console.log(submissions);
 
@@ -54,109 +57,132 @@ const SubmissionTable = ({
     return true;
   });
 
-  const getStatusBadgeVariant = (status: string | boolean) => {
-    if (status === "pending") return "default";
-    return status === true ? "success" : "failure";
+  const getStatusBadgeVariant = (status: string | boolean | undefined) => {
+    if (status === undefined) return "destructive";
+    if (status === "pending") return "secondary";
+    if (status === false) return "destructive";
+    return status === true ? "success" : "destructive";
   };
 
-  const getStatusText = (status: string | boolean) => {
-    if (status === "pending") return "Pending";
-    return status === true ? "Passed" : "Failed";
+  const getStatusText = (status: string | boolean | undefined, error?: string) => {
+    if (error) return t('contestPage.submissionTable.status.error');
+    if (!status) return t('contestPage.submissionTable.status.failed');
+    if (status === "pending") return t('contestPage.submissionTable.status.pending');
+    return status === true ? t('contestPage.submissionTable.status.passed') : t('contestPage.submissionTable.status.failed');
   };
+
+  const statusOptions = [
+    { value: 'all', label: t('contestPage.filters.status.all') },
+    { value: 'Passed', label: t('contestPage.filters.status.passed') },
+    { value: 'Failed', label: t('contestPage.filters.status.failed') }
+  ];
+
+  const sortOptions = [
+    { value: 'date', label: t('contestPage.filters.sortBy.date') },
+    { value: 'score', label: t('contestPage.filters.sortBy.score') }
+  ];
+
+  const orderOptions = [
+    { value: 'asc', label: t('contestPage.filters.order.asc') },
+    { value: 'desc', label: t('contestPage.filters.order.desc') }
+  ];
 
   return (
     <div>
-      <h2 className="text-lg font-medium mb-4">Your Submissions</h2>
+      <h2 className="text-lg font-medium mb-4">{t('contestPage.submissionTable.title')}</h2>
       <div className="mb-4 flex flex-col gap-4">
         <Label htmlFor="status" className="mr-2">
-          Filter by status:
+          {t('contestPage.submissionTable.filters.status')}
         </Label>
         <Select
           value={filterOptions.status}
-          onValueChange={(value) =>
-            onFilterChange({ ...filterOptions, status: value })
-          }
+          onValueChange={(value) => onFilterChange({ ...filterOptions, status: value })}
         >
           <SelectTrigger>
-            <SelectValue placeholder="All" />
+            <SelectValue placeholder={t('contestPage.filters.status.all')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All</SelectItem>
-            <SelectItem value="Passed">Passed</SelectItem>
-            <SelectItem value="Failed">Failed</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
+            <SelectItem value="all">{t('contestPage.filters.status.all')}</SelectItem>
+            <SelectItem value="Passed">{t('contestPage.filters.status.passed')}</SelectItem>
+            <SelectItem value="Failed">{t('contestPage.filters.status.failed')}</SelectItem>
+            <SelectItem value="pending">{t('contestPage.submissionTable.filters.pending')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
       <div className="mb-4 flex flex-col gap-4">
         <Label htmlFor="sortBy" className="mr-2">
-          Sort by:
+          {t('contestPage.submissionTable.filters.sortBy')}
         </Label>
         <Select
           value={filterOptions.sortBy}
-          onValueChange={(value) =>
-            onFilterChange({ ...filterOptions, sortBy: value })
-          }
+          onValueChange={(value) => onFilterChange({ ...filterOptions, sortBy: value })}
         >
           <SelectTrigger>
-            <SelectValue placeholder="Date" />
+            <SelectValue placeholder={t('contestPage.filters.sortBy.date')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="date">Date</SelectItem>
-            <SelectItem value="score">Score</SelectItem>
+            <SelectItem value="date">{t('contestPage.filters.sortBy.date')}</SelectItem>
+            <SelectItem value="score">{t('contestPage.filters.sortBy.score')}</SelectItem>
           </SelectContent>
         </Select>
         <Select
           value={filterOptions.order}
-          onValueChange={(value) =>
-            onFilterChange({ ...filterOptions, order: value })
-          }
+          onValueChange={(value) => onFilterChange({ ...filterOptions, order: value })}
         >
           <SelectTrigger>
-            <SelectValue placeholder="Descending" />
+            <SelectValue placeholder={t('contestPage.filters.order.desc')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="asc">Ascending</SelectItem>
-            <SelectItem value="desc">Descending</SelectItem>
+            <SelectItem value="asc">{t('contestPage.filters.order.asc')}</SelectItem>
+            <SelectItem value="desc">{t('contestPage.filters.order.desc')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Date</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Score</TableHead>
+            <TableHead>{t('contestPage.submissionTable.columns.date')}</TableHead>
+            <TableHead>{t('contestPage.submissionTable.columns.status')}</TableHead>
+            <TableHead>{t('contestPage.submissionTable.columns.score')}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {filteredSubmissions
+            .filter(submission => submission !== undefined)
             .sort((a, b) => {
               if (filterOptions.sortBy === "date") {
                 const comparison =
-                  new Date(b.createdAt).getTime() -
-                  new Date(a.createdAt).getTime();
+                  new Date(b?.createdAt || 0).getTime() -
+                  new Date(a?.createdAt || 0).getTime();
                 return filterOptions.order === "asc" ? -comparison : comparison;
               } else {
-                // Sort by score
-                const scoreA = a.score ?? -1;
-                const scoreB = b.score ?? -1;
+                const scoreA = a?.score ?? -1;
+                const scoreB = b?.score ?? -1;
                 const comparison = scoreB - scoreA;
                 return filterOptions.order === "asc" ? -comparison : comparison;
               }
             })
             .map((submission) => (
-              <TableRow key={submission.createdAt}>
+              <TableRow key={submission?.createdAt || Math.random()}>
                 <TableCell>
-                  {new Date(submission.createdAt).toISOString().split("T")[0]}
+                  {submission?.createdAt 
+                    ? new Date(submission.createdAt).toISOString().split("T")[0]
+                    : "N/A"}
                 </TableCell>
                 <TableCell>
-                  <Badge variant={getStatusBadgeVariant(submission.status)}>
-                    {getStatusText(submission.status)}
-                  </Badge>
+                  <div className="flex flex-col gap-1">
+                    <Badge 
+                      className={`inline-flex w-fit ${
+                        submission?.error ? 'bg-destructive text-destructive-foreground' : ''
+                      }`} 
+                      variant={getStatusBadgeVariant(submission?.status)}
+                    >
+                      {getStatusText(submission?.status, submission?.error)}
+                    </Badge>
+                  </div>
                 </TableCell>
                 <TableCell>
-                  {submission.score !== null ? submission.score : "-"}
+                  {submission?.score !== null ? submission.score : "-"}
                 </TableCell>
               </TableRow>
             ))}

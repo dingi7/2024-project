@@ -25,4 +25,6 @@ type Contest struct {
 	CreatedAt        time.Time  `json:"createdAt" bson:"createdAt"`
 	ContestRules     []byte     `json:"contestRules" bson:"contestRules"`
 	ContestStructure string     `json:"contestStructure" bson:"contestStructure"`
+	TestFiles        []byte     `json:"testFiles" bson:"testFiles"`
+	TestFramework    string     `json:"testFramework" bson:"testFramework"`
 }

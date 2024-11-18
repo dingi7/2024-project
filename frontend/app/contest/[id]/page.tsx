@@ -9,6 +9,7 @@ import SubmissionTable from './components/SubmissionTable';
 import { getSession, useSession } from 'next-auth/react';
 import {
     codeSubmit,
+    createRepo,
     editContest,
     getContestById,
     getSubmissionsByOwnerID,
@@ -20,6 +21,7 @@ import { toast } from '@/components/ui/use-toast';
 import { decodeBase64ToBlobUrl } from '@/lib/utils';
 import Link from 'next/link';
 import GithubRepos from './github/repoList';
+import { useTranslation } from '@/lib/useTranslation';
 
 type FilterOptions = {
     status: 'all' | 'Passed' | 'Failed' | string;
@@ -28,6 +30,7 @@ type FilterOptions = {
 };
 
 export default function ContestPage() {
+    const { t } = useTranslation();
     let { data: session, status } = useSession();
     const params = useParams<{ id: string }>();
 
@@ -76,9 +79,9 @@ export default function ContestPage() {
         console.log(data);
         console.log('Fetching contest and submissions');
         try {
-            const contestResponse = await getContestById(params.id);
+            const contestResponse = await getContestById(params?.id ?? '');
             const submissionsResponse = await getSubmissionsByOwnerID(
-                params.id,
+                params?.id ?? '',
                 session?.user?.id ?? ''
             );
 
@@ -110,7 +113,7 @@ export default function ContestPage() {
         const currentContest = contest;
         setContest(updatedContest);
         try {
-            editContest(updatedContest, params.id);
+            editContest(updatedContest, params?.id ?? '');
         } catch (error) {
             setContest(currentContest);
             console.error('Failed to edit contest:', error);
@@ -128,14 +131,11 @@ export default function ContestPage() {
         setFilterOptions(filters);
     };
 
-    const handleSubmit = async (solution: {
-        code: string;
-        language: string;
-    }) => {
+    const handleSubmit = async (solution: { code: string; language: string }) => {
         const submission = {
             ...solution,
-            contestId: params.id,
-            ownerId: session!.user!.id,
+            contestId: params?.id ?? '',
+            ownerId: session?.user?.id ?? '',
             _id: 'placeholder',
         };
 
@@ -155,48 +155,58 @@ export default function ContestPage() {
             });
 
             toast({
-                title: 'Submission in progress',
-                description:
-                    'Your code is being submitted. Please wait for the results.',
+                title: t('contestPage.submission.inProgress'),
+                description: t('contestPage.submission.inProgressDesc'),
                 variant: 'default',
                 duration: 3000,
             });
 
-            const submissionResponse = await codeSubmit(submission, params.id, selectedRepo ? true : false);
+            const submissionResponse = await codeSubmit(
+                submission,
+                params?.id ?? '',
+                selectedRepo ? true : false
+            );
+
+            if ('error' in submissionResponse) {
+                throw new Error(submissionResponse.message || submissionResponse.error);
+            }
 
             setSubmissions((prevSubmissions) => {
                 if (Array.isArray(prevSubmissions)) {
                     return prevSubmissions.map((sub) =>
-                        sub === placeholderSubmission
-                            ? submissionResponse
-                            : sub
+                        sub === placeholderSubmission ? submissionResponse : sub
                     ) as Submission[] | PlaceholderSubmission[];
                 }
                 return [submissionResponse];
             });
 
             toast({
-                title: 'Submission assessed',
-                description: 'Your code has been successfully assessed.',
+                title: t('contestPage.submission.success'),
+                description: t('contestPage.submission.successDesc'),
                 variant: 'success',
                 duration: 2000,
             });
-        } catch (error) {
+        } catch (error: any) {
             console.error('Submission failed:', error);
 
             setSubmissions((prevSubmissions) => {
                 if (Array.isArray(prevSubmissions)) {
-                    return prevSubmissions.filter(
-                        (sub) => sub !== placeholderSubmission
-                    ) as Submission[] | PlaceholderSubmission[];
+                    return prevSubmissions.map((sub) =>
+                        sub === placeholderSubmission 
+                            ? { 
+                                ...placeholderSubmission, 
+                                status: false,
+                                error: error.message || 'Unknown error occurred',
+                            } 
+                            : sub
+                    ) as PlaceholderSubmission[];
                 }
                 return [];
             });
 
             toast({
-                title: 'Submission failed',
-                description:
-                    'There was an error assessing your code. Please try again.',
+                title: t('contestPage.submission.failed'),
+                description: error.message || t('contestPage.submission.failedDesc'),
                 variant: 'destructive',
                 duration: 3000,
             });
@@ -205,10 +215,13 @@ export default function ContestPage() {
 
     const filteredSubmissions = useMemo(() => {
         if (!submissions || submissions.length === 0) {
-            return [] as Submission[];  // Explicitly type the empty array
+            return [] as Submission[]; // Explicitly type the empty array
         }
 
-        let filtered = [...submissions] as (Submission | PlaceholderSubmission)[];
+        let filtered = [...submissions] as (
+            | Submission
+            | PlaceholderSubmission
+        )[];
         if (filterOptions.status !== 'all') {
             filtered = filtered.filter((s) => {
                 if (filterOptions.status === 'Passed') {
@@ -234,7 +247,7 @@ export default function ContestPage() {
                     : (b.score ?? 0) - (a.score ?? 0)
             );
         }
-        return filtered as Submission[];  // Cast the final result
+        return filtered as Submission[]; // Cast the final result
     }, [submissions, filterOptions]);
 
     const handleRefresh = async () => {
@@ -258,7 +271,7 @@ export default function ContestPage() {
             <div className='flex flex-col flex-1'>
                 <div className='container mx-auto py-8 px-4 md:px-6'>
                     <h1 className='text-2xl font-bold mb-4'>
-                        Contest not found
+                        {t('contestPage.notFound')}
                     </h1>
                 </div>
             </div>
@@ -268,24 +281,62 @@ export default function ContestPage() {
         <div className='flex flex-col flex-1'>
             <div className='container mx-auto py-8 px-4 md:px-6'>
                 <div className='flex items-center justify-between mb-6'>
-                    <h1 className='text-2xl font-bold'>Code Challenge</h1>
+                    <h1 className='text-2xl font-bold'>{t('contestPage.title')}</h1>
                     <div className='flex gap-2'>
-                        <SubmissionForm
-                            onSubmit={handleSubmit}
-                            selectedRepo={selectedRepo ? repos.find(repo => repo.name === selectedRepo) : null}
-                        />
-                        <GithubRepos
-                            repos={repos}
-                            selectedRepo={selectedRepo}
-                            setSelectedRepo={setSelectedRepo}
-                        />
+                        {contest.contestStructure ? (
+                            <>
+                                {!selectedRepo && (
+                                    <Button
+                                        onClick={async () => {
+                                            await createRepo({
+                                                templateCloneURL:
+                                                    contest.contestStructure,
+                                                newRepoName: `contestify-${contest.title}`,
+                                            });
+                                        }}
+                                    >
+                                        {t('contestPage.buttons.cloneStructure')}
+                                    </Button>
+                                )}
+                                {selectedRepo && (
+                                    <SubmissionForm
+                                    onSubmit={handleSubmit}
+                                    selectedRepo={
+                                        selectedRepo
+                                            ? repos.find(
+                                                  (repo) =>
+                                                      repo.name === selectedRepo
+                                              )
+                                            : null
+                                        }
+                                    />
+                                )}
+                                <GithubRepos
+                                    repos={repos}
+                                    selectedRepo={selectedRepo}
+                                    setSelectedRepo={setSelectedRepo}
+                                />
+                            </>
+                        ) : (
+                            <SubmissionForm
+                                onSubmit={handleSubmit}
+                                selectedRepo={
+                                    selectedRepo
+                                        ? repos.find(
+                                              (repo) =>
+                                                  repo.name === selectedRepo
+                                          )
+                                        : null
+                                }
+                            />
+                        )}
                         <Button variant='outline' onClick={handleRefresh}>
                             <RefreshCcwIcon className='w-4 h-4 mr-2' />
-                            Refresh
+                            {t('contestPage.buttons.refresh')}
                         </Button>
                         <Button variant={'outline'}>
                             <Link href={`/contest/${contest.id}/submissions`}>
-                                All Results
+                                {t('contestPage.buttons.allResults')}
                             </Link>
                         </Button>
                     </div>

@@ -24,6 +24,7 @@ import {
     SelectItem,
 } from '@/components/ui/select'; // Import Select components
 import { Contest } from '@/lib/types';
+import { useTranslation } from '@/lib/useTranslation';
 
 interface Submission {
     _id: number;
@@ -37,6 +38,7 @@ interface Submission {
 }
 
 export default function AllSubmissionsPage() {
+    const { t } = useTranslation();
     const [loading, setLoading] = useState(true);
     const [contest, setContest] = useState<Contest | null>(null);
     const [submissions, setSubmissions] = useState<Submission[]>([]);
@@ -97,7 +99,7 @@ export default function AllSubmissionsPage() {
         <div className='container mx-auto py-8 flex-1'>
             <div className='rounded-lg p-6'>
                 <h1 className='text-3xl font-bold mb-6'>
-                    All Submissions for {contest?.title}
+                    {t('submissionsPage.title')} {contest?.title}
                 </h1>
                 {loading ? (
                     <div className='flex justify-center items-center h-64'>
@@ -110,71 +112,58 @@ export default function AllSubmissionsPage() {
                         <div className='flex justify-between items-center mb-6'>
                             <Select onValueChange={handleSortChange}>
                                 <SelectTrigger className='w-[180px]'>
-                                    <SelectValue placeholder='Sort by' />
+                                    <SelectValue placeholder={t('submissionsPage.sortBy.label')} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value='score'>Score</SelectItem>
-                                    <SelectItem value='date'>
-                                        Submission Date
-                                    </SelectItem>
-                                    <SelectItem value='status'>
-                                        Status
-                                    </SelectItem>
+                                    <SelectItem value='score'>{t('submissionsPage.sortBy.score')}</SelectItem>
+                                    <SelectItem value='date'>{t('submissionsPage.sortBy.date')}</SelectItem>
+                                    <SelectItem value='status'>{t('submissionsPage.sortBy.status')}</SelectItem>
                                 </SelectContent>
                             </Select>
                             <p className='text-sm'>
-                                Total Submissions: {sortedSubmissions.length}
+                                {t('submissionsPage.totalSubmissions')}: {sortedSubmissions.length}
                             </p>
                         </div>
                         <div className='overflow-x-auto'>
                             <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead>Submission Date</TableHead>
-                                        <TableHead>Score</TableHead>
-                                        <TableHead>Status</TableHead>
-                                        <TableHead>Language</TableHead>
-                                        <TableHead>User</TableHead>
+                                        <TableHead>{t('submissionsPage.table.submissionDate')}</TableHead>
+                                        <TableHead>{t('submissionsPage.table.score')}</TableHead>
+                                        <TableHead>{t('submissionsPage.table.status')}</TableHead>
+                                        <TableHead>{t('submissionsPage.table.language')}</TableHead>
+                                        <TableHead>{t('submissionsPage.table.user')}</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {sortedSubmissions.map((submission) => (
                                         <TableRow key={submission._id}>
                                             <TableCell>
-                                                {new Date(
-                                                    submission.createdAt
-                                                ).toLocaleString()}
+                                                {new Date(submission.createdAt).toLocaleString()}
                                             </TableCell>
                                             <TableCell>
-                                                {submission.score !== null
-                                                    ? submission.score
-                                                    : '-'}
+                                                {submission.score !== null ? submission.score : '-'}
                                             </TableCell>
                                             <TableCell>
                                                 <Badge
                                                     variant={
-                                                        submission.status ===
-                                                        'pending'
+                                                        submission.status === 'pending'
                                                             ? 'outline'
                                                             : submission.status
                                                             ? 'success'
                                                             : 'destructive'
                                                     }
                                                 >
-                                                    {submission.status ===
-                                                    'pending'
-                                                        ? 'Pending'
+                                                    {submission.status === 'pending'
+                                                        ? t('submissionsPage.status.pending')
                                                         : submission.status
-                                                        ? 'Passed'
-                                                        : 'Failed'}
+                                                        ? t('submissionsPage.status.passed')
+                                                        : t('submissionsPage.status.failed')}
                                                 </Badge>
                                             </TableCell>
+                                            <TableCell>{submission.language}</TableCell>
                                             <TableCell>
-                                                {submission.language}
-                                            </TableCell>
-                                            <TableCell>
-                                                {submission.ownerName ||
-                                                    'Anonymous'}
+                                                {submission.ownerName || t('submissionsPage.status.anonymous')}
                                             </TableCell>
                                         </TableRow>
                                     ))}
@@ -183,9 +172,7 @@ export default function AllSubmissionsPage() {
                         </div>
                     </>
                 ) : (
-                    <p className='text-center py-8'>
-                        No submissions found for this contest.
-                    </p>
+                    <p className='text-center py-8'>{t('submissionsPage.noSubmissions')}</p>
                 )}
             </div>
         </div>

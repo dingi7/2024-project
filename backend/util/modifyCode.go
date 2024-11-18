@@ -1,6 +1,10 @@
 package util
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+	"path/filepath"
+)
 
 func modifyJSCode(code string, entryPoint string) string {
 	// The JavaScript code to inject
@@ -91,5 +95,38 @@ func GetDockerCommand(language, codeFile, inputString string) []string {
 			fmt.Sprintf("python3 /app/code.py %s", inputString),
 		}
 	}
+	return cmdArgs
+}
+
+func AddTestFileToDir(dir string, testFileName string, testFile []byte) error {
+	// Write the test file to the specified directory
+	testFilePath := filepath.Join(dir, testFileName)
+	return os.WriteFile(testFilePath, testFile, 0644)
+}
+
+func GetDockerRepoCommand(language, dir, testFileName string) [][]string {
+	cmdArgs := [][]string{}
+
+	switch language {
+	case "JavaScript":
+		// First command: Run npm install with network access
+		cmdArgs = append(cmdArgs, []string{
+			"run", "--rm",
+			"-v", dir + ":/app", "-w", "/app",
+			"node:14",
+			"bash", "-c",
+			"npm install",
+		})
+
+		// Second command: Run npm test with network disabled
+		cmdArgs = append(cmdArgs, []string{
+			"run", "--rm", "--network", "none",
+			"-v", dir + ":/app", "-w", "/app",
+			"node:14",
+			"bash", "-c",
+			"npx jest " + testFileName, // Directly run Jest on the specific test file
+		})
+	}
+
 	return cmdArgs
 }

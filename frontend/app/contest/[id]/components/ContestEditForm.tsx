@@ -9,6 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from '@/components/ui/use-toast';
 import { decodeBase64ToBlobUrl } from '@/lib/utils';
+import { useTranslation } from '@/lib/useTranslation';
 
 const ContestScheme = z.object({
     title: z.string().min(3).max(32),
@@ -17,6 +18,7 @@ const ContestScheme = z.object({
     endDate: z.string(),
     prize: z.string(),
     rulesFile: z.any().optional(),
+    testCaseFile: z.any().optional(),
 });
 
 type ContestType = z.infer<typeof ContestScheme>;
@@ -28,6 +30,7 @@ type Props = {
 };
 
 export default function ContestEditForm({ contest, onEdit, updateTestCases }: Props) {
+    const { t } = useTranslation();
     const {
         register,
         handleSubmit,
@@ -47,7 +50,7 @@ export default function ContestEditForm({ contest, onEdit, updateTestCases }: Pr
             })
         } catch (error) {
             toast({
-                title: 'Failed to edit contest',
+                title: t('contestPage.editForm.errors.editFailed'),
                 description: 'error',
                 variant: 'destructive',
             });
@@ -56,15 +59,11 @@ export default function ContestEditForm({ contest, onEdit, updateTestCases }: Pr
 
     return (
         <div className='mt-8'>
-            <h2 className='text-lg font-medium mb-4'>Edit Contest</h2>
-            <form
-                onSubmit={(e) => {
-                    handleSubmit(handleEditContest)(e);
-                }}
-            >
-                <div className='grid grid-cols-2 gap-4 mb-4'>
+            <h2 className='text-lg font-medium mb-4'>{t('contestPage.editForm.title')}</h2>
+            <form onSubmit={handleSubmit(handleEditContest)}>
+                <div className='grid grid-cols-2 gap-6 mb-6'>
                     <div>
-                        <Label htmlFor='title'>Title</Label>
+                        <Label htmlFor='title'>{t('contestPage.editForm.fields.title')}</Label>
                         <Input
                             id='title'
                             defaultValue={contest.title}
@@ -73,7 +72,7 @@ export default function ContestEditForm({ contest, onEdit, updateTestCases }: Pr
                         />
                     </div>
                     <div>
-                        <Label htmlFor='description'>Description</Label>
+                        <Label htmlFor='description'>{t('contestPage.editForm.fields.description')}</Label>
                         <Textarea
                             id='description'
                             defaultValue={contest.description}
@@ -87,48 +86,39 @@ export default function ContestEditForm({ contest, onEdit, updateTestCases }: Pr
                         )}
                     </div>
                 </div>
-                <div className='grid grid-cols-2 gap-4 mb-4'>
+                <div className='grid grid-cols-2 gap-6 mb-6'>
                     <div>
-                        <Label htmlFor='startDate'>Start Date</Label>
+                        <Label htmlFor='startDate'>{t('contestPage.editForm.fields.startDate')}</Label>
                         <Input
                             id='startDate'
                             type='date'
-                            defaultValue={
-                                new Date(contest.startDate)
-                                    .toISOString()
-                                    .split('T')[0]
-                            }
-                            {...register('startDate')}  
+                            defaultValue={new Date(contest.startDate).toISOString().split('T')[0]}
+                            {...register('startDate')}
                         />
-                        {errors.startDate && (
-                            <p className='text-red-500'>
-                                {errors.startDate.message}
-                            </p>
-                        )}
                     </div>
                     <div>
-                        <Label htmlFor='endDate'>End Date</Label>
+                        <Label htmlFor='endDate'>{t('contestPage.editForm.fields.endDate')}</Label>
                         <Input
                             id='endDate'
                             type='date'
-                            defaultValue={
-                                new Date(contest.endDate).toISOString().split('T')[0]
-                            }
+                            defaultValue={new Date(contest.endDate).toISOString().split('T')[0]}
                             {...register('endDate')}
                         />
-                        {errors.endDate && (
-                            <p className='text-red-500'>
-                                {errors.endDate.message}
-                            </p>
-                        )}
                     </div>
                 </div>
                 <div>
-                    <Label htmlFor='prize'>Prize</Label>
-                    <Input id='prize' defaultValue={contest.prize} required type='number' min={0} {...register('prize')} />
+                    <Label htmlFor='prize'>{t('contestPage.editForm.fields.prize')}</Label>
+                    <Input 
+                        id='prize' 
+                        defaultValue={contest.prize} 
+                        required 
+                        type='number' 
+                        min={0} 
+                        {...register('prize')} 
+                    />
                 </div>
-                <div className='mt-4'>
-                    <Label htmlFor='rulesFile'>Contest Rules (PDF)</Label>
+                <div className='mt-4 mb-6'>
+                    <Label htmlFor='rulesFile'>{t('contestPage.editForm.fields.rules')}</Label>
                     <div className='flex items-center gap-2'>
                         <Input
                             id='rulesFile'
@@ -139,27 +129,34 @@ export default function ContestEditForm({ contest, onEdit, updateTestCases }: Pr
                         {contest.contestRules && (
                             <Button
                                 variant='outline'
-                                onClick={() =>
-                                    window.open(decodeBase64ToBlobUrl(contest.contestRules!), '_blank')
-                                }
+                                onClick={() => window.open(decodeBase64ToBlobUrl(contest.contestRules!), '_blank')}
                             >
-                                View Current
+                                {t('contestPage.editForm.fields.viewCurrent')}
                             </Button>
                         )}
                     </div>
-                    {errors.rulesFile && (
-                        <p className='text-red-500'>
-                            {errors.rulesFile.message as string}
-                        </p>
-                    )}
                 </div>
-                <ContestTestCases
-                    contestId={contest.id}
-                    dbTestCases={contest.testCases}
-                    saveContestTestCase={updateTestCases}
-                />
+                <div className="grid gap-2 mb-6">
+                    <Label htmlFor="testCaseFile">
+                        {t('contestPage.editForm.fields.testCase')}
+                    </Label>
+                    <Input
+                        id="testCaseFile"
+                        type="file"
+                        accept=".pdf"
+                        multiple={false}
+                        {...register("testCaseFile")}
+                    />
+                </div>
+                {!contest.contestStructure && (
+                    <ContestTestCases
+                        contestId={contest.id}
+                        dbTestCases={contest.testCases}
+                        saveContestTestCase={updateTestCases}
+                    />
+                )}
                 <Button type='submit' className='mt-4'>
-                    Save Changes
+                    {t('contestPage.editForm.buttons.saveChanges')}
                 </Button>
             </form>
         </div>
