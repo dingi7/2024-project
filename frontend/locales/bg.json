@@ -32,6 +32,12 @@
     "title": "Разгледайте Състезания",
     "description": "Прегледайте различни състезания и намерете перфектното, за да покажете своите таланти.",
     "noContests": "Не са намерени състезания.",
+    "startDate": "Начална Дата",
+    "endDate": "Крайна Дата",
+    "prize": "Награда",
+    "contestRules": "Правила на Състезанието",
+    "contestRulesButton": "Изтегли",
+
     "filters": {
       "language": "Език",
       "startDate": "Начална Дата",
@@ -43,10 +49,18 @@
   "contestPage": {
     "title": "Детайли на Състезанието",
     "notFound": "Състезанието не е намерено",
+    "startDate": "Начална Дата",
+    "endDate": "Крайна Дата",
+    "prize": "Награда",
+    "contestRules": "Правила на Състезанието",
+    "contestRulesButton": "Изтегли",
     "buttons": {
       "cloneStructure": "Клониране на структурата",
       "refresh": "Обнови",
-      "allResults": "Всички Резултати"
+      "allResults": "Всички Резултати",
+      "editContest": "Редактирай Състезание",
+      "cancelEdit": "Отмени Редактиране",
+      "deleteContest": "Изтрий Състезание"
     },
     "submission": {
       "inProgress": "Изпращането е в процес",

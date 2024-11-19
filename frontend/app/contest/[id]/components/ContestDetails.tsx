@@ -10,6 +10,7 @@ import { deleteContest } from '@/app/api/requests';
 import { useToast } from '@/components/ui/use-toast';
 import { useRouter } from 'next/navigation';
 import ContestEditForm from './ContestEditForm';
+import { useTranslation } from '@/lib/useTranslation';
 
 
 
@@ -34,7 +35,7 @@ const ContestDetails = ({
 }: Props) => {
     const { toast } = useToast();
     const router = useRouter();
-
+    const { t } = useTranslation();
     const [rulesFile, setRulesFile] = useState<File | null>(null);
 
     const handleEditContest = (e: React.FormEvent<HTMLFormElement>) => {
@@ -109,28 +110,28 @@ const ContestDetails = ({
             <div className='grid grid-cols-2 gap-4 mb-4'>
                 
                 <div>
-                    <h3 className='text-sm font-medium mb-1'>Start Date</h3>
+                    <h3 className='text-sm font-medium mb-1'>{t('contestPage.startDate')}</h3>
                     <p>{formatDate(contest.startDate)}</p>
                 </div>
                 <div>
-                    <h3 className='text-sm font-medium mb-1'>End Date</h3>
+                    <h3 className='text-sm font-medium mb-1'>{(t('contestPage.endDate'))}</h3>
                     <p>{formatDate(contest.endDate)}</p>
                 </div>
                 <div>
-                    <h3 className='text-sm font-medium mb-1'>Prize</h3>
+                    <h3 className='text-sm font-medium mb-1'>{t('contestPage.prize')}</h3>
                     <p>{contest.prize}</p>
                 </div>
                 {contestRules && (
                     <div>
                         <h3 className='text-sm font-medium mb-1'>
-                            Contest Rules
+                            {t('contestPage.contestRules')}
                         </h3>
                         <Button
                             variant='link'
                             onClick={() => window.open(contestRules, '_blank')}
                             className='p-0'
                         >
-                            View
+                            {t('contestPage.contestRulesButton')}
                         </Button>
                     </div>
                 )}
@@ -138,10 +139,10 @@ const ContestDetails = ({
             {isOwner && (
                 <div className='mt-4 flex gap-2'>
                     <Button onClick={() => setIsEditEnabled(!isEditEnabled)}>
-                        {isEditEnabled ? 'Cancel Edit' : 'Edit Contest'}
+                        {isEditEnabled ? t('contestPage.buttons.cancelEdit') : t('contestPage.buttons.editContest')}
                     </Button>
                     <Button variant='destructive' onClick={deleteContestPopup}>
-                        Delete Contest
+                        {t('contestPage.buttons.deleteContest')}
                     </Button>
                 </div>
             )}

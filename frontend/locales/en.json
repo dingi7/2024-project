@@ -43,6 +43,11 @@
   "contestPage": {
     "title": "Code Challenge",
     "notFound": "Contest not found",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "prize": "Prize",
+    "contestRules": "Contest Rules",
+    "contestRulesButton": "Download",
     "buttons": {
       "cloneStructure": "Clone contest structure",
       "refresh": "Refresh",
