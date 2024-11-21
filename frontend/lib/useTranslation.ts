@@ -10,14 +10,14 @@ const translations = {
 
 export const useTranslation = () => {
   const searchParams = useSearchParams();
-  const [locale, setLocale] = useState('en'); // Default to 'en' initially
+  const [locale, setLocale] = useState('bg'); // Default to 'bg' initially
   
   useEffect(() => {
     // Handle client-side locale setting
     const urlLocale = searchParams.get('locale');
     const savedLocale = localStorage.getItem('locale');
     
-    const newLocale = urlLocale || savedLocale || 'en';
+    const newLocale = urlLocale || savedLocale || 'bg';
     setLocale(newLocale);
     
     if (urlLocale) {
@@ -25,7 +25,7 @@ export const useTranslation = () => {
     }
   }, [searchParams]);
 
-  const currentTranslations = translations[locale as keyof typeof translations] || translations['en'];
+  const currentTranslations = translations[locale as keyof typeof translations] || translations['bg'];
 
   const t = (key: string) => {
     const keys = key.split('.');
