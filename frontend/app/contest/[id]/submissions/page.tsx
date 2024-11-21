@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/select'; // Import Select components
 import { Contest } from '@/lib/types';
 import { useTranslation } from '@/lib/useTranslation';
+import { Input } from '@/components/ui/input';
 
 interface Submission {
     _id: number;
@@ -42,9 +43,8 @@ export default function AllSubmissionsPage() {
     const [loading, setLoading] = useState(true);
     const [contest, setContest] = useState<Contest | null>(null);
     const [submissions, setSubmissions] = useState<Submission[]>([]);
-    const [sortOrder, setSortOrder] = useState<'score' | 'date' | 'status'>(
-        'score'
-    );
+    const [sortOrder, setSortOrder] = useState<'score' | 'date' | 'status'>('score');
+    const [searchQuery, setSearchQuery] = useState('');
     const params = useParams<{ id: string }>();
 
     const fetchContestAndSubmissions = async () => {
@@ -80,20 +80,26 @@ export default function AllSubmissionsPage() {
         setSortOrder(value);
     };
 
-    const sortedSubmissions = [...submissions].sort((a, b) => {
-        if (sortOrder === 'score') {
-            return b.score - a.score; // Sort by score descending
-        } else if (sortOrder === 'date') {
+    const sortedAndFilteredSubmissions = [...submissions]
+        .filter((submission) => {
+            if (!searchQuery) return true;
+            const searchLower = searchQuery.toLowerCase();
             return (
-                new Date(b.createdAt).getTime() -
-                new Date(a.createdAt).getTime()
-            ); // Sort by date descending
-        } else if (sortOrder === 'status') {
-            // Sort by status true first
-            return b.status ? 1 : a.status ? -1 : 0;
-        }
-        return 0; // Default case
-    });
+                (submission.problem_title?.toLowerCase() || '').includes(searchLower) ||
+                (submission.ownerName?.toLowerCase() || '').includes(searchLower) ||
+                (submission.language?.toLowerCase() || '').includes(searchLower)
+            );
+        })
+        .sort((a, b) => {
+            if (sortOrder === 'score') {
+                return b.score - a.score;
+            } else if (sortOrder === 'date') {
+                return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+            } else if (sortOrder === 'status') {
+                return b.status ? 1 : a.status ? -1 : 0;
+            }
+            return 0;
+        });
 
     return (
         <div className='container mx-auto py-8 flex-1'>
@@ -107,21 +113,30 @@ export default function AllSubmissionsPage() {
                         <Skeleton className='h-8 w-8 rounded-full ml-4' />
                         <Skeleton className='h-8 w-8 rounded-full ml-4' />
                     </div>
-                ) : sortedSubmissions.length > 0 ? (
+                ) : sortedAndFilteredSubmissions.length > 0 ? (
                     <>
-                        <div className='flex justify-between items-center mb-6'>
-                            <Select onValueChange={handleSortChange}>
-                                <SelectTrigger className='w-[180px]'>
-                                    <SelectValue placeholder={t('submissionsPage.sortBy.label')} />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value='score'>{t('submissionsPage.sortBy.score')}</SelectItem>
-                                    <SelectItem value='date'>{t('submissionsPage.sortBy.date')}</SelectItem>
-                                    <SelectItem value='status'>{t('submissionsPage.sortBy.status')}</SelectItem>
-                                </SelectContent>
-                            </Select>
+                        <div className='flex justify-between items-center mb-6 gap-4'>
+                            <div className='flex items-center gap-4 flex-1'>
+                                <Input
+                                    type="text"
+                                    placeholder={t('submissionsPage.searchPlaceholder') || "Search submissions..."}
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="max-w-xs"
+                                />
+                                <Select onValueChange={handleSortChange}>
+                                    <SelectTrigger className='w-[180px]'>
+                                        <SelectValue placeholder={t('submissionsPage.sortBy.label')} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value='score'>{t('submissionsPage.sortBy.score')}</SelectItem>
+                                        <SelectItem value='date'>{t('submissionsPage.sortBy.date')}</SelectItem>
+                                        <SelectItem value='status'>{t('submissionsPage.sortBy.status')}</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
                             <p className='text-sm'>
-                                {t('submissionsPage.totalSubmissions')}: {sortedSubmissions.length}
+                                {t('submissionsPage.totalSubmissions')}: {sortedAndFilteredSubmissions.length}
                             </p>
                         </div>
                         <div className='overflow-x-auto'>
@@ -136,7 +151,7 @@ export default function AllSubmissionsPage() {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {sortedSubmissions.map((submission) => (
+                                    {sortedAndFilteredSubmissions.map((submission) => (
                                         <TableRow key={submission._id}>
                                             <TableCell>
                                                 {new Date(submission.createdAt).toLocaleString()}

@@ -41,7 +41,7 @@ function Header({}: Props) {
       </div>
 
       {/* Desktop Navigation */}
-      <nav className="hidden lg:flex gap-4 sm:gap-6 items-center">
+      <nav className="hidden lg:flex gap-4 sm:gap-6 items-center absolute left-1/2 transform -translate-x-1/2">
         <Link
           href="/contests"
           className="text-sm font-bold hover:underline underline-offset-4"
