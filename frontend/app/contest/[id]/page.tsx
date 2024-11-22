@@ -210,6 +210,7 @@ export default function ContestPage() {
                 variant: 'destructive',
                 duration: 3000,
             });
+            throw error;
         }
     };
 

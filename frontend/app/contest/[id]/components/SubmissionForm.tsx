@@ -16,19 +16,21 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { PopoverClose } from '@radix-ui/react-popover';
-// Removed the import for AlertDialog components due to the error
+import { useTranslation } from '@/lib/useTranslation';
 
 type Props = {
-    onSubmit: (solution: { language: string; code: string }) => void;
+    onSubmit: (solution: { language: string; code: string }) => Promise<void>;
     selectedRepo: { name: string; clone_url: string };
 };
 
 const SubmissionForm = ({ onSubmit, selectedRepo }: Props) => {
+    const {t} = useTranslation();
     const [code, setCode] = useState(
         "function main() {\n\tconsole.log('Hello, World!');\n}"
     );
     const [language, setLanguage] = useState('JavaScript');
     const [isOpen, setIsOpen] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [editorOptions, setEditorOptions] = useState({
         theme: 'vs-dark',
         language: 'JavaScript',
@@ -42,14 +44,19 @@ const SubmissionForm = ({ onSubmit, selectedRepo }: Props) => {
         { value: 'C#', monacoValue: 'csharp', label: 'C#' },
     ], []);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setIsSubmitting(true);
         const solution = {
             language: language,
             code: code,
         };
-        onSubmit(solution);
-        setIsOpen(false);
+        try {
+            await onSubmit(solution);
+            setIsOpen(false);
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     useEffect(() => {
@@ -64,30 +71,38 @@ const SubmissionForm = ({ onSubmit, selectedRepo }: Props) => {
         });
     }, [language, languages]);
 
-    const handleRepoSubmit = () => {
+    const handleRepoSubmit = async () => {
+        setIsSubmitting(true);
         const solution = {
             language: 'Repository',
             code: selectedRepo.clone_url,
         };
-        onSubmit(solution);
+        try {
+            await onSubmit(solution);
+            setIsOpen(false);
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     if (selectedRepo) {
         return (
-            <Popover>
+            <Popover open={isOpen} onOpenChange={setIsOpen}>
                 <PopoverTrigger asChild>
-                    <Button>Submit Repository Solution</Button>
+                    <Button>{t('contestPage.submission.submitRepo')}</Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-[400px] p-4">
-                    <h2 className="text-lg font-medium mb-4">Submit Repository as Solution</h2>
+                    <h2 className="text-lg font-medium mb-4">{t('contestPage.submission.submitRepo')}</h2>
                     <p className="mb-4">
-                        Are you sure you want to submit the repository &ldquo;{selectedRepo.name}&rdquo; as your solution?
+                        {t('contestPage.submission.submitRepoConfirm')}
                     </p>
                     <div className="flex justify-end space-x-2">
                         <PopoverClose asChild>
-                            <Button variant="outline">Cancel</Button>
+                            <Button variant="outline" disabled={isSubmitting}>{t('common.cancel')}</Button>
                         </PopoverClose>
-                        <Button onClick={handleRepoSubmit}>Submit Repository</Button>
+                        <Button onClick={handleRepoSubmit} disabled={isSubmitting}>
+                            {isSubmitting ? t('common.submitting') : t('common.submit')}
+                        </Button>
                     </div>
                 </PopoverContent>
             </Popover>
@@ -140,8 +155,8 @@ const SubmissionForm = ({ onSubmit, selectedRepo }: Props) => {
                             }}
                         />
                     </div>
-                    <Button type='submit' className='w-full'>
-                        Submit
+                    <Button type='submit' disabled={isSubmitting} className='w-full'>
+                        {isSubmitting ? 'Submitting...' : 'Submit'}
                     </Button>
                 </form>
             </PopoverContent>
