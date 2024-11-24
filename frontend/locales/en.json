@@ -126,6 +126,13 @@
                 "pending": "Pending",
                 "passed": "Passed"
             }
+        },
+        "repo": {
+            "success": "Repository Created",
+            "successDesc": "Successfully created repository from template",
+            "failed": "Repository Creation Failed",
+            "failedDesc": "Failed to create repository",
+            "alreadyExists": "A repository with this name already exists. Please try a different name."
         }
     },
     "header": {

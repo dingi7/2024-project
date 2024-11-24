@@ -289,11 +289,50 @@ export default function ContestPage() {
                                 {!selectedRepo && (
                                     <Button
                                         onClick={async () => {
-                                            await createRepo({
-                                                templateCloneURL:
-                                                    contest.contestStructure,
-                                                newRepoName: `contestify-${contest.title}`,
-                                            });
+                                            try {
+                                                const response = await createRepo({
+                                                    templateCloneURL: contest.contestStructure,
+                                                    newRepoName: `contestify-${contest.title}`,
+                                                });
+
+                                                if (response.error || response.status === 500) {
+                                                    throw { 
+                                                        error: response.error || 'Repository Creation Failed',
+                                                        details: response.details || 'Failed to create repository'
+                                                    };
+                                                }
+
+                                                toast({
+                                                    title: t('contestPage.repo.success'),
+                                                    description: t('contestPage.repo.successDesc'),
+                                                    variant: 'success',
+                                                    duration: 2000,
+                                                });
+                                                
+                                                // Only refresh if creation was successful
+                                                await fetchContestAndSubmissions();
+                                            } catch (error: any) {
+                                                console.error('Failed to create repository:', error);
+                                                let errorMessage = t('contestPage.repo.failedDesc');
+                                                
+                                                // Extract error details from the response
+                                                if (error.details) {
+                                                    const details = error.details;
+                                                    if (details.includes('Repository name already exists')) {
+                                                        errorMessage = t('contestPage.repo.alreadyExists');
+                                                    } else {
+                                                        // Show the actual error details from the response
+                                                        errorMessage = details;
+                                                    }
+                                                }
+
+                                                toast({
+                                                    title: error.error || t('contestPage.repo.failed'),
+                                                    description: errorMessage,
+                                                    variant: 'destructive',
+                                                    duration: 5000,
+                                                });
+                                            }
                                         }}
                                     >
                                         {t('contestPage.buttons.cloneStructure')}

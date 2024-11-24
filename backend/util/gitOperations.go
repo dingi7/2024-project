@@ -90,46 +90,46 @@ func PushToUserRepo(templateRepoPath, newRepoURL, githubAccessToken string) erro
 }
 
 func CreateGitHubRepo(repoName, oauthToken string) (string, error) {
-    url := "https://api.github.com/user/repos"
-    data := map[string]interface{}{
-        "name":    repoName,
-        "private": false,
-    }
-    jsonData, err := json.Marshal(data)
-    if err != nil {
-        return "", fmt.Errorf("failed to marshal request data: %v", err)
-    }
+	url := "https://api.github.com/user/repos"
+	data := map[string]interface{}{
+		"name":    repoName,
+		"private": false,
+	}
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal request data: %v", err)
+	}
 
-    req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
-    if err != nil {
-        return "", fmt.Errorf("failed to create request: %v", err)
-    }
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return "", fmt.Errorf("failed to create request: %v", err)
+	}
 
-    req.Header.Set("Authorization", "token "+oauthToken)
-    req.Header.Set("Accept", "application/vnd.github.v3+json")
+	req.Header.Set("Authorization", "token "+oauthToken)
+	req.Header.Set("Accept", "application/vnd.github.v3+json")
 
-    client := &http.Client{}
-    resp, err := client.Do(req)
-    if err != nil {
-        return "", fmt.Errorf("failed to send request: %v", err)
-    }
-    defer resp.Body.Close()
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("failed to send request: %v", err)
+	}
+	defer resp.Body.Close()
 
-    if resp.StatusCode != http.StatusCreated {
+	if resp.StatusCode != http.StatusCreated {
 		if resp.StatusCode == http.StatusUnprocessableEntity {
 			return "", fmt.Errorf("failed to create repo: %s, response: %s", resp.Status, "Repository name already exists")
 		}
-        body, _ := io.ReadAll(resp.Body)
-        return "", fmt.Errorf("failed to create repo: %s, response: %s", resp.Status, string(body))
-    }
+		body, _ := io.ReadAll(resp.Body)
+		return "", fmt.Errorf("failed to create repo: %s, response: %s", resp.Status, string(body))
+	}
 
-    var result map[string]interface{}
-    if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-        return "", fmt.Errorf("failed to decode response: %v", err)
-    }
+	var result map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return "", fmt.Errorf("failed to decode response: %v", err)
+	}
 
-    if cloneURL, ok := result["clone_url"].(string); ok {
-        return cloneURL, nil
-    }
-    return "", fmt.Errorf("failed to retrieve clone URL from response")
+	if cloneURL, ok := result["clone_url"].(string); ok {
+		return cloneURL, nil
+	}
+	return "", fmt.Errorf("failed to retrieve clone URL from response")
 }
