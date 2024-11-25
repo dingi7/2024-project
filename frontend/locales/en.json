@@ -72,7 +72,8 @@
             "success": "Submission assessed",
             "successDesc": "Your code has been successfully assessed.",
             "failed": "Submission failed",
-            "failedDesc": "There was an error assessing your code. Please try again."
+            "failedDesc": "There was an error assessing your code. Please try again.",
+            "placeholder": "Select repository"
         },
         "filters": {
             "status": {
