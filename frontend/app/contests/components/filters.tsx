@@ -40,7 +40,7 @@ const Filters = ({
                     onValueChange={(value) => handleChange("language", value)}
                 >
                     <SelectTrigger>
-                        <SelectValue placeholder="Select language" />
+                        <SelectValue placeholder={t('contestsPage.filters.codingLanguage')} />
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="all">All</SelectItem>
@@ -61,6 +61,7 @@ const Filters = ({
                     id="start-date"
                     value={filters.startDate ?? ""}
                     onChange={(e) => handleChange("startDate", e.target.value)}
+                    placeholder={t('contestsPage.filters.dateFormat')}
                 />
             </div>
             <div className="grid gap-2">
@@ -72,6 +73,7 @@ const Filters = ({
                     id="end-date"
                     value={filters.endDate ?? ""}
                     onChange={(e) => handleChange("endDate", e.target.value)}
+                    placeholder={t('contestsPage.filters.dateFormat')}
                 />
             </div>
             <div className="grid gap-2">

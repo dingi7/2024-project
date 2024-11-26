@@ -14,8 +14,18 @@ function Contest({ title, description, id, language, startDate, endDate, prize }
     return (
         <div className='bg-background p-6 rounded-lg border border-border'>
             <div className='flex justify-between items-center mb-2'>
+<<<<<<< Updated upstream
                 <h3 className='text-xl font-semibold text-primary'>{title}</h3>
                 <span className='text-base font-medium  bg-secondary px-3 py-1 rounded-md shadow-sm transition-all duration-200 hover:shadow-md'>{language}</span>
+=======
+                <div className='flex items-center gap-2'>
+                    <h3 className='text-xl font-semibold text-primary'>{title}</h3>
+                    {contestStructure && (
+                        <GithubIcon className="h-5 w-5 text-muted-foreground" />
+                    )}
+                </div>
+                <span className='text-base font-medium bg-muted px-3 py-1 rounded-md shadow-sm transition-all duration-200 hover:shadow-md'>{language}</span>
+>>>>>>> Stashed changes
             </div>
             <p className='text-foreground mb-4'>{description}</p>
             <div className='flex justify-between text-sm text-foreground mb-4'>

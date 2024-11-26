@@ -1,4 +1,5 @@
 {
+<<<<<<< Updated upstream
   "hero": {
     "title": "Conquer the Code",
     "description": "Join our thrilling programming contest and showcase your coding prowess. Compete against the best, win amazing prizes, and elevate your skills to new heights.",
@@ -37,6 +38,14 @@
       "startDate": "Start Date",
       "endDate": "End Date",
       "prize": "Prize"
+=======
+    "common": {
+        "submit": "Submit",
+        "cancel": "Cancel",
+        "submitting": "Submitting...",
+        "searchContests": "Search contests...",
+        "searchButton": "Search"
+>>>>>>> Stashed changes
     },
     "viewDetails": "View Details"
   },
@@ -71,11 +80,31 @@
         "desc": "Descending"
       }
     },
+<<<<<<< Updated upstream
     "editForm": {
       "title": "Edit Contest",
       "fields": {
         "title": "Title",
         "description": "Description",
+=======
+    "contestsPage": {
+        "title": "Explore Exciting Contests",
+        "description": "Browse through a variety of contests and find the perfect one to showcase your talents.",
+        "noContests": "No contests found.",
+        "filters": {
+            "language": "Language",
+            "startDate": "Start Date",
+            "endDate": "End Date",
+            "prize": "Prize",
+            "dateFormat": "mm / dd / yyyy",
+            "codingLanguage": "Select language"
+        },
+        "viewDetails": "View Details"
+    },
+    "contestPage": {
+        "title": "Code Challenge",
+        "notFound": "Contest not found",
+>>>>>>> Stashed changes
         "startDate": "Start Date",
         "endDate": "End Date",
         "prize": "Prize",

@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useTranslation } from '@/lib/useTranslation';
 
 const Search = ({ onSearch }: { onSearch: (query: string) => void }) => {
     const [searchQuery, setSearchQuery] = useState('');
+    const { t } = useTranslation();
 
     const handleSearch = () => {
         onSearch(searchQuery);
@@ -13,12 +15,12 @@ const Search = ({ onSearch }: { onSearch: (query: string) => void }) => {
         <div className='flex items-center gap-4 mb-6'>
             <Input
                 type='search'
-                placeholder='Search contests...'
+                placeholder={t('common.searchContests')}
                 className='flex-1'
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
             />
-            <Button onClick={handleSearch}>Search</Button>
+            <Button onClick={handleSearch}>{t('common.searchButton')}</Button>
         </div>
     );
 };
