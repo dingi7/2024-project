@@ -41,8 +41,75 @@ function Header({}: Props) {
                 </Link>
             </div>
 
-            {/* Center Section: Desktop Navigation */}
-            <nav className='hidden lg:flex gap-4 sm:gap-6 items-center flex-1 justify-center'>
+      {/* Desktop Navigation */}
+      <nav className="hidden lg:flex gap-4 sm:gap-6 items-center absolute left-1/2 transform -translate-x-1/2">
+        <Link
+          href="/contests"
+          className="text-sm font-bold hover:underline underline-offset-4"
+          prefetch={false}
+        >
+          {t("header.exploreContests")}
+        </Link>
+        <Link
+          href="/leaderboard"
+          className="text-sm font-bold hover:underline underline-offset-4"
+          prefetch={false}
+        >
+          {t("header.leaderboard")}
+        </Link>
+        {session?.user && (
+          <Link
+            href="/contest/create"
+            className="text-sm font-bold hover:underline underline-offset-4"
+            prefetch={false}
+          >
+            {t("header.create")}
+          </Link>
+        )}
+      </nav>
+
+      <div className="flex items-center gap-4">
+        <LanguageToggle />
+        <ModeToggle />
+        <ProfileAvatar />
+        <button className="lg:hidden" onClick={toggleMenu}>
+          {menuOpen ? (
+            <XIcon className="h-6 w-6" />
+          ) : (
+            <MenuIcon className="h-6 w-6" />
+          )}
+        </button>
+      </div>
+
+      {/* Mobile Navigation */}
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.nav
+            initial="closed"
+            animate="open"
+            exit="closed"
+            variants={menuVariants}
+            transition={{ duration: 0.3 }}
+            className="lg:hidden flex flex-col gap-4 sm:gap-6 absolute top-14 left-0 w-full bg-primary p-4 z-50"
+          >
+            <Link
+              href="/contests"
+              className="text-sm font-bold hover:underline underline-offset-4"
+              prefetch={false}
+              onClick={closeMenu}
+            >
+              {t("header.exploreContests")}
+            </Link>
+            <Link
+              href="/leaderboard"
+              className="text-sm font-bold hover:underline underline-offset-4"
+              prefetch={false}
+              onClick={closeMenu}
+            >
+              {t("header.leaderboard")}
+            </Link>
+            {session?.user ? (
+              <>
                 <Link
                     href='/contests'
                     className='text-sm font-bold hover:underline underline-offset-4'

@@ -5,6 +5,7 @@ import (
 	"backend/operations"
 	"backend/services"
 	"backend/util"
+	"fmt"
 
 	"context"
 
@@ -31,7 +32,14 @@ func (h *SubmissionHandler) CreateSubmission(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid payload"})
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	var timeout time.Duration
+	if submission.IsRepo {
+		timeout = 60 * time.Second // 60 seconds timeout for repository submissions
+	} else {
+		timeout = 10 * time.Second // 10 seconds for regular code submissions
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
 	contestID := c.Params("contestId")
@@ -75,14 +83,20 @@ func (h *SubmissionHandler) handleCodeSubmission(c *fiber.Ctx, ctx context.Conte
 func (h *SubmissionHandler) finalizeSubmission(c *fiber.Ctx, ctx context.Context, submission *models.Submission, contestID string,
 	statusCode int, score int, passed bool) error {
 
+	fmt.Printf("Finalizing submission - ContestID: %s, UserID: %v, Score: %d, Passed: %v\n",
+		contestID, c.Locals("userID"), score, passed)
+
 	submission.ContestID = contestID
 	submission.OwnerID = c.Locals("userID").(string)
 	submission.Status = passed
 	submission.Score = float64(score)
 	submission.CreatedAt = time.Now().Format(time.RFC3339)
 
+	fmt.Printf("Submission before save: %+v\n", submission)
+
 	record, err := h.SubmissionService.CreateSubmission(ctx, submission)
 	if err != nil {
+		fmt.Printf("Error in finalizeSubmission: %v\n", err)
 		return util.HandleError(c, "Error saving submission")
 	}
 

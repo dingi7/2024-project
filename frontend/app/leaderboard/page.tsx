@@ -1,6 +1,9 @@
 'use client';
 
 import { Card } from '@/components/ui/card';
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { ArrowUpDown } from "lucide-react";
 import {
     Table,
     TableHeader,
@@ -21,10 +24,17 @@ type LeaderboardEntry = {
     contestsParticipated: number;
 };
 
+type SortConfig = {
+    key: keyof LeaderboardEntry | null;
+    direction: 'asc' | 'desc';
+};
+
 function Leaderboard() {
     const { t } = useTranslation();
     const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'totalScore', direction: 'desc' });
 
     useEffect(() => {
         const fetchLeaderboard = async () => {
@@ -45,6 +55,36 @@ function Leaderboard() {
         return <div>Loading...</div>;
     }
 
+    const sortData = (data: LeaderboardEntry[]) => {
+        if (!sortConfig.key) return data;
+
+        return [...data].sort((a, b) => {
+            if (a[sortConfig.key!] < b[sortConfig.key!]) {
+                return sortConfig.direction === 'asc' ? -1 : 1;
+            }
+            if (a[sortConfig.key!] > b[sortConfig.key!]) {
+                return sortConfig.direction === 'asc' ? 1 : -1;
+            }
+            return 0;
+        });
+    };
+
+    const handleSort = (key: keyof LeaderboardEntry) => {
+        setSortConfig((currentConfig) => ({
+            key,
+            direction:
+                currentConfig.key === key && currentConfig.direction === 'desc'
+                    ? 'asc'
+                    : 'desc',
+        }));
+    };
+
+    const filteredData = sortData(
+        leaderboardData.filter(user =>
+            user.username.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+    );
+
     return (
         <div className='w-full max-w-6xl mx-auto py-10 px-4 md:px-6 flex flex-col flex-1'>
             {leaderboardData?.length > 0 ? (
@@ -59,6 +99,14 @@ function Leaderboard() {
                             />
                         ))}
                     </div>
+                    <div className="mb-4">
+                        <Input
+                            placeholder={t('leaderboard.search.placeholder') || "Search users..."}
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="max-w-sm"
+                        />
+                    </div>
                     <Card>
                         <Table>
                             <TableHeader>
@@ -66,17 +114,40 @@ function Leaderboard() {
                                     <TableHead className='w-[80px]'>
                                         {t('leaderboard.table.rank')}
                                     </TableHead>
-                                    <TableHead>{t('leaderboard.table.username')}</TableHead>
-                                    <TableHead className='text-right'>
-                                        {t('leaderboard.table.contests')}
+                                    <TableHead>
+                                        <Button
+                                            variant="ghost"
+                                            onClick={() => handleSort('username')}
+                                            className="hover:bg-transparent"
+                                        >
+                                            {t('leaderboard.table.username')}
+                                            <ArrowUpDown className="ml-2 h-4 w-4" />
+                                        </Button>
                                     </TableHead>
                                     <TableHead className='text-right'>
-                                        {t('leaderboard.table.score')}
+                                        <Button
+                                            variant="ghost"
+                                            onClick={() => handleSort('contestsParticipated')}
+                                            className="hover:bg-transparent ml-auto"
+                                        >
+                                            {t('leaderboard.table.contests')}
+                                            <ArrowUpDown className="ml-2 h-4 w-4" />
+                                        </Button>
+                                    </TableHead>
+                                    <TableHead className='text-right'>
+                                        <Button
+                                            variant="ghost"
+                                            onClick={() => handleSort('totalScore')}
+                                            className="hover:bg-transparent ml-auto"
+                                        >
+                                            {t('leaderboard.table.score')}
+                                            <ArrowUpDown className="ml-2 h-4 w-4" />
+                                        </Button>
                                     </TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {leaderboardData.map((user, index) => (
+                                {filteredData.map((user, index) => (
                                     <TableRow key={user.userId}>
                                         <TableCell>{index + 1}</TableCell>
                                         <TableCell className='font-medium'>

@@ -21,7 +21,6 @@ func RunRepoTestCases(repository string, testFile []byte, githubToken string) (i
 	}
 	defer util.CleanupTempDir(tempDir)
 
-
 	output, successCount, failCount, err := runTestScript(testFile, tempDir)
 	totalTestCases := successCount + failCount
 	passedPercentage := float64(successCount) / float64(totalTestCases) * 100
@@ -77,13 +76,17 @@ func runTestScript(testFile []byte, tempDir string) (string, int, int, error) {
 func parseTestResults(output string) (int, int) {
 	var successCount, failCount int
 
-	// Regular expression to match the line with the test results summary
-	summaryRegex := regexp.MustCompile(`Tests:\s+(\d+)\s+failed,\s+(\d+)\s+passed`)
+	// Updated regex to match both formats:
+	// "Tests:       7 passed, 7 total"
+	// "Tests:       2 failed, 5 passed, 7 total"
+	summaryRegex := regexp.MustCompile(`Tests:\s+(?:(\d+)\s+failed,\s+)?(\d+)\s+passed`)
 
 	// Find the match for passed and failed tests
 	if matches := summaryRegex.FindStringSubmatch(output); matches != nil {
-		failCount, _ = strconv.Atoi(matches[1])    // Number of failed tests
-		successCount, _ = strconv.Atoi(matches[2]) // Number of passed tests
+		if matches[1] != "" {
+			failCount, _ = strconv.Atoi(matches[1])
+		}
+		successCount, _ = strconv.Atoi(matches[2])
 	}
 
 	return successCount, failCount

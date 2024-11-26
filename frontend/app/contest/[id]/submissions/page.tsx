@@ -16,15 +16,9 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import {
-    Select,
-    SelectTrigger,
-    SelectValue,
-    SelectContent,
-    SelectItem,
-} from '@/components/ui/select'; // Import Select components
 import { Contest } from '@/lib/types';
 import { useTranslation } from '@/lib/useTranslation';
+import { Input } from '@/components/ui/input';
 
 interface Submission {
     _id: number;
@@ -32,7 +26,6 @@ interface Submission {
     problem_title: string;
     status: string;
     score: number;
-    language: string;
     createdAt: string;
     ownerName: string;
 }
@@ -42,9 +35,12 @@ export default function AllSubmissionsPage() {
     const [loading, setLoading] = useState(true);
     const [contest, setContest] = useState<Contest | null>(null);
     const [submissions, setSubmissions] = useState<Submission[]>([]);
-    const [sortOrder, setSortOrder] = useState<'score' | 'date' | 'status'>(
-        'score'
-    );
+    console.log(submissions);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [sortConfig, setSortConfig] = useState<{
+        key: 'createdAt' | 'score' | 'status' | 'ownerName';
+        direction: 'asc' | 'desc';
+    }>({ key: 'createdAt', direction: 'desc' });
     const params = useParams<{ id: string }>();
 
     const fetchContestAndSubmissions = async () => {
@@ -76,24 +72,38 @@ export default function AllSubmissionsPage() {
         fetchContestAndSubmissions();
     }, [params.id]);
 
-    const handleSortChange = (value: 'score' | 'date' | 'status') => {
-        setSortOrder(value);
+    const handleSort = (key: typeof sortConfig.key) => {
+        setSortConfig(current => ({
+            key,
+            direction: current.key === key && current.direction === 'desc' ? 'asc' : 'desc'
+        }));
     };
 
-    const sortedSubmissions = [...submissions].sort((a, b) => {
-        if (sortOrder === 'score') {
-            return b.score - a.score; // Sort by score descending
-        } else if (sortOrder === 'date') {
+    const sortedAndFilteredSubmissions = [...submissions]
+        .filter((submission) => {
+            if (!searchQuery) return true;
+            const searchLower = searchQuery.toLowerCase();
             return (
-                new Date(b.createdAt).getTime() -
-                new Date(a.createdAt).getTime()
-            ); // Sort by date descending
-        } else if (sortOrder === 'status') {
-            // Sort by status true first
-            return b.status ? 1 : a.status ? -1 : 0;
-        }
-        return 0; // Default case
-    });
+                (submission.problem_title?.toLowerCase() || '').includes(searchLower) ||
+                (submission.ownerName?.toLowerCase() || '').includes(searchLower)
+            );
+        })
+        .sort((a, b) => {
+            const direction = sortConfig.direction === 'asc' ? 1 : -1;
+            
+            switch (sortConfig.key) {
+                case 'createdAt':
+                    return direction * (new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+                case 'score':
+                    return direction * ((b.score ?? 0) - (a.score ?? 0));
+                case 'status':
+                    return direction * (b.status ? 1 : a.status ? -1 : 0);
+                case 'ownerName':
+                    return direction * ((a.ownerName || '').localeCompare(b.ownerName || ''));
+                default:
+                    return 0;
+            }
+        });
 
     return (
         <div className='container mx-auto py-8 flex-1'>
@@ -107,36 +117,66 @@ export default function AllSubmissionsPage() {
                         <Skeleton className='h-8 w-8 rounded-full ml-4' />
                         <Skeleton className='h-8 w-8 rounded-full ml-4' />
                     </div>
-                ) : sortedSubmissions.length > 0 ? (
+                ) : sortedAndFilteredSubmissions.length > 0 ? (
                     <>
-                        <div className='flex justify-between items-center mb-6'>
-                            <Select onValueChange={handleSortChange}>
-                                <SelectTrigger className='w-[180px]'>
-                                    <SelectValue placeholder={t('submissionsPage.sortBy.label')} />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value='score'>{t('submissionsPage.sortBy.score')}</SelectItem>
-                                    <SelectItem value='date'>{t('submissionsPage.sortBy.date')}</SelectItem>
-                                    <SelectItem value='status'>{t('submissionsPage.sortBy.status')}</SelectItem>
-                                </SelectContent>
-                            </Select>
+                        <div className='flex justify-between items-center mb-6 gap-4'>
+                            <div className='flex items-center gap-4 flex-1'>
+                                <Input
+                                    type="text"
+                                    placeholder={t('submissionsPage.searchPlaceholder') || "Search submissions..."}
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="max-w-xs"
+                                />
+                            </div>
                             <p className='text-sm'>
-                                {t('submissionsPage.totalSubmissions')}: {sortedSubmissions.length}
+                                {t('submissionsPage.totalSubmissions')}: {sortedAndFilteredSubmissions.length}
                             </p>
                         </div>
                         <div className='overflow-x-auto'>
                             <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead>{t('submissionsPage.table.submissionDate')}</TableHead>
-                                        <TableHead>{t('submissionsPage.table.score')}</TableHead>
-                                        <TableHead>{t('submissionsPage.table.status')}</TableHead>
-                                        <TableHead>{t('submissionsPage.table.language')}</TableHead>
-                                        <TableHead>{t('submissionsPage.table.user')}</TableHead>
+                                        <TableHead 
+                                            className="cursor-pointer hover:bg-muted/50"
+                                            onClick={() => handleSort('createdAt')}
+                                        >
+                                            {t('submissionsPage.table.submissionDate')}
+                                            {sortConfig.key === 'createdAt' && (
+                                                <span className="ml-2">{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
+                                            )}
+                                        </TableHead>
+                                        <TableHead 
+                                            className="cursor-pointer hover:bg-muted/50"
+                                            onClick={() => handleSort('score')}
+                                        >
+                                            {t('submissionsPage.table.score')}
+                                            {sortConfig.key === 'score' && (
+                                                <span className="ml-2">{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
+                                            )}
+                                        </TableHead>
+                                        <TableHead 
+                                            className="cursor-pointer hover:bg-muted/50"
+                                            onClick={() => handleSort('status')}
+                                        >
+                                            {t('submissionsPage.table.status')}
+                                            {sortConfig.key === 'status' && (
+                                                <span className="ml-2">{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
+                                            )}
+                                        </TableHead>
+                                        <TableHead 
+                                            className="cursor-pointer hover:bg-muted/50"
+                                            onClick={() => handleSort('ownerName')}
+                                        >
+                                            {t('submissionsPage.table.user')}
+                                            {sortConfig.key === 'ownerName' && (
+                                                <span className="ml-2">{sortConfig.direction === 'asc' ? '↑' : '↓'}</span>
+                                            )}
+                                        </TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {sortedSubmissions.map((submission) => (
+                                    {sortedAndFilteredSubmissions.map((submission) => (
                                         <TableRow key={submission._id}>
                                             <TableCell>
                                                 {new Date(submission.createdAt).toLocaleString()}
@@ -161,7 +201,6 @@ export default function AllSubmissionsPage() {
                                                         : t('submissionsPage.status.failed')}
                                                 </Badge>
                                             </TableCell>
-                                            <TableCell>{submission.language}</TableCell>
                                             <TableCell>
                                                 {submission.ownerName || t('submissionsPage.status.anonymous')}
                                             </TableCell>

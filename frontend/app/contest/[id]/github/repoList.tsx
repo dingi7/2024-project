@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import {
     Select,
     SelectContent,
@@ -8,6 +7,7 @@ import {
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
+import { useTranslation } from '@/lib/useTranslation';
 
 export default function GithubRepos({
     repos,
@@ -24,13 +24,14 @@ export default function GithubRepos({
     const handleClearRepo = () => {
         setSelectedRepo('');
     };
+    const { t } = useTranslation();
 
     return (
         <div className='space-y-4'>
             <div className='flex items-center space-x-2'>
                 <Select onValueChange={handleRepoChange} value={selectedRepo}>
                     <SelectTrigger className='w-full'>
-                        <SelectValue placeholder='Choose a repository' />
+                        <SelectValue placeholder={t('contestPage.submission.placeholder')} />
                     </SelectTrigger>
                     <SelectContent>
                         {repos.length > 0 && repos.map((repo) => (

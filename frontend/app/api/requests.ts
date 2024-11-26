@@ -101,3 +101,8 @@ export const createRepo = async (payload: {
 }) => {
   return api.post(endpoints.createRepo, payload);
 };
+
+export const getGithubUserInfoById = async (id: string) => {
+  const response = await fetch(`https://api.github.com/user/${id}`);
+  return response.json();
+};

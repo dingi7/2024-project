@@ -1,221 +1,247 @@
 {
-  "hero": {
-    "title": "Conquer the Code",
-    "description": "Join our thrilling programming contest and showcase your coding prowess. Compete against the best, win amazing prizes, and elevate your skills to new heights.",
-    "competeNow": "Compete Now",
-    "loginToCompete": "Login to Compete"
-  },
-  "contest": {
-    "title": "Create Your Own Contests",
-    "description": "Our platform allows you to create your own coding contests and challenges. Customize the rules, set prizes, and invite participants to compete.",
-    "createButton": "Create a Contest"
-  },
-  "overview": {
-    "title": "Unleash Your Coding Prowess",
-    "description": "Our programming contest offers a thrilling platform for coders of all levels to showcase their skills, compete against the best, and win amazing prizes.",
-    "features": {
-      "registration": {
-        "title": "Easy Registration",
-        "description": "Sign up in minutes and get ready to showcase your coding skills."
-      },
-      "challenges": {
-        "title": "Coding Challenges",
-        "description": "Tackle a variety of coding challenges that test your problem-solving abilities."
-      },
-      "leaderboards": {
-        "title": "Leaderboards",
-        "description": "Track your progress and see how you stack up against the competition."
-      }
-    }
-  },
-  "contestsPage": {
-    "title": "Explore Exciting Contests",
-    "description": "Browse through a variety of contests and find the perfect one to showcase your talents.",
-    "noContests": "No contests found.",
-    "filters": {
-      "language": "Language",
-      "startDate": "Start Date",
-      "endDate": "End Date",
-      "prize": "Prize"
+    "common": {
+        "submit": "Submit",
+        "cancel": "Cancel",
+        "submitting": "Submitting..."
     },
-    "viewDetails": "View Details"
-  },
-  "contestPage": {
-    "title": "Code Challenge",
-    "notFound": "Contest not found",
-    "buttons": {
-      "cloneStructure": "Clone contest structure",
-      "refresh": "Refresh",
-      "allResults": "All Results"
+    "hero": {
+        "title": "Conquer the Code",
+        "description": "Join our thrilling programming contest and showcase your coding prowess. Compete against the best, win amazing prizes, and elevate your skills to new heights.",
+        "competeNow": "Compete Now",
+        "loginToCompete": "Login to Compete"
     },
-    "submission": {
-      "inProgress": "Submission in progress",
-      "inProgressDesc": "Your code is being submitted. Please wait for the results.",
-      "success": "Submission assessed",
-      "successDesc": "Your code has been successfully assessed.",
-      "failed": "Submission failed",
-      "failedDesc": "There was an error assessing your code. Please try again."
+    "contest": {
+        "title": "Create Your Own Contests",
+        "description": "Our platform allows you to create your own coding contests and challenges. Customize the rules, set prizes, and invite participants to compete.",
+        "createButton": "Create a Contest"
     },
-    "filters": {
-      "status": {
-        "all": "All",
-        "passed": "Passed",
-        "failed": "Failed"
-      },
-      "sortBy": {
-        "date": "Date",
-        "score": "Score"
-      },
-      "order": {
-        "asc": "Ascending",
-        "desc": "Descending"
-      }
+    "overview": {
+        "title": "Unleash Your Coding Prowess",
+        "description": "Our programming contest offers a thrilling platform for coders of all levels to showcase their skills, compete against the best, and win amazing prizes.",
+        "features": {
+            "registration": {
+                "title": "Easy Registration",
+                "description": "Sign up in minutes and get ready to showcase your coding skills."
+            },
+            "challenges": {
+                "title": "Coding Challenges",
+                "description": "Tackle a variety of coding challenges that test your problem-solving abilities."
+            },
+            "leaderboards": {
+                "title": "Leaderboards",
+                "description": "Track your progress and see how you stack up against the competition."
+            }
+        }
     },
-    "editForm": {
-      "title": "Edit Contest",
-      "fields": {
-        "title": "Title",
-        "description": "Description",
+    "contestsPage": {
+        "title": "Explore Exciting Contests",
+        "description": "Browse through a variety of contests and find the perfect one to showcase your talents.",
+        "noContests": "No contests found.",
+        "filters": {
+            "language": "Language",
+            "startDate": "Start Date",
+            "endDate": "End Date",
+            "prize": "Prize"
+        },
+        "viewDetails": "View Details"
+    },
+    "contestPage": {
+        "title": "Code Challenge",
+        "notFound": "Contest not found",
         "startDate": "Start Date",
         "endDate": "End Date",
         "prize": "Prize",
-        "rules": "Contest Rules (PDF)",
-        "viewCurrent": "View Current",
-        "testCase": "Test Case File"
-      },
-      "buttons": {
-        "saveChanges": "Save Changes"
-      },
-      "errors": {
-        "editFailed": "Failed to edit contest"
-      }
+        "contestRules": "Contest Rules",
+        "contestRulesButton": "Download",
+        "buttons": {
+            "cloneStructure": "Clone contest structure",
+            "refresh": "Refresh",
+            "allResults": "All Results"
+        },
+        "submission": {
+            "submitRepo": "Submit Repository Solution",
+            "submitNew": "Submit New Solution",
+            "submitRepoTitle": "Submit Repository as Solution",
+            "submitTitle": "Submit Solution",
+            "submitRepoConfirm": "Are you sure you want to submit the repository as your solution?",
+            "language": "Language",
+            "code": "Code",
+            "selectLanguage": "Select language",
+            "inProgress": "Submission in progress",
+            "inProgressDesc": "Your code is being submitted. Please wait for the results.",
+            "success": "Submission assessed",
+            "successDesc": "Your code has been successfully assessed.",
+            "failed": "Submission failed",
+            "failedDesc": "There was an error assessing your code. Please try again.",
+            "placeholder": "Select repository"
+        },
+        "filters": {
+            "status": {
+                "all": "All",
+                "passed": "Passed",
+                "failed": "Failed"
+            },
+            "sortBy": {
+                "date": "Date",
+                "score": "Score"
+            },
+            "order": {
+                "asc": "Ascending",
+                "desc": "Descending"
+            }
+        },
+        "editForm": {
+            "title": "Edit Contest",
+            "fields": {
+                "title": "Title",
+                "description": "Description",
+                "startDate": "Start Date",
+                "endDate": "End Date",
+                "prize": "Prize",
+                "rules": "Contest Rules (PDF)",
+                "viewCurrent": "View Current",
+                "testCase": "Test Case File"
+            },
+            "buttons": {
+                "saveChanges": "Save Changes"
+            },
+            "errors": {
+                "editFailed": "Failed to edit contest"
+            }
+        },
+        "submissionTable": {
+            "title": "Your Submissions",
+            "filters": {
+                "status": "Filter by status:",
+                "sortBy": "Sort by:",
+                "pending": "Pending"
+            },
+            "columns": {
+                "date": "Date",
+                "status": "Status",
+                "score": "Score"
+            },
+            "status": {
+                "error": "Error",
+                "failed": "Failed",
+                "pending": "Pending",
+                "passed": "Passed"
+            }
+        },
+        "repo": {
+            "success": "Repository Created",
+            "successDesc": "Successfully created repository from template",
+            "failed": "Repository Creation Failed",
+            "failedDesc": "Failed to create repository",
+            "alreadyExists": "A repository with this name already exists. Please try a different name."
+        }
     },
-    "submissionTable": {
-      "title": "Your Submissions",
-      "filters": {
-        "status": "Filter by status:",
-        "sortBy": "Sort by:",
-        "pending": "Pending"
-      },
-      "columns": {
-        "date": "Date",
-        "status": "Status",
-        "score": "Score"
-      },
-      "status": {
-        "error": "Error",
-        "failed": "Failed",
-        "pending": "Pending",
-        "passed": "Passed"
-      }
+    "header": {
+        "exploreContests": "Explore Contests",
+        "leaderboard": "Leaderboard",
+        "create": "Create",
+        "profile": "Profile",
+        "login": "Login"
+    },
+    "profile": {
+        "attendedContests": "Attended Contests",
+        "viewAll": "View All",
+        "loading": "Loading contests...",
+        "noContests": "No contests attended yet",
+        "viewContest": "View Contest"
+    },
+    "createContest": {
+        "title": "Create a New Contest",
+        "description": "Fill out the form below to create a new programming contest.",
+        "form": {
+            "title": {
+                "label": "Contest Title",
+                "placeholder": "Enter contest title"
+            },
+            "description": {
+                "label": "Description",
+                "placeholder": "Enter contest description"
+            },
+            "language": {
+                "label": "Programming Language",
+                "placeholder": "Select programming language"
+            },
+            "duration": {
+                "label": "Contest Duration",
+                "placeholder": "Pick a date range",
+                "startTime": "Start Time",
+                "endTime": "End Time"
+            },
+            "prize": {
+                "label": "Prize",
+                "placeholder": "Enter prize"
+            },
+            "structure": {
+                "label": "Contest Structure Template",
+                "optional": "(Optional)"
+            },
+            "testFramework": {
+                "label": "Test Framework",
+                "placeholder": "Select test framework",
+                "required": "Test framework is required when using a template"
+            },
+            "testFile": {
+                "label": "Test File",
+                "required": "Test file is required when using a template"
+            },
+            "rules": {
+                "label": "Contest Rules",
+                "optional": "(Optional)"
+            }
+        },
+        "buttons": {
+            "create": "Create Contest",
+            "refresh": "Refresh Repositories"
+        },
+        "errors": {
+            "githubToken": "GitHub access token not found. Please reconnect your GitHub account.",
+            "fetchRepos": "Failed to fetch GitHub repositories",
+            "createFailed": "Failed to create contest",
+            "loginRequired": "You must be logged in to create a contest"
+        },
+        "success": {
+            "created": "Contest created successfully"
+        }
+    },
+    "leaderboard": {
+        "table": {
+            "rank": "Rank",
+            "username": "Username",
+            "contests": "Contests",
+            "score": "Score"
+        },
+        "noData": {
+            "title": "No leaderboard data available yet.",
+            "description": "Be the first to submit and appear on the leaderboard!"
+        }
+    },
+    "submissionsPage": {
+        "title": "All Submissions for",
+        "sortBy": {
+            "label": "Sort by",
+            "score": "Score",
+            "date": "Submission Date",
+            "status": "Status"
+        },
+        "totalSubmissions": "Total Submissions",
+        "noSubmissions": "No submissions found for this contest.",
+        "table": {
+            "submissionDate": "Submission Date",
+            "score": "Score",
+            "status": "Status",
+            "language": "Language",
+            "user": "User"
+        },
+        "status": {
+            "pending": "Pending",
+            "passed": "Passed",
+            "failed": "Failed",
+            "anonymous": "Anonymous"
+        }
     }
-  },
-  "header": {
-    "exploreContests": "Explore Contests",
-    "leaderboard": "Leaderboard",
-    "create": "Create",
-    "profile": "Profile",
-    "login": "Login"
-  },
-  "profile": {
-    "attendedContests": "Attended Contests",
-    "viewAll": "View All",
-    "loading": "Loading contests...",
-    "noContests": "No contests attended yet",
-    "viewContest": "View Contest"
-  },
-  "createContest": {
-    "title": "Create a New Contest",
-    "description": "Fill out the form below to create a new programming contest.",
-    "form": {
-      "title": {
-        "label": "Contest Title",
-        "placeholder": "Enter contest title"
-      },
-      "description": {
-        "label": "Description",
-        "placeholder": "Enter contest description"
-      },
-      "language": {
-        "label": "Programming Language",
-        "placeholder": "Select programming language"
-      },
-      "duration": {
-        "label": "Contest Duration",
-        "placeholder": "Pick a date range",
-        "startTime": "Start Time",
-        "endTime": "End Time"
-      },
-      "prize": {
-        "label": "Prize",
-        "placeholder": "Enter prize"
-      },
-      "structure": {
-        "label": "Contest Structure Template",
-        "optional": "(Optional)"
-      },
-      "testFramework": {
-        "label": "Test Framework",
-        "placeholder": "Select test framework",
-        "required": "Test framework is required when using a template"
-      },
-      "testFile": {
-        "label": "Test File",
-        "required": "Test file is required when using a template"
-      },
-      "rules": {
-        "label": "Contest Rules",
-        "optional": "(Optional)"
-      }
-    },
-    "buttons": {
-      "create": "Create Contest",
-      "refresh": "Refresh Repositories"
-    },
-    "errors": {
-      "githubToken": "GitHub access token not found. Please reconnect your GitHub account.",
-      "fetchRepos": "Failed to fetch GitHub repositories",
-      "createFailed": "Failed to create contest",
-      "loginRequired": "You must be logged in to create a contest"
-    },
-    "success": {
-      "created": "Contest created successfully"
-    }
-  },
-  "leaderboard": {
-    "table": {
-      "rank": "Rank",
-      "username": "Username",
-      "contests": "Contests",
-      "score": "Score"
-    },
-    "noData": {
-      "title": "No leaderboard data available yet.",
-      "description": "Be the first to submit and appear on the leaderboard!"
-    }
-  },
-  "submissionsPage": {
-    "title": "All Submissions for",
-    "sortBy": {
-      "label": "Sort by",
-      "score": "Score",
-      "date": "Submission Date",
-      "status": "Status"
-    },
-    "totalSubmissions": "Total Submissions",
-    "noSubmissions": "No submissions found for this contest.",
-    "table": {
-      "submissionDate": "Submission Date",
-      "score": "Score",
-      "status": "Status",
-      "language": "Language",
-      "user": "User"
-    },
-    "status": {
-      "pending": "Pending",
-      "passed": "Passed",
-      "failed": "Failed",
-      "anonymous": "Anonymous"
-    }
-  }
 }
