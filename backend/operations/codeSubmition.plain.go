@@ -94,7 +94,15 @@ func RunCodeTestCases(language string, code string, testCases []models.TestCase)
 	}
 
 	// Calculate the score as a percentage of passed test cases out of total test cases
-	scorePercentage := float64(passedTestCases) / float64(totalTestCases) * 100
+	var scorePercentage float64
+	if totalTestCases == 0 {
+		scorePercentage = 0
+	} else {
+		scorePercentage = float64(passedTestCases) / float64(totalTestCases) * 100
+		if scorePercentage < 0 {
+			scorePercentage = 0
+		}
+	}
 	passedAll := passedTestCases == totalTestCases
 
 	jsonResult, err := json.Marshal(allResults)

@@ -23,7 +23,15 @@ func RunRepoTestCases(repository string, testFile []byte, githubToken string) (i
 
 	output, successCount, failCount, err := runTestScript(testFile, tempDir)
 	totalTestCases := successCount + failCount
-	passedPercentage := float64(successCount) / float64(totalTestCases) * 100
+	var passedPercentage float64
+	if totalTestCases == 0 {
+		passedPercentage = 0
+	} else {
+		passedPercentage = float64(successCount) / float64(totalTestCases) * 100
+		if passedPercentage < 0 {
+			passedPercentage = 0
+		}
+	}
 	passedAll := successCount == totalTestCases && failCount == 0 && totalTestCases != 0
 	fmt.Println("Success count: ", successCount)
 	fmt.Println("Fail count: ", failCount)
@@ -32,7 +40,7 @@ func RunRepoTestCases(repository string, testFile []byte, githubToken string) (i
 			return fiber.StatusInternalServerError, nil, 0, false, err
 		}
 	}
-
+	fmt.Println(passedPercentage)
 	return fiber.StatusOK, []byte(output), int(passedPercentage), passedAll, nil
 }
 
@@ -77,11 +85,11 @@ func parseTestResults(output string) (int, int) {
 	var successCount, failCount int
 
 	// Updated regex to match both formats:
-	// "Tests:       7 passed, 7 total"
-	// "Tests:       2 failed, 5 passed, 7 total"
-	summaryRegex := regexp.MustCompile(`Tests:\s+(?:(\d+)\s+failed,\s+)?(\d+)\s+passed`)
+	// "Tests:       7 passedPercentage, 7 total"
+	// "Tests:       2 failed, 5 passedPercentage, 7 total"
+	summaryRegex := regexp.MustCompile(`Tests:\s+(?:(\d+)\s+failed,\s+)?(\d+)\s+passedPercentage`)
 
-	// Find the match for passed and failed tests
+	// Find the match for passedPercentage and failed tests
 	if matches := summaryRegex.FindStringSubmatch(output); matches != nil {
 		if matches[1] != "" {
 			failCount, _ = strconv.Atoi(matches[1])
