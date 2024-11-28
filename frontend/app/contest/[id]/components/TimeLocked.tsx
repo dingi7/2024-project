@@ -9,12 +9,12 @@ interface TimeLockedProps {
 export function TimeLocked({ startDate, endDate }: TimeLockedProps) {
     const { t } = useTranslation();
     const [timeLeft, setTimeLeft] = useState('');
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        const timer = setInterval(() => {
+        const updateTimeLeft = () => {
             const now = new Date();
             const start = new Date(startDate);
-            const end = new Date(endDate);
             
             if (now < start) {
                 const diff = start.getTime() - now.getTime();
@@ -25,7 +25,12 @@ export function TimeLocked({ startDate, endDate }: TimeLockedProps) {
                 
                 setTimeLeft(`${days}d ${hours}h ${minutes}m ${seconds}s`);
             }
-        }, 1000);
+            setIsLoading(false);
+        };
+
+        // Run immediately and then set up interval
+        updateTimeLeft();
+        const timer = setInterval(updateTimeLeft, 1000);
 
         return () => clearInterval(timer);
     }, [startDate]);
@@ -41,18 +46,22 @@ export function TimeLocked({ startDate, endDate }: TimeLockedProps) {
         <div className="fixed inset-0 z-0 flex items-center justify-center pt-16">
             <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" />
             <div className="relative p-8 border border-border rounded-lg shadow-lg bg-card text-card-foreground text-center w-full mx-4">
-                {isBeforeStart ? (
-                    <div className="space-y-6">
-                        <h2 className="text-2xl font-semibold text-primary">{t('contest.notStarted')}</h2>
-                        <p className="text-xl text-muted-foreground">{t('contest.startsOn')}: {start.toLocaleString()}</p>
-                        <p className="font-mono text-3xl font-bold text-primary">{t('contest.startsIn')}: {timeLeft}</p>
-                    </div>
-                ) : isAfterEnd ? (
-                    <div className="space-y-4">
-                        <h2 className="text-2xl font-semibold text-destructive">{t('Contest Ended')}</h2>
-                        <p className="text-xl text-muted-foreground">{t('Contest ended at')} {end.toLocaleString()}</p>
-                    </div>
-                ) : null}
+                {!isLoading && (
+                    <>
+                        {isBeforeStart ? (
+                            <div className="space-y-6">
+                                <h2 className="text-2xl font-semibold text-primary">{t('contest.notStarted')}</h2>
+                                <p className="text-xl text-muted-foreground">{t('contest.startsOn')}: {start.toLocaleString()}</p>
+                                <p className="font-mono text-3xl font-bold text-primary">{t('contest.startsIn')}: {timeLeft}</p>
+                            </div>
+                        ) : isAfterEnd ? (
+                            <div className="space-y-4">
+                                <h2 className="text-2xl font-semibold text-destructive">{t('Contest Ended')}</h2>
+                                <p className="text-xl text-muted-foreground">{t('Contest ended at')} {end.toLocaleString()}</p>
+                            </div>
+                        ) : null}
+                    </>
+                )}
             </div>
         </div>
     );
