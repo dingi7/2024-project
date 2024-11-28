@@ -6,7 +6,7 @@ type Submission struct {
 	OwnerID   string  `json:"userID" bson:"ownerId" validate:"required"`
 	Code      string  `json:"code" validate:"required"`
 	Status    bool    `json:"status" validate:"required"`
-	Score     float64 `json:"score"`
+	Score     float64 `json:"score" bson:"score"`
 	CreatedAt string  `json:"createdAt" bson:"createdAt" validate:"required"`
 	Language  string  `json:"language"`
 	IsRepo    bool    `json:"isRepo"`
