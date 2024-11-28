@@ -22,6 +22,7 @@ import { decodeBase64ToBlobUrl } from '@/lib/utils';
 import Link from 'next/link';
 import GithubRepos from './github/repoList';
 import { useTranslation } from '@/lib/useTranslation';
+import { TimeLocked } from './components/TimeLocked';
 
 type FilterOptions = {
     status: 'all' | 'Passed' | 'Failed' | string;
@@ -131,7 +132,10 @@ export default function ContestPage() {
         setFilterOptions(filters);
     };
 
-    const handleSubmit = async (solution: { code: string; language: string }) => {
+    const handleSubmit = async (solution: {
+        code: string;
+        language: string;
+    }) => {
         const submission = {
             ...solution,
             contestId: params?.id ?? '',
@@ -149,7 +153,10 @@ export default function ContestPage() {
         try {
             setSubmissions((prevSubmissions) => {
                 if (Array.isArray(prevSubmissions)) {
-                    return [...prevSubmissions, placeholderSubmission] as PlaceholderSubmission[];
+                    return [
+                        ...prevSubmissions,
+                        placeholderSubmission,
+                    ] as PlaceholderSubmission[];
                 }
                 return [placeholderSubmission];
             });
@@ -168,7 +175,9 @@ export default function ContestPage() {
             );
 
             if ('error' in submissionResponse) {
-                throw new Error(submissionResponse.message || submissionResponse.error);
+                throw new Error(
+                    submissionResponse.message || submissionResponse.error
+                );
             }
 
             setSubmissions((prevSubmissions) => {
@@ -192,12 +201,13 @@ export default function ContestPage() {
             setSubmissions((prevSubmissions) => {
                 if (Array.isArray(prevSubmissions)) {
                     return prevSubmissions.map((sub) =>
-                        sub === placeholderSubmission 
-                            ? { 
-                                ...placeholderSubmission, 
-                                status: false,
-                                error: error.message || 'Unknown error occurred',
-                            } 
+                        sub === placeholderSubmission
+                            ? {
+                                  ...placeholderSubmission,
+                                  status: false,
+                                  error:
+                                      error.message || 'Unknown error occurred',
+                              }
                             : sub
                     ) as PlaceholderSubmission[];
                 }
@@ -206,7 +216,8 @@ export default function ContestPage() {
 
             toast({
                 title: t('contestPage.submission.failed'),
-                description: error.message || t('contestPage.submission.failedDesc'),
+                description:
+                    error.message || t('contestPage.submission.failedDesc'),
                 variant: 'destructive',
                 duration: 3000,
             });
@@ -256,6 +267,14 @@ export default function ContestPage() {
         await fetchContestAndSubmissions();
     };
 
+    const isContestActive = useMemo(() => {
+        if (!contest) return false;
+        const now = new Date();
+        const startDate = new Date(contest.startDate);
+        const endDate = new Date(contest.endDate);
+        return now >= startDate && now <= endDate;
+    }, [contest]);
+
     if (loading) {
         return (
             <div className='flex flex-col flex-1'>
@@ -278,11 +297,18 @@ export default function ContestPage() {
             </div>
         );
     }
+
+    if (!isContestActive) {
+        return <TimeLocked startDate={contest.startDate} endDate={contest.endDate} />;
+    }
+
     return (
         <div className='flex flex-col flex-1'>
             <div className='container mx-auto py-8 px-4 md:px-6'>
                 <div className='flex items-center justify-between mb-6'>
-                    <h1 className='text-2xl font-bold'>{t('contestPage.title')}</h1>
+                    <h1 className='text-2xl font-bold'>
+                        {t('contestPage.title')}
+                    </h1>
                     <div className='flex gap-2'>
                         {contest.contestStructure ? (
                             <>
@@ -290,36 +316,61 @@ export default function ContestPage() {
                                     <Button
                                         onClick={async () => {
                                             try {
-                                                const response = await createRepo({
-                                                    templateCloneURL: contest.contestStructure,
-                                                    newRepoName: `contestify-${contest.title}`,
-                                                });
+                                                const response =
+                                                    await createRepo({
+                                                        templateCloneURL:
+                                                            contest.contestStructure,
+                                                        newRepoName: `contestify-${contest.title}`,
+                                                    });
 
-                                                if (response.error || response.status === 500) {
-                                                    throw { 
-                                                        error: response.error || 'Repository Creation Failed',
-                                                        details: response.details || 'Failed to create repository'
+                                                if (
+                                                    response.error ||
+                                                    response.status === 500
+                                                ) {
+                                                    throw {
+                                                        error:
+                                                            response.error ||
+                                                            'Repository Creation Failed',
+                                                        details:
+                                                            response.details ||
+                                                            'Failed to create repository',
                                                     };
                                                 }
 
                                                 toast({
-                                                    title: t('contestPage.repo.success'),
-                                                    description: t('contestPage.repo.successDesc'),
+                                                    title: t(
+                                                        'contestPage.repo.success'
+                                                    ),
+                                                    description: t(
+                                                        'contestPage.repo.successDesc'
+                                                    ),
                                                     variant: 'success',
                                                     duration: 2000,
                                                 });
-                                                
+
                                                 // Only refresh if creation was successful
                                                 await fetchContestAndSubmissions();
                                             } catch (error: any) {
-                                                console.error('Failed to create repository:', error);
-                                                let errorMessage = t('contestPage.repo.failedDesc');
-                                                
+                                                console.error(
+                                                    'Failed to create repository:',
+                                                    error
+                                                );
+                                                let errorMessage = t(
+                                                    'contestPage.repo.failedDesc'
+                                                );
+
                                                 // Extract error details from the response
                                                 if (error.details) {
-                                                    const details = error.details;
-                                                    if (details.includes('Repository name already exists')) {
-                                                        errorMessage = t('contestPage.repo.alreadyExists');
+                                                    const details =
+                                                        error.details;
+                                                    if (
+                                                        details.includes(
+                                                            'Repository name already exists'
+                                                        )
+                                                    ) {
+                                                        errorMessage = t(
+                                                            'contestPage.repo.alreadyExists'
+                                                        );
                                                     } else {
                                                         // Show the actual error details from the response
                                                         errorMessage = details;
@@ -327,7 +378,11 @@ export default function ContestPage() {
                                                 }
 
                                                 toast({
-                                                    title: error.error || t('contestPage.repo.failed'),
+                                                    title:
+                                                        error.error ||
+                                                        t(
+                                                            'contestPage.repo.failed'
+                                                        ),
                                                     description: errorMessage,
                                                     variant: 'destructive',
                                                     duration: 5000,
@@ -335,19 +390,22 @@ export default function ContestPage() {
                                             }
                                         }}
                                     >
-                                        {t('contestPage.buttons.cloneStructure')}
+                                        {t(
+                                            'contestPage.buttons.cloneStructure'
+                                        )}
                                     </Button>
                                 )}
                                 {selectedRepo && (
                                     <SubmissionForm
-                                    onSubmit={handleSubmit}
-                                    selectedRepo={
-                                        selectedRepo
-                                            ? repos.find(
-                                                  (repo) =>
-                                                      repo.name === selectedRepo
-                                              )
-                                            : null
+                                        onSubmit={handleSubmit}
+                                        selectedRepo={
+                                            selectedRepo
+                                                ? repos.find(
+                                                      (repo) =>
+                                                          repo.name ===
+                                                          selectedRepo
+                                                  )
+                                                : null
                                         }
                                     />
                                 )}

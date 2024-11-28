@@ -13,7 +13,11 @@
     "contest": {
         "title": "Create Your Own Contests",
         "description": "Our platform allows you to create your own coding contests and challenges. Customize the rules, set prizes, and invite participants to compete.",
-        "createButton": "Create a Contest"
+        "createButton": "Create a Contest",
+        "notStarted": "Contest Not Started",
+        "ended": "Contest Ended",
+        "startsOn": "Contest starts on",
+        "startsIn": "Starts in"
     },
     "overview": {
         "title": "Unleash Your Coding Prowess",
