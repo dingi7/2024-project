@@ -64,7 +64,7 @@ export default function Component() {
     const { t } = useTranslation();
 
     useEffect(() => {
-        if (!session?.user.id) {
+        if (!session?.githubAccessToken || !session?.user.id) {
             getSession().then((updatedSession) => {
                 session = updatedSession;
             });

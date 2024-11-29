@@ -63,11 +63,9 @@ export default function ContestPage() {
     const [isCloning, setIsCloning] = useState(false);
 
     useEffect(() => {
-        if (!session?.user.id) {
+        if (!session?.githubAccessToken || !session?.user.id) {
             getSession().then((updatedSession) => {
-                if (updatedSession) {
-                    session = updatedSession;
-                }
+                session = updatedSession;
             });
         }
         if (status === 'unauthenticated' || !session || !session.user.id)
@@ -76,12 +74,27 @@ export default function ContestPage() {
     }, [status, session]);
 
     const refreshGithubRepos = async () => {
+        getSession().then((updatedSession) => {
+            if (updatedSession) {
+                console.log('updated session');
+                session = updatedSession;
+            }
+        });
+        if (!session?.githubAccessToken) {
+            toast({
+                title: 'Error',
+                description:
+                    'GitHub access token not found. Please reconnect your GitHub account.',
+                variant: 'destructive',
+            });
+            return;
+        }
         try {
             const response = await fetch('https://api.github.com/user/repos', {
                 headers: {
                     Authorization: `Bearer ${session!.githubAccessToken}`,
                 },
-                cache: 'no-store'
+                cache: 'no-store',
             });
 
             const data = await response.json();
@@ -99,8 +112,6 @@ export default function ContestPage() {
     };
 
     // check user session
-    
-    
 
     const fetchContestAndSubmissions = async () => {
         refreshGithubRepos();
