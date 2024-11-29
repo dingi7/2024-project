@@ -63,8 +63,23 @@ export default function Component() {
     const [isLoading, setIsLoading] = useState(false);
     const { t } = useTranslation();
 
+    useEffect(() => {
+        if (!session?.user.id) {
+            getSession().then((updatedSession) => {
+                session = updatedSession;
+            });
+        }
+        if (status === 'unauthenticated' || !session || !session.user.id)
+            return;
+
+        fetchGithubRepos();
+    }, [status]);
+
     const fetchGithubRepos = async () => {
         if (!session?.githubAccessToken) {
+            getSession().then((updatedSession) => {
+                session = updatedSession;
+            });
             toast({
                 title: 'Error',
                 description:
@@ -98,18 +113,6 @@ export default function Component() {
             setIsLoading(false);
         }
     };
-
-    useEffect(() => {
-        if (!session?.user.id) {
-            getSession().then((updatedSession) => {
-                session = updatedSession;
-            });
-        }
-        if (status === 'unauthenticated' || !session || !session.user.id)
-            return;
-
-        fetchGithubRepos();
-    }, [status]);
 
     const {
         register,

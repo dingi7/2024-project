@@ -62,11 +62,24 @@ export default function ContestPage() {
     const [selectedRepo, setSelectedRepo] = useState<string>('');
     const [isCloning, setIsCloning] = useState(false);
 
+    useEffect(() => {
+        if (!session?.user.id) {
+            getSession().then((updatedSession) => {
+                if (updatedSession) {
+                    session = updatedSession;
+                }
+            });
+        }
+        if (status === 'unauthenticated' || !session || !session.user.id)
+            return;
+        refreshGithubRepos();
+    }, [status, session]);
+
     const refreshGithubRepos = async () => {
         try {
             const response = await fetch('https://api.github.com/user/repos', {
                 headers: {
-                    Authorization: `Bearer ${session?.githubAccessToken}`,
+                    Authorization: `Bearer ${session!.githubAccessToken}`,
                 },
                 cache: 'no-store'
             });
@@ -86,18 +99,7 @@ export default function ContestPage() {
     };
 
     // check user session
-    useEffect(() => {
-        if (!session?.user.id) {
-            getSession().then((updatedSession) => {
-                if (updatedSession) {
-                    session = updatedSession;
-                }
-            });
-        }
-        if (status === 'unauthenticated' || !session || !session.user.id)
-            return;
-        refreshGithubRepos();
-    }, [status, session]);
+    
     
 
     const fetchContestAndSubmissions = async () => {
