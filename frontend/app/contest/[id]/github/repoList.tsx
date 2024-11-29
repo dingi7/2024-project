@@ -26,6 +26,7 @@ export default function GithubRepos({
         console.log('Repos updated in GithubRepos:', repos);
         toast({
             title: 'Repos updated',
+            duration: 5,
         });
     }, [repos]);
 
