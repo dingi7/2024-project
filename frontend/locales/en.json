@@ -17,7 +17,9 @@
         "notStarted": "Contest Not Started",
         "ended": "Contest Ended",
         "startsOn": "Contest starts on",
-        "startsIn": "Starts in"
+        "startsIn": "Starts in",
+        "endedAt": "Contest ended on"
+        
     },
     "overview": {
         "title": "Unleash Your Coding Prowess",

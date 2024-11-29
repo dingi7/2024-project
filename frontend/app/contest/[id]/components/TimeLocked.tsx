@@ -56,8 +56,8 @@ export function TimeLocked({ startDate, endDate }: TimeLockedProps) {
                             </div>
                         ) : isAfterEnd ? (
                             <div className="space-y-4">
-                                <h2 className="text-2xl font-semibold text-destructive">{t('Contest Ended')}</h2>
-                                <p className="text-xl text-muted-foreground">{t('Contest ended at')} {end.toLocaleString()}</p>
+                                <h2 className="text-2xl font-semibold text-destructive">{t('contest.ended')}</h2>
+                                <p className="text-xl text-muted-foreground">{t('contest.endedAt')}: {end.toLocaleString()}</p>
                             </div>
                         ) : null}
                     </>

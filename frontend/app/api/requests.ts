@@ -45,6 +45,9 @@ export const createContest = async (payload: {
   endDate: Date;
   prize: number;
   ownerId: string;
+  contestStructure: string | null | undefined;
+  testFramework: string | null | undefined;
+  testCases: TestCase[] | null | undefined;
   contestRules: any;
 }) => {
   return api.post(endpoints.createContest, payload, true);

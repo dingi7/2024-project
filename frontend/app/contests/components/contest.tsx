@@ -18,7 +18,7 @@ function Contest({ title, description, id, language, startDate, endDate, prize, 
             <div className='flex justify-between items-center mb-2'>
                 <div className='flex items-center gap-2'>
                     <h3 className='text-xl font-semibold text-primary'>{title}</h3>
-                    {contestStructure && (
+                    {contestStructure && contestStructure !== 'null' && (
                         <GithubIcon className="h-5 w-5 text-muted-foreground" />
                     )}
                 </div>

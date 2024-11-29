@@ -55,6 +55,7 @@ export default function ContestPage() {
     });
 
     const [selectedRepo, setSelectedRepo] = useState<string>('');
+    const [isCloning, setIsCloning] = useState(false);
 
     // check user session
     useEffect(() => {
@@ -69,7 +70,7 @@ export default function ContestPage() {
             return;
     }, [status, session]);
 
-    const fetchContestAndSubmissions = async () => {
+    const refreshGithubRepos = async () => {
         const response = await fetch('https://api.github.com/user/repos', {
             headers: {
                 Authorization: `Bearer ${session?.githubAccessToken}`,
@@ -78,6 +79,10 @@ export default function ContestPage() {
         const data = await response.json();
         setRepos(data);
         console.log(data);
+    };
+
+    const fetchContestAndSubmissions = async () => {
+        refreshGithubRepos();
         console.log('Fetching contest and submissions');
         try {
             const contestResponse = await getContestById(params?.id ?? '');
@@ -275,6 +280,57 @@ export default function ContestPage() {
         return now >= startDate && now <= endDate;
     }, [contest]);
 
+    const handleCloneRepo = async () => {
+        setIsCloning(true);
+        try {
+            const response = await createRepo({
+                templateCloneURL: contest!.contestStructure,
+                newRepoName: `contestify-${contest!.title}`,
+            });
+            
+            if (response.error || response.status === 500) {
+                throw {
+                    error: response.error || 'Repository Creation Failed',
+                    details: response.details || 'Failed to create repository (already exists)',
+                };
+            }
+
+            toast({
+                title: t('contestPage.repo.success'),
+                description: t('contestPage.repo.successDesc'),
+                variant: 'success',
+                duration: 2000,
+            });
+
+            // Add a small delay to ensure GitHub API is updated
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Refresh repos explicitly
+            await refreshGithubRepos();
+        } catch (error: any) {
+            console.error('Failed to create repository:', error);
+            let errorMessage = t('contestPage.repo.failedDesc');
+
+            if (error.details) {
+                const details = error.details;
+                if (details.includes('Repository name already exists')) {
+                    errorMessage = t('contestPage.repo.alreadyExists');
+                } else {
+                    errorMessage = details;
+                }
+            }
+
+            toast({
+                title: error.error || t('contestPage.repo.failed'),
+                description: errorMessage,
+                variant: 'destructive',
+                duration: 5000,
+            });
+        } finally {
+            setIsCloning(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className='flex flex-col flex-1'>
@@ -299,7 +355,12 @@ export default function ContestPage() {
     }
 
     if (!isContestActive) {
-        return <TimeLocked startDate={contest.startDate} endDate={contest.endDate} />;
+        return (
+            <TimeLocked
+                startDate={contest.startDate}
+                endDate={contest.endDate}
+            />
+        );
     }
 
     return (
@@ -314,84 +375,16 @@ export default function ContestPage() {
                             <>
                                 {!selectedRepo && (
                                     <Button
-                                        onClick={async () => {
-                                            try {
-                                                const response =
-                                                    await createRepo({
-                                                        templateCloneURL:
-                                                            contest.contestStructure,
-                                                        newRepoName: `contestify-${contest.title}`,
-                                                    });
-
-                                                if (
-                                                    response.error ||
-                                                    response.status === 500
-                                                ) {
-                                                    throw {
-                                                        error:
-                                                            response.error ||
-                                                            'Repository Creation Failed',
-                                                        details:
-                                                            response.details ||
-                                                            'Failed to create repository',
-                                                    };
-                                                }
-
-                                                toast({
-                                                    title: t(
-                                                        'contestPage.repo.success'
-                                                    ),
-                                                    description: t(
-                                                        'contestPage.repo.successDesc'
-                                                    ),
-                                                    variant: 'success',
-                                                    duration: 2000,
-                                                });
-
-                                                // Only refresh if creation was successful
-                                                await fetchContestAndSubmissions();
-                                            } catch (error: any) {
-                                                console.error(
-                                                    'Failed to create repository:',
-                                                    error
-                                                );
-                                                let errorMessage = t(
-                                                    'contestPage.repo.failedDesc'
-                                                );
-
-                                                // Extract error details from the response
-                                                if (error.details) {
-                                                    const details =
-                                                        error.details;
-                                                    if (
-                                                        details.includes(
-                                                            'Repository name already exists'
-                                                        )
-                                                    ) {
-                                                        errorMessage = t(
-                                                            'contestPage.repo.alreadyExists'
-                                                        );
-                                                    } else {
-                                                        // Show the actual error details from the response
-                                                        errorMessage = details;
-                                                    }
-                                                }
-
-                                                toast({
-                                                    title:
-                                                        error.error ||
-                                                        t(
-                                                            'contestPage.repo.failed'
-                                                        ),
-                                                    description: errorMessage,
-                                                    variant: 'destructive',
-                                                    duration: 5000,
-                                                });
-                                            }
-                                        }}
+                                        disabled={isCloning}
+                                        onClick={handleCloneRepo}
                                     >
-                                        {t(
-                                            'contestPage.buttons.cloneStructure'
+                                        {isCloning ? (
+                                            <>
+                                                <RefreshCcwIcon className="w-4 h-4 mr-2 animate-spin" />
+                                                {t('contestPage.buttons.cloning')}
+                                            </>
+                                        ) : (
+                                            t('contestPage.buttons.cloneStructure')
                                         )}
                                     </Button>
                                 )}
