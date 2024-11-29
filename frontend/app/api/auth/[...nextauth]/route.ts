@@ -86,6 +86,7 @@ const authOptions: NextAuthOptions = {
                 id: token.id as string,
             };
             session.accessToken = token.accessToken as string;
+            session.refreshToken = token.refreshToken as string;
             session.githubAccessToken = token.githubAccessToken as string;
             return session;
         },

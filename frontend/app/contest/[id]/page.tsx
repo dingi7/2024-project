@@ -104,7 +104,6 @@ export default function ContestPage() {
 
     const fetchContestAndSubmissions = async () => {
         refreshGithubRepos();
-        console.log('Fetching contest and submissions');
         try {
             const contestResponse = await getContestById(params?.id ?? '');
             const submissionsResponse = await getSubmissionsByOwnerID(
