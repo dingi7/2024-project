@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { getSession, useSession } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -23,7 +23,7 @@ import {
     getContestById,
     getSubmissionsByOwnerID,
 } from '@/app/api/requests';
-import { decodeBase64ToBlobUrl } from '@/lib/utils';
+import { decodeBase64ToBlobUrl, reloadSession } from '@/lib/utils';
 import { useTranslation } from '@/lib/useTranslation';
 
 import { Contest, PlaceholderSubmission, Submission } from '@/lib/types';
@@ -62,24 +62,13 @@ export default function ContestPage() {
     const [selectedRepo, setSelectedRepo] = useState<string>('');
     const [isCloning, setIsCloning] = useState(false);
 
-    useEffect(() => {
-        if (!session?.githubAccessToken || !session?.user.id) {
-            getSession().then((updatedSession) => {
-                session = updatedSession;
-            });
-        }
-        if (status === 'unauthenticated' || !session || !session.user.id)
-            return;
-        refreshGithubRepos();
-    }, [status, session]);
+    // useEffect(() => {
+    //     refreshGithubRepos();
+    // });
 
     const refreshGithubRepos = async () => {
-        getSession().then((updatedSession) => {
-            if (updatedSession) {
-                console.log('updated session');
-                session = updatedSession;
-            }
-        });
+        reloadSession();
+        await new Promise((resolve) => setTimeout(resolve, 100));
         if (!session?.githubAccessToken) {
             toast({
                 title: 'Error',
@@ -99,7 +88,6 @@ export default function ContestPage() {
 
             const data = await response.json();
             setRepos((prevRepos) => {
-                // Check if the data is actually different
                 if (JSON.stringify(prevRepos) !== JSON.stringify(data)) {
                     return data;
                 }

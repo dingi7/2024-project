@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/popover';
 import { CalendarIcon, RefreshCw } from 'lucide-react';
 import { format, setHours, setMinutes } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { cn, reloadSession } from '@/lib/utils';
 import {
     Select,
     SelectContent,
@@ -64,22 +64,19 @@ export default function Component() {
     const { t } = useTranslation();
 
     useEffect(() => {
-        if (!session?.githubAccessToken || !session?.user.id) {
-            getSession().then((updatedSession) => {
-                session = updatedSession;
-            });
-        }
-        if (status === 'unauthenticated' || !session || !session.user.id)
-            return;
-
+        // if (!session?.githubAccessToken || !session?.user.id) {
+        //     getSession().then((updatedSession) => {
+        //         session = updatedSession;
+        //     });
+        // }
+        // if (status === 'unauthenticated' || !session || !session.user.id)
+        //     return;
+        reloadSession();
         fetchGithubRepos();
     }, [status]);
 
     const fetchGithubRepos = async () => {
         if (!session?.githubAccessToken) {
-            getSession().then((updatedSession) => {
-                session = updatedSession;
-            });
             toast({
                 title: 'Error',
                 description:
