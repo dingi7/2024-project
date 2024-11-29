@@ -34,9 +34,9 @@ func (h *SubmissionHandler) CreateSubmission(c *fiber.Ctx) error {
 
 	var timeout time.Duration
 	if submission.IsRepo {
-		timeout = 60 * time.Second // 60 seconds timeout for repository submissions
+		timeout = 120 * time.Second // 120 seconds timeout for repository submissions
 	} else {
-		timeout = 10 * time.Second // 10 seconds for regular code submissions
+		timeout = 60 * time.Second // 60 seconds for regular code submissions
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
@@ -83,6 +83,8 @@ func (h *SubmissionHandler) handleCodeSubmission(c *fiber.Ctx, ctx context.Conte
 func (h *SubmissionHandler) finalizeSubmission(c *fiber.Ctx, ctx context.Context, submission *models.Submission, contestID string,
 	statusCode int, score int, passed bool) error {
 
+	// Create a new context with a 5-second timeout specifically for database operation
+
 	fmt.Printf("Finalizing submission - ContestID: %s, UserID: %v, Score: %d, Passed: %v\n",
 		contestID, c.Locals("userID"), score, passed)
 
@@ -94,6 +96,7 @@ func (h *SubmissionHandler) finalizeSubmission(c *fiber.Ctx, ctx context.Context
 
 	fmt.Printf("Submission before save: %+v\n", submission)
 
+	// Use the new context for database operation
 	record, err := h.SubmissionService.CreateSubmission(ctx, submission)
 	if err != nil {
 		fmt.Printf("Error in finalizeSubmission: %v\n", err)
