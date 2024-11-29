@@ -71,14 +71,25 @@ export default function ContestPage() {
     }, [status, session]);
 
     const refreshGithubRepos = async () => {
-        const response = await fetch('https://api.github.com/user/repos', {
-            headers: {
-                Authorization: `Bearer ${session?.githubAccessToken}`,
-            },
-        });
-        const data = await response.json();
-        setRepos(data);
-        console.log(data);
+        try {
+            const response = await fetch('https://api.github.com/user/repos', {
+                headers: {
+                    Authorization: `Bearer ${session?.githubAccessToken}`,
+                },
+            });
+
+            const data = await response.json();
+            setRepos((prevRepos) => {
+                // Check if the data is actually different
+                if (JSON.stringify(prevRepos) !== JSON.stringify(data)) {
+                    return data;
+                }
+                return prevRepos;
+            });
+            console.log('Repos refreshed:', data);
+        } catch (error) {
+            console.error('Error refreshing repos:', error);
+        }
     };
 
     const fetchContestAndSubmissions = async () => {
@@ -287,11 +298,13 @@ export default function ContestPage() {
                 templateCloneURL: contest!.contestStructure,
                 newRepoName: `contestify-${contest!.title}`,
             });
-            
+
             if (response.error || response.status === 500) {
                 throw {
                     error: response.error || 'Repository Creation Failed',
-                    details: response.details || 'Failed to create repository (already exists)',
+                    details:
+                        response.details ||
+                        'Failed to create repository (already exists)',
                 };
             }
 
@@ -302,11 +315,14 @@ export default function ContestPage() {
                 duration: 2000,
             });
 
-            // Add a small delay to ensure GitHub API is updated
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            // Refresh repos explicitly
+            // Add a slightly longer delay to ensure GitHub API is updated
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+
+            // Force a refresh of the repos
             await refreshGithubRepos();
+            // Force rerender of GithubRepos by temporarily clearing selectedRepo
+            setSelectedRepo('');
+            
         } catch (error: any) {
             console.error('Failed to create repository:', error);
             let errorMessage = t('contestPage.repo.failedDesc');
@@ -380,11 +396,15 @@ export default function ContestPage() {
                                     >
                                         {isCloning ? (
                                             <>
-                                                <RefreshCcwIcon className="w-4 h-4 mr-2 animate-spin" />
-                                                {t('contestPage.buttons.cloning')}
+                                                <RefreshCcwIcon className='w-4 h-4 mr-2 animate-spin' />
+                                                {t(
+                                                    'contestPage.buttons.cloning'
+                                                )}
                                             </>
                                         ) : (
-                                            t('contestPage.buttons.cloneStructure')
+                                            t(
+                                                'contestPage.buttons.cloneStructure'
+                                            )
                                         )}
                                     </Button>
                                 )}
@@ -403,6 +423,7 @@ export default function ContestPage() {
                                     />
                                 )}
                                 <GithubRepos
+                                    key={`repos-${repos.length}-${Date.now()}`}
                                     repos={repos}
                                     selectedRepo={selectedRepo}
                                     setSelectedRepo={setSelectedRepo}

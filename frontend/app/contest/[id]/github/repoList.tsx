@@ -8,6 +8,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
 import { useTranslation } from '@/lib/useTranslation';
+import { useEffect, useState } from 'react';
 
 export default function GithubRepos({
     repos,
@@ -18,6 +19,8 @@ export default function GithubRepos({
     selectedRepo: string;
     setSelectedRepo: (repo: string) => void;
 }) {
+    const [data, setData] = useState(repos);
+
     const handleRepoChange = (value: string) => {
         setSelectedRepo(value);
     };
@@ -31,14 +34,19 @@ export default function GithubRepos({
             <div className='flex items-center space-x-2'>
                 <Select onValueChange={handleRepoChange} value={selectedRepo}>
                     <SelectTrigger className='w-full'>
-                        <SelectValue placeholder={t('contestPage.submission.placeholder')} />
+                        <SelectValue
+                            placeholder={t(
+                                'contestPage.submission.placeholder'
+                            )}
+                        />
                     </SelectTrigger>
                     <SelectContent>
-                        {repos.length > 0 && repos.map((repo) => (
-                            <SelectItem key={repo.id} value={repo.name}>
-                                {repo.name}
-                            </SelectItem>
-                        ))}
+                        {repos.length > 0 &&
+                            repos.map((repo) => (
+                                <SelectItem key={repo.id} value={repo.name}>
+                                    {repo.name}
+                                </SelectItem>
+                            ))}
                     </SelectContent>
                 </Select>
                 {selectedRepo && (
