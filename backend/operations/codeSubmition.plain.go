@@ -35,12 +35,13 @@ func executeCode(solution models.Solution, inputString string, codeFile string) 
 }
 
 func RunCodeTestCases(language string, code string, testCases []models.TestCase) (int, []byte, int, bool, error) {
-	entryPoint, err := util.IdentifyCodeEntryPoint(code)
-	if err != nil {
-		fmt.Println("Error identifying code entry point:", err)
-	} else {
-		fmt.Println("Identified code entry point:", entryPoint)
-	}
+	// entryPoint, err := util.IdentifyCodeEntryPoint(code)
+	entryPoint := "main"
+	// if err != nil {
+	// 	fmt.Println("Error identifying code entry point:", err)
+	// } else {
+	// 	fmt.Println("Identified code entry point:", entryPoint)
+	// }
 	extension, modifiedCode := util.GetFileExtension(language, code, entryPoint)
 	codeFile, err := util.CreateTempFile(modifiedCode, extension)
 	if err != nil {

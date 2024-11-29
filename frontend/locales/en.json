@@ -61,8 +61,12 @@
         "contestRulesButton": "Download",
         "buttons": {
             "cloneStructure": "Clone contest structure",
+            "cloning": "Cloning...",
             "refresh": "Refresh",
-            "allResults": "All Results"
+            "allResults": "All Results",
+            "editContest": "Edit Contest",
+            "cancelEdit": "Cancel Edit",
+            "deleteContest": "Delete Contest"
         },
         "submission": {
             "submitRepo": "Submit Repository Solution",

@@ -112,7 +112,7 @@ const SubmissionForm = ({ onSubmit, selectedRepo }: Props) => {
     return (
         <Popover open={isOpen} onOpenChange={setIsOpen}>
             <PopoverTrigger asChild>
-                <Button>Submit New Solution</Button>
+                <Button>{t('contestPage.submission.submitNew')}</Button>
             </PopoverTrigger>
             <PopoverContent className='w-[800px] p-4'>
                 <h2 className='text-lg font-medium mb-4'>Submit Solution</h2>

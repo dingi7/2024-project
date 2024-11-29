@@ -1,12 +1,21 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
+import { useParams } from 'next/navigation';
+import Link from 'next/link';
+import { getSession, useSession } from 'next-auth/react';
+
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { toast } from '@/components/ui/use-toast';
 import { RefreshCcwIcon } from 'lucide-react';
+
 import ContestDetails from './components/ContestDetails';
 import SubmissionForm from './components/SubmissionForm';
 import SubmissionTable from './components/SubmissionTable';
-import { getSession, useSession } from 'next-auth/react';
+import GithubRepos from './github/repoList';
+import { TimeLocked } from './components/TimeLocked';
+
 import {
     codeSubmit,
     createRepo,
@@ -14,15 +23,10 @@ import {
     getContestById,
     getSubmissionsByOwnerID,
 } from '@/app/api/requests';
-import { useParams } from 'next/navigation';
-import { Contest, PlaceholderSubmission, Submission } from '@/lib/types';
-import { Skeleton } from '@/components/ui/skeleton';
-import { toast } from '@/components/ui/use-toast';
 import { decodeBase64ToBlobUrl } from '@/lib/utils';
-import Link from 'next/link';
-import GithubRepos from './github/repoList';
 import { useTranslation } from '@/lib/useTranslation';
-import { TimeLocked } from './components/TimeLocked';
+
+import { Contest, PlaceholderSubmission, Submission } from '@/lib/types';
 
 type FilterOptions = {
     status: 'all' | 'Passed' | 'Failed' | string;
@@ -36,16 +40,17 @@ export default function ContestPage() {
     const params = useParams<{ id: string }>();
 
     const [loading, setLoading] = useState(true);
-    const [isOwner, setIsOwner] = useState(false);
     const [isEditEnabled, setIsEditEnabled] = useState(false);
 
-    const [contest, setContest] = useState<Contest | null>(null);
+    const [contestState, setContestState] = useState({
+        contest: null as Contest | null,
+        isOwner: false,
+        isEditEnabled: false,
+        contestRulesBlobURL: null as string | null,
+    });
     const [submissions, setSubmissions] = useState<
         Submission[] | PlaceholderSubmission[]
     >([]);
-    const [contestRulesBlobURL, setContestRulesBlobURL] = useState<
-        string | null
-    >(null);
     const [repos, setRepos] = useState<any[]>([]);
 
     const [filterOptions, setFilterOptions] = useState<FilterOptions>({
@@ -56,6 +61,29 @@ export default function ContestPage() {
 
     const [selectedRepo, setSelectedRepo] = useState<string>('');
     const [isCloning, setIsCloning] = useState(false);
+
+    const refreshGithubRepos = async () => {
+        try {
+            const response = await fetch('https://api.github.com/user/repos', {
+                headers: {
+                    Authorization: `Bearer ${session?.githubAccessToken}`,
+                },
+                cache: 'no-store'
+            });
+
+            const data = await response.json();
+            setRepos((prevRepos) => {
+                // Check if the data is actually different
+                if (JSON.stringify(prevRepos) !== JSON.stringify(data)) {
+                    return data;
+                }
+                return prevRepos;
+            });
+            console.log('Repos refreshed request sent:', data);
+        } catch (error) {
+            console.error('Error refreshing repos:', error);
+        }
+    };
 
     // check user session
     useEffect(() => {
@@ -68,29 +96,9 @@ export default function ContestPage() {
         }
         if (status === 'unauthenticated' || !session || !session.user.id)
             return;
+        refreshGithubRepos();
     }, [status, session]);
-
-    const refreshGithubRepos = async () => {
-        try {
-            const response = await fetch('https://api.github.com/user/repos', {
-                headers: {
-                    Authorization: `Bearer ${session?.githubAccessToken}`,
-                },
-            });
-
-            const data = await response.json();
-            setRepos((prevRepos) => {
-                // Check if the data is actually different
-                if (JSON.stringify(prevRepos) !== JSON.stringify(data)) {
-                    return data;
-                }
-                return prevRepos;
-            });
-            console.log('Repos refreshed:', data);
-        } catch (error) {
-            console.error('Error refreshing repos:', error);
-        }
-    };
+    
 
     const fetchContestAndSubmissions = async () => {
         refreshGithubRepos();
@@ -102,13 +110,14 @@ export default function ContestPage() {
                 session?.user?.id ?? ''
             );
 
-            setContest(contestResponse);
-            setIsOwner(contestResponse.ownerID === session?.user?.id);
-            setContestRulesBlobURL(
-                contestResponse.contestRules
+            setContestState((prev) => ({
+                ...prev,
+                isOwner: contestResponse.ownerID === session?.user?.id,
+                contest: contestResponse,
+                contestRulesBlobURL: contestResponse.contestRules
                     ? decodeBase64ToBlobUrl(contestResponse.contestRules)
-                    : null
-            );
+                    : null,
+            }));
             setSubmissions(submissionsResponse);
         } catch (error) {
             console.error('Failed to fetch contest or submissions:', error);
@@ -127,12 +136,18 @@ export default function ContestPage() {
     }, [params, session?.user?.id, status]);
 
     const handleEditContest = (updatedContest: Contest) => {
-        const currentContest = contest;
-        setContest(updatedContest);
+        const currentContest = contestState.contest;
+        setContestState((prev) => ({
+            ...prev,
+            contest: updatedContest,
+        }));
         try {
             editContest(updatedContest, params?.id ?? '');
         } catch (error) {
-            setContest(currentContest);
+            setContestState((prev) => ({
+                ...prev,
+                contest: currentContest,
+            }));
             console.error('Failed to edit contest:', error);
             toast({
                 title: 'Error',
@@ -284,19 +299,19 @@ export default function ContestPage() {
     };
 
     const isContestActive = useMemo(() => {
-        if (!contest) return false;
+        if (!contestState.contest) return false;
         const now = new Date();
-        const startDate = new Date(contest.startDate);
-        const endDate = new Date(contest.endDate);
+        const startDate = new Date(contestState.contest.startDate);
+        const endDate = new Date(contestState.contest.endDate);
         return now >= startDate && now <= endDate;
-    }, [contest]);
+    }, [contestState.contest]);
 
     const handleCloneRepo = async () => {
         setIsCloning(true);
         try {
             const response = await createRepo({
-                templateCloneURL: contest!.contestStructure,
-                newRepoName: `contestify-${contest!.title}`,
+                templateCloneURL: contestState.contest!.contestStructure,
+                newRepoName: `contestify-${contestState.contest!.title}`,
             });
 
             if (response.error || response.status === 500) {
@@ -322,7 +337,6 @@ export default function ContestPage() {
             await refreshGithubRepos();
             // Force rerender of GithubRepos by temporarily clearing selectedRepo
             setSelectedRepo('');
-            
         } catch (error: any) {
             console.error('Failed to create repository:', error);
             let errorMessage = t('contestPage.repo.failedDesc');
@@ -358,7 +372,7 @@ export default function ContestPage() {
         );
     }
 
-    if (!contest) {
+    if (!contestState.contest) {
         return (
             <div className='flex flex-col flex-1'>
                 <div className='container mx-auto py-8 px-4 md:px-6'>
@@ -373,8 +387,8 @@ export default function ContestPage() {
     if (!isContestActive) {
         return (
             <TimeLocked
-                startDate={contest.startDate}
-                endDate={contest.endDate}
+                startDate={contestState.contest!.startDate}
+                endDate={contestState.contest!.endDate}
             />
         );
     }
@@ -387,7 +401,7 @@ export default function ContestPage() {
                         {t('contestPage.title')}
                     </h1>
                     <div className='flex gap-2'>
-                        {contest.contestStructure ? (
+                        {contestState.contest!.contestStructure ? (
                             <>
                                 {!selectedRepo && (
                                     <Button
@@ -423,7 +437,7 @@ export default function ContestPage() {
                                     />
                                 )}
                                 <GithubRepos
-                                    key={`repos-${repos.length}-${Date.now()}`}
+                                    key={`repos-${repos.length}`}
                                     repos={repos}
                                     selectedRepo={selectedRepo}
                                     setSelectedRepo={setSelectedRepo}
@@ -447,7 +461,11 @@ export default function ContestPage() {
                             {t('contestPage.buttons.refresh')}
                         </Button>
                         <Button variant={'outline'}>
-                            <Link href={`/contest/${contest.id}/submissions`}>
+                            <Link
+                                href={`/contest/${
+                                    contestState.contest!.id
+                                }/submissions`}
+                            >
                                 {t('contestPage.buttons.allResults')}
                             </Link>
                         </Button>
@@ -455,13 +473,18 @@ export default function ContestPage() {
                 </div>
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-8'>
                     <ContestDetails
-                        contest={contest!}
-                        setContest={setContest}
-                        isOwner={isOwner}
+                        contest={contestState.contest!}
+                        setContest={(contest) =>
+                            setContestState((prev) => ({
+                                ...prev,
+                                contest: contest,
+                            }))
+                        }
+                        isOwner={contestState.isOwner}
                         isEditEnabled={isEditEnabled}
                         setIsEditEnabled={setIsEditEnabled}
                         onEdit={handleEditContest}
-                        contestRules={contestRulesBlobURL}
+                        contestRules={contestState.contestRulesBlobURL}
                     />
                     <SubmissionTable
                         submissions={filteredSubmissions}

@@ -66,6 +66,7 @@
     "contestRulesButton": "Изтегли",
     "buttons": {
       "cloneStructure": "Клониране на структурата",
+      "cloning": "Клониране...",
       "refresh": "Обнови",
       "allResults": "Всички резултати",
       "editContest": "Редактирай състезанието",
@@ -74,7 +75,7 @@
     },
     "submission": {
       "submitRepo": "Подаване на репо",
-      "submitNew": "Подаване на ново репо",
+      "submitNew": "Подаване на решение",
       "submitRepoTitle": "Подаване на репо като решение",
       "submitTitle": "Подаване на решение",
       "submitRepoConfirm": "Сигурни ли сте, че искате да подадете репо като решение?",

@@ -38,9 +38,6 @@ const SubmissionTable = ({
 }: Props) => {
   const { t } = useTranslation();
 
-  console.log(filterOptions);
-  console.log(submissions);
-
   const filteredSubmissions = submissions.filter((submission) => {
     if (filterOptions.status === "all") {
       return true;

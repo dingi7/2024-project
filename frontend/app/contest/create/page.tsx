@@ -130,7 +130,6 @@ export default function Component() {
             });
             return;
         }
-        console.log(data);
         const payload = {
             title: data.title,
             description: data.description,

@@ -1,3 +1,5 @@
+'use client';
+
 import {
     Select,
     SelectContent,
@@ -8,7 +10,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
 import { useTranslation } from '@/lib/useTranslation';
-import { useEffect, useState } from 'react';
+import { useLayoutEffect } from 'react';
+import { toast } from '@/components/ui/use-toast';
 
 export default function GithubRepos({
     repos,
@@ -19,7 +22,12 @@ export default function GithubRepos({
     selectedRepo: string;
     setSelectedRepo: (repo: string) => void;
 }) {
-    const [data, setData] = useState(repos);
+    useLayoutEffect(() => {
+        console.log('Repos updated in GithubRepos:', repos);
+        toast({
+            title: 'Repos updated',
+        });
+    }, [repos]);
 
     const handleRepoChange = (value: string) => {
         setSelectedRepo(value);
