@@ -16,11 +16,13 @@ declare module 'next-auth' {
         refreshToken: string;
         accessTokenExpires: number;
         githubAccessToken: string;
+        id: string;
     }
 
     interface User extends DefaultUser {
         accessToken: string;
         refreshToken: string;
         githubAccessToken: string;
+        id: string;
     }
 }

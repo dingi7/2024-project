@@ -35,7 +35,6 @@ export default function AllSubmissionsPage() {
     const [loading, setLoading] = useState(true);
     const [contest, setContest] = useState<Contest | null>(null);
     const [submissions, setSubmissions] = useState<Submission[]>([]);
-    console.log(submissions);
     const [searchQuery, setSearchQuery] = useState('');
     const [sortConfig, setSortConfig] = useState<{
         key: 'createdAt' | 'score' | 'status' | 'ownerName';

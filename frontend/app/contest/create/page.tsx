@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/popover';
 import { CalendarIcon, RefreshCw } from 'lucide-react';
 import { format, setHours, setMinutes } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { cn, reloadSession } from '@/lib/utils';
 import {
     Select,
     SelectContent,
@@ -36,7 +36,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import GithubRepos from '../[id]/github/repoList';
-import { useTranslation } from "@/lib/useTranslation";
+import { useTranslation } from '@/lib/useTranslation';
 
 const ContestScheme = z.object({
     title: z.string().min(3).max(32),
@@ -63,22 +63,21 @@ export default function Component() {
     const [isLoading, setIsLoading] = useState(false);
     const { t } = useTranslation();
 
+    useEffect(() => {
+        reloadSession();
+        fetchGithubRepos();
+    }, [status]);
+
     const fetchGithubRepos = async () => {
         if (!session?.githubAccessToken) {
-            toast({
-                title: 'Error',
-                description:
-                    'GitHub access token not found. Please reconnect your GitHub account.',
-                variant: 'destructive',
-            });
-            return;
+            reloadSession();
         }
 
         setIsLoading(true);
         try {
             const response = await fetch('https://api.github.com/user/repos', {
                 headers: {
-                    Authorization: `Bearer ${session.githubAccessToken}`,
+                    Authorization: `Bearer ${session?.githubAccessToken}`,
                 },
             });
 
@@ -99,18 +98,6 @@ export default function Component() {
         }
     };
 
-    useEffect(() => {
-        if (!session?.user.id) {
-            getSession().then((updatedSession) => {
-                session = updatedSession;
-            });
-        }
-        if (status === 'unauthenticated' || !session || !session.user.id)
-            return;
-
-        fetchGithubRepos();
-    }, [status]);
-
     const {
         register,
         control,
@@ -130,7 +117,6 @@ export default function Component() {
             });
             return;
         }
-        console.log(data);
         const payload = {
             title: data.title,
             description: data.description,
@@ -141,9 +127,10 @@ export default function Component() {
             ownerId: session.user.id,
             testCases: [],
             contestRules: data.rulesFile,
-            contestStructure:
-                repos.find((repo) => repo.name === data.contestStructure)
-                    ?.clone_url || null,
+            contestStructure: data.contestStructure
+                ? repos.find((repo) => repo.name === data.contestStructure)
+                      ?.clone_url
+                : null,
             testFramework: data.contestStructure ? data.testFramework : null,
             testFiles: data.contestStructure ? data.testFiles : null,
         };
@@ -190,7 +177,9 @@ export default function Component() {
                             </Label>
                             <Input
                                 id='title'
-                                placeholder={t('createContest.form.title.placeholder')}
+                                placeholder={t(
+                                    'createContest.form.title.placeholder'
+                                )}
                                 required
                                 {...register('title')}
                             />
@@ -207,7 +196,9 @@ export default function Component() {
                             </Label>
                             <Textarea
                                 id='description'
-                                placeholder={t('createContest.form.description.placeholder')}
+                                placeholder={t(
+                                    'createContest.form.description.placeholder'
+                                )}
                                 required
                                 {...register('description')}
                             />
@@ -232,7 +223,11 @@ export default function Component() {
                                         required
                                     >
                                         <SelectTrigger id='language'>
-                                            <SelectValue placeholder={t('createContest.form.language.placeholder')} />
+                                            <SelectValue
+                                                placeholder={t(
+                                                    'createContest.form.language.placeholder'
+                                                )}
+                                            />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value='python'>
@@ -249,27 +244,6 @@ export default function Component() {
                                             </SelectItem>
                                             <SelectItem value='c#'>
                                                 C#
-                                            </SelectItem>
-                                            <SelectItem value='ruby'>
-                                                Ruby
-                                            </SelectItem>
-                                            <SelectItem value='php'>
-                                                PHP
-                                            </SelectItem>
-                                            <SelectItem value='swift'>
-                                                Swift
-                                            </SelectItem>
-                                            <SelectItem value='kotlin'>
-                                                Kotlin
-                                            </SelectItem>
-                                            <SelectItem value='go'>
-                                                Go
-                                            </SelectItem>
-                                            <SelectItem value='rust'>
-                                                Rust
-                                            </SelectItem>
-                                            <SelectItem value='typescript'>
-                                                TypeScript
                                             </SelectItem>
                                         </SelectContent>
                                     </Select>
@@ -323,7 +297,9 @@ export default function Component() {
                                                     )
                                                 ) : (
                                                     <span>
-                                                        {t('createContest.form.duration.placeholder')}
+                                                        {t(
+                                                            'createContest.form.duration.placeholder'
+                                                        )}
                                                     </span>
                                                 )}
                                             </Button>
@@ -343,7 +319,9 @@ export default function Component() {
                                             <div className='grid grid-cols-2 gap-2 p-3 border-t border-border'>
                                                 <div>
                                                     <Label>
-                                                        {t('createContest.form.duration.startTime')}
+                                                        {t(
+                                                            'createContest.form.duration.startTime'
+                                                        )}
                                                     </Label>
                                                     <div className='flex items-center mt-1'>
                                                         <Select
@@ -379,7 +357,11 @@ export default function Component() {
                                                             }}
                                                         >
                                                             <SelectTrigger>
-                                                                <SelectValue placeholder={t('createContest.form.duration.startTime')} />
+                                                                <SelectValue
+                                                                    placeholder={t(
+                                                                        'createContest.form.duration.startTime'
+                                                                    )}
+                                                                />
                                                             </SelectTrigger>
                                                             <SelectContent>
                                                                 {Array.from({
@@ -437,7 +419,9 @@ export default function Component() {
                                                 </div>
                                                 <div>
                                                     <Label>
-                                                        {t('createContest.form.duration.endTime')}
+                                                        {t(
+                                                            'createContest.form.duration.endTime'
+                                                        )}
                                                     </Label>
                                                     <div className='flex items-center mt-1'>
                                                         <Select
@@ -473,7 +457,11 @@ export default function Component() {
                                                             }}
                                                         >
                                                             <SelectTrigger>
-                                                                <SelectValue placeholder={t('createContest.form.duration.endTime')} />
+                                                                <SelectValue
+                                                                    placeholder={t(
+                                                                        'createContest.form.duration.endTime'
+                                                                    )}
+                                                                />
                                                             </SelectTrigger>
                                                             <SelectContent>
                                                                 {Array.from({
@@ -542,11 +530,14 @@ export default function Component() {
                         </div>
                         <div className='grid gap-2'>
                             <Label htmlFor='prize'>
-                                {t('createContest.form.prize.label')} <span className='text-red-500'>*</span>
+                                {t('createContest.form.prize.label')}{' '}
+                                <span className='text-red-500'>*</span>
                             </Label>
                             <Input
                                 id='prize'
-                                placeholder={t('createContest.form.prize.placeholder')}
+                                placeholder={t(
+                                    'createContest.form.prize.placeholder'
+                                )}
                                 type='number'
                                 required
                                 min={0}
@@ -562,7 +553,8 @@ export default function Component() {
                         <div className='grid gap-2'>
                             <div className='flex justify-between items-center'>
                                 <Label htmlFor='github-repo-url'>
-                                    {t('createContest.form.structure.label')} {t('createContest.form.structure.optional')}
+                                    {t('createContest.form.structure.label')}{' '}
+                                    {t('createContest.form.structure.optional')}
                                 </Label>
                                 <Button
                                     variant='ghost'
@@ -595,7 +587,12 @@ export default function Component() {
                                 <>
                                     <div className='grid gap-2 mt-4'>
                                         <Label htmlFor='testFramework'>
-                                            {t('createContest.form.testFramework.label')} <span className='text-red-500'>*</span>
+                                            {t(
+                                                'createContest.form.testFramework.label'
+                                            )}{' '}
+                                            <span className='text-red-500'>
+                                                *
+                                            </span>
                                         </Label>
                                         <Controller
                                             name='testFramework'
@@ -612,7 +609,11 @@ export default function Component() {
                                                     defaultValue={field.value}
                                                 >
                                                     <SelectTrigger id='testFramework'>
-                                                        <SelectValue placeholder={t('createContest.form.testFramework.placeholder')} />
+                                                        <SelectValue
+                                                            placeholder={t(
+                                                                'createContest.form.testFramework.placeholder'
+                                                            )}
+                                                        />
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         <SelectItem value='jest'>
@@ -637,7 +638,12 @@ export default function Component() {
 
                                     <div className='grid gap-2 mt-2'>
                                         <Label htmlFor='test-file'>
-                                            {t('createContest.form.testFile.label')} <span className='text-red-500'>*</span>
+                                            {t(
+                                                'createContest.form.testFile.label'
+                                            )}{' '}
+                                            <span className='text-red-500'>
+                                                *
+                                            </span>
                                         </Label>
                                         <Input
                                             id='test-files'
@@ -662,7 +668,8 @@ export default function Component() {
                         </div>
                         <div className='grid gap-2'>
                             <Label htmlFor='rules-files'>
-                                {t('createContest.form.rules.label')} {t('createContest.form.rules.optional')}
+                                {t('createContest.form.rules.label')}{' '}
+                                {t('createContest.form.rules.optional')}
                             </Label>
                             <Input
                                 id='rules-files'

@@ -13,7 +13,13 @@
     "contest": {
         "title": "Create Your Own Contests",
         "description": "Our platform allows you to create your own coding contests and challenges. Customize the rules, set prizes, and invite participants to compete.",
-        "createButton": "Create a Contest"
+        "createButton": "Create a Contest",
+        "notStarted": "Contest Not Started",
+        "ended": "Contest Ended",
+        "startsOn": "Contest starts on",
+        "startsIn": "Starts in",
+        "endedAt": "Contest ended on"
+        
     },
     "overview": {
         "title": "Unleash Your Coding Prowess",
@@ -55,8 +61,12 @@
         "contestRulesButton": "Download",
         "buttons": {
             "cloneStructure": "Clone contest structure",
+            "cloning": "Cloning...",
             "refresh": "Refresh",
-            "allResults": "All Results"
+            "allResults": "All Results",
+            "editContest": "Edit Contest",
+            "cancelEdit": "Cancel Edit",
+            "deleteContest": "Delete Contest"
         },
         "submission": {
             "submitRepo": "Submit Repository Solution",
