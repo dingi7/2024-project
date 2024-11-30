@@ -64,33 +64,20 @@ export default function Component() {
     const { t } = useTranslation();
 
     useEffect(() => {
-        // if (!session?.githubAccessToken || !session?.user.id) {
-        //     getSession().then((updatedSession) => {
-        //         session = updatedSession;
-        //     });
-        // }
-        // if (status === 'unauthenticated' || !session || !session.user.id)
-        //     return;
         reloadSession();
         fetchGithubRepos();
     }, [status]);
 
     const fetchGithubRepos = async () => {
         if (!session?.githubAccessToken) {
-            toast({
-                title: 'Error',
-                description:
-                    'GitHub access token not found. Please reconnect your GitHub account.',
-                variant: 'destructive',
-            });
-            return;
+            reloadSession();
         }
 
         setIsLoading(true);
         try {
             const response = await fetch('https://api.github.com/user/repos', {
                 headers: {
-                    Authorization: `Bearer ${session.githubAccessToken}`,
+                    Authorization: `Bearer ${session?.githubAccessToken}`,
                 },
             });
 

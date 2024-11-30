@@ -62,21 +62,11 @@ export default function ContestPage() {
     const [selectedRepo, setSelectedRepo] = useState<string>('');
     const [isCloning, setIsCloning] = useState(false);
 
-    // useEffect(() => {
-    //     refreshGithubRepos();
-    // });
-
     const refreshGithubRepos = async () => {
         reloadSession();
         await new Promise((resolve) => setTimeout(resolve, 100));
         if (!session?.githubAccessToken) {
-            toast({
-                title: 'Error',
-                description:
-                    'GitHub access token not found. Please reconnect your GitHub account.',
-                variant: 'destructive',
-            });
-            return;
+            reloadSession();
         }
         try {
             const response = await fetch('https://api.github.com/user/repos', {
