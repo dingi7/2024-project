@@ -6,10 +6,21 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+type TestCaseFullResult struct {
+	TestCase TestCase `json:"testCase"`
+	Result   string   `json:"result"`
+	Time     int      `json:"time"`
+	Memory   int      `json:"memory"`
+	Status   bool     `json:"status"`
+	Error    string   `json:"error"`
+}
+
 type TestCase struct {
-	ID     primitive.ObjectID `json:"id" bson:"_id"`
-	Input  string             `json:"input"`
-	Output string             `json:"output"`
+	ID          primitive.ObjectID `json:"id" bson:"_id"`
+	Input       string             `json:"input"`
+	Output      string             `json:"output"`
+	TimeLimit   int                `json:"timeLimit"`
+	MemoryLimit int                `json:"memoryLimit"`
 }
 
 type Contest struct {

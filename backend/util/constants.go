@@ -1,0 +1,7 @@
+package util
+
+const DEFAULT_MEMORY_LIMIT = 1024
+const DEFAULT_TIME_LIMIT = 1000
+
+const MAX_MEMORY_LIMIT = 10240
+const MAX_TIME_LIMIT = 9000

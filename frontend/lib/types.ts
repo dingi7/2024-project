@@ -26,7 +26,8 @@ export interface TestCase {
     id: number;
     input: string;
     output: string;
-    timeLimit: string;
+    timeLimit: number;
+    memoryLimit: number;
 }
 
 export interface Contest {

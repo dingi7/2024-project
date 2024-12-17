@@ -236,7 +236,6 @@ func (h *ContestHandler) EditContest(c *fiber.Ctx) error {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 		}
 		existingContest.ContestRules = pdfData
-		fmt.Println("Contest rules updated")
 	}
 
 	// Validate updated contest data

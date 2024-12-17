@@ -4,19 +4,25 @@ import (
 	"backend/models"
 	"backend/util"
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 	"os/exec"
 	"strings"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-func executeCode(solution models.Solution, inputString string, codeFile string) (string, error) {
-	cmdArgs := util.GetDockerCommand(solution.Language, codeFile, inputString)
 
-	cmd := exec.Command("docker", cmdArgs...)
+
+func executeCode(solution models.Solution, inputString string, codeFile string, timeLimit int, memoryLimit int) (string, error) {
+	cmdArgs := util.GetDockerCommand(solution.Language, codeFile, inputString, memoryLimit)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeLimit)*time.Millisecond)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx, "docker", cmdArgs...)
 	fmt.Printf("Running command: %v\n", cmd.Args)
 	var out bytes.Buffer
 	cmd.Stdout = &out
@@ -66,8 +72,16 @@ func RunCodeTestCases(language string, code string, testCases []models.TestCase)
 	for idx, testCase := range testCases {
 		input := strings.TrimSpace(testCase.Input)
 		expectedOutput := strings.TrimSpace(testCase.Output)
+		timeLimit := testCase.TimeLimit
+		memoryLimit := testCase.MemoryLimit
+		if memoryLimit <= 0 || memoryLimit > util.MAX_MEMORY_LIMIT {
+			memoryLimit = util.DEFAULT_MEMORY_LIMIT
+		}
+		if timeLimit <= 0 || timeLimit > util.MAX_TIME_LIMIT {
+			timeLimit = util.DEFAULT_TIME_LIMIT
+		}
 
-		output, err := executeCode(solution, input, codeFile)
+		output, err := executeCode(solution, input, codeFile, timeLimit, memoryLimit)
 		if err != nil {
 			log.Printf("Error executing code for test case #%d: %v", idx+1, err)
 
@@ -95,16 +109,7 @@ func RunCodeTestCases(language string, code string, testCases []models.TestCase)
 	}
 
 	// Calculate the score as a percentage of passed test cases out of total test cases
-	var scorePercentage float64
-	if totalTestCases == 0 {
-		scorePercentage = 0
-	} else {
-		scorePercentage = float64(passedTestCases) / float64(totalTestCases) * 100
-		if scorePercentage < 0 {
-			scorePercentage = 0
-		}
-	}
-	passedAll := passedTestCases == totalTestCases
+	scorePercentage, passedAll := parseResult(totalTestCases, passedTestCases)
 
 	jsonResult, err := json.Marshal(allResults)
 	if err != nil {
@@ -115,4 +120,12 @@ func RunCodeTestCases(language string, code string, testCases []models.TestCase)
 	fmt.Println(string(jsonResult)) // Print the JSON result as a string for readability
 
 	return fiber.StatusOK, jsonResult, int(scorePercentage), passedAll, nil
+}
+
+func parseResult(totalTestCases int, passedTestCases int) (int, bool) {
+	scorePercentage := float64(passedTestCases) / float64(totalTestCases) * 100
+	if scorePercentage < 0 {
+		scorePercentage = 0
+	}
+	return int(scorePercentage), passedTestCases == totalTestCases
 }

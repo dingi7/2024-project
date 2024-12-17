@@ -13,8 +13,6 @@ import { Pencil, Trash2, Plus } from 'lucide-react';
 import { TestCase } from '@/lib/types';
 import { addTestCase, deleteTestCase, editTestCase } from '@/app/api/requests';
 
-// optimize test cases adding
-
 interface ContestTestCasesProps {
     contestId: string;
     dbTestCases: TestCase[];
@@ -34,11 +32,11 @@ const ContestTestCases: React.FC<ContestTestCasesProps> = ({
         id: 0,
         input: '',
         output: '',
-        timeLimit: '',
+        timeLimit: 0,
+        memoryLimit: 0,
     });
 
     const handleEdit = (id: number) => {
-
         setEditingId(id);
     };
 
@@ -58,8 +56,15 @@ const ContestTestCases: React.FC<ContestTestCasesProps> = ({
     const handleInputChange = (
         id: number,
         field: keyof TestCase,
-        value: string
+        value: string | number
     ) => {
+        if (field === 'timeLimit' || field === 'memoryLimit') {
+            const numValue = parseInt(value as string);
+            if (isNaN(numValue)) {
+                return;
+            }
+            value = numValue;
+        }
         setTestCases(
             testCases.map((testCase) =>
                 testCase.id === id ? { ...testCase, [field]: value } : testCase
@@ -75,6 +80,8 @@ const ContestTestCases: React.FC<ContestTestCasesProps> = ({
         const response = await addTestCase(contestId, {
             input: newTestCase.input,
             output: newTestCase.output,
+            timeLimit: newTestCase.timeLimit,
+            memoryLimit: newTestCase.memoryLimit,
         });
         setTestCases([...testCases, response]);
         saveContestTestCase(response, 'add');
@@ -82,7 +89,8 @@ const ContestTestCases: React.FC<ContestTestCasesProps> = ({
             id: 0,
             input: '',
             output: '',
-            timeLimit: '',
+            timeLimit: 0,
+            memoryLimit: 0,
         });
     };
 
@@ -95,6 +103,7 @@ const ContestTestCases: React.FC<ContestTestCasesProps> = ({
                         <TableHead>Input</TableHead>
                         <TableHead>Output</TableHead>
                         <TableHead>Time Limit (ms)</TableHead>
+                        <TableHead>Memory Limit (MB)</TableHead>
                         <TableHead>Actions</TableHead>
                     </TableRow>
                 </TableHeader>
@@ -153,6 +162,24 @@ const ContestTestCases: React.FC<ContestTestCasesProps> = ({
                                     />
                                 ) : (
                                     testCase.timeLimit
+                                )}
+                            </TableCell>
+                            <TableCell>
+                                {editingId === testCase.id ? (
+                                    <Input
+                                        value={testCase.memoryLimit}
+                                        onChange={(
+                                            e: ChangeEvent<HTMLInputElement>
+                                        ) =>
+                                            handleInputChange(
+                                                testCase.id,
+                                                'memoryLimit',
+                                                e.target.value
+                                            )
+                                        }
+                                    />
+                                ) : (
+                                    testCase.memoryLimit
                                 )}
                             </TableCell>
                             <TableCell>

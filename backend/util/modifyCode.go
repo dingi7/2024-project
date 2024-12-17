@@ -61,11 +61,16 @@ func GetFileExtension(language string, code string, entryPoint string) (string, 
 	return extension, modifiedCode
 }
 
-func GetDockerCommand(language, codeFile, inputString string) []string {
+func GetDockerCommand(language, codeFile, inputString string, memoryLimit int) []string {
 	cmdArgs := []string{}
 	switch language {
 	case "JavaScript":
-		cmdArgs = []string{"run", "--rm", "--network", "none", "-v", codeFile + ":/app/code.js", "node:14", "bash", "-c", fmt.Sprintf("node /app/code.js '%s'", inputString)}
+		cmdArgs = []string{
+			"run", "--rm", fmt.Sprintf("--memory=%dm", memoryLimit),
+			// "--memory-swap=-1",
+			// "--cpus=1",
+			"--network", "none", "-v", codeFile + ":/app/code.js", "node:14", "bash", "-c", fmt.Sprintf("node /app/code.js '%s'", inputString),
+		}
 	case "Java":
 		cmdArgs = []string{"run", "--rm", "--network", "none", "-v", codeFile + ":/app/code.java", "openjdk:11", "bash", "-c", fmt.Sprintf("javac /app/code.java && java -cp /app/ code %s", inputString)}
 	case "C++":
