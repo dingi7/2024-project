@@ -50,8 +50,8 @@ func RunRepoTestCases(repository string, testFile []byte, githubToken string) (i
 func runTestScript(testFile []byte, tempDir string) (string, int, int, error) {
 	// Get the Docker commands for setup and testing
 	testFileName := "contestifyJestTest" + strconv.Itoa(rand.Intn(1000000)) + ".test.js"
-	util.AddTestFileToDir(tempDir, testFileName, testFile)
-	commands := util.GetDockerRepoCommand("JavaScript", tempDir, testFileName)
+	AddTestFileToDir(tempDir, testFileName, testFile)
+	commands := GetDockerRepoCommand("JavaScript", tempDir, testFileName)
 	var finalOutput bytes.Buffer
 	var err error
 

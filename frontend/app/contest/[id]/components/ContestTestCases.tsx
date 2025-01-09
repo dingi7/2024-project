@@ -12,6 +12,8 @@ import { Input } from '@/components/ui/input';
 import { Pencil, Trash2, Plus } from 'lucide-react';
 import { TestCase } from '@/lib/types';
 import { addTestCase, deleteTestCase, editTestCase } from '@/app/api/requests';
+import { Toggle } from '@/components/ui/toggle';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface ContestTestCasesProps {
     contestId: string;
@@ -33,6 +35,7 @@ const ContestTestCases: React.FC<ContestTestCasesProps> = ({
         input: '',
         output: '',
         timeLimit: 0,
+        public: true,
         memoryLimit: 0,
     });
 
@@ -71,6 +74,13 @@ const ContestTestCases: React.FC<ContestTestCasesProps> = ({
             )
         );
     };
+    const handleChangePublic = (id: number, checked: boolean) => {
+        setTestCases(
+            testCases.map((testCase) =>
+                testCase.id === id ? { ...testCase, public: checked } : testCase
+            )
+        );
+    };
 
     const handleNewTestCaseChange = (field: keyof TestCase, value: string) => {
         setNewTestCase({ ...newTestCase, [field]: value });
@@ -82,6 +92,7 @@ const ContestTestCases: React.FC<ContestTestCasesProps> = ({
             output: newTestCase.output,
             timeLimit: newTestCase.timeLimit,
             memoryLimit: newTestCase.memoryLimit,
+            public: true,
         });
         setTestCases([...testCases, response]);
         saveContestTestCase(response, 'add');
@@ -90,6 +101,7 @@ const ContestTestCases: React.FC<ContestTestCasesProps> = ({
             input: '',
             output: '',
             timeLimit: 0,
+            public: true,
             memoryLimit: 0,
         });
     };
@@ -104,6 +116,7 @@ const ContestTestCases: React.FC<ContestTestCasesProps> = ({
                         <TableHead>Output</TableHead>
                         <TableHead>Time Limit (ms)</TableHead>
                         <TableHead>Memory Limit (MB)</TableHead>
+                        <TableHead>Visibility</TableHead>
                         <TableHead>Actions</TableHead>
                     </TableRow>
                 </TableHeader>
@@ -180,6 +193,52 @@ const ContestTestCases: React.FC<ContestTestCasesProps> = ({
                                     />
                                 ) : (
                                     testCase.memoryLimit
+                                )}
+                            </TableCell>
+                            {/* <TableCell>
+                                {editingId === testCase.id ? (
+                                    <Input
+                                        value={testCase.public}
+                                        onChange={(
+                                            e: ChangeEvent<HTMLInputElement>
+                                        ) =>
+                                            handleInputChange(
+                                                testCase.id,
+                                                'public',
+                                                e.target.value
+                                            )
+                                        }
+                                    />
+                                ) : (
+                                    testCase.public
+                                )}
+                            </TableCell> */}
+                            <TableCell>
+                                {editingId === testCase.id ? (
+                                    <div className='flex items-center'>
+                                        <Checkbox
+                                            id={`public-checkbox-${testCase.id}`}
+                                            checked={testCase.public}
+                                            onCheckedChange={(checked) =>
+                                                handleChangePublic(
+                                                    testCase.id,
+                                                    checked as boolean
+                                                )
+                                            }
+                                        />
+                                        <label
+                                            htmlFor={`public-checkbox-${testCase.id}`}
+                                        >
+                                            {testCase.public
+                                                ? 'Public'
+                                                : 'Private'}
+                                        </label>
+                                        
+                                    </div>
+                                ) : testCase.public ? (
+                                    'Public'
+                                ) : (
+                                    'Private'
                                 )}
                             </TableCell>
                             <TableCell>

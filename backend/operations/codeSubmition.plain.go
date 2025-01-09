@@ -15,10 +15,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-
-
-func executeCode(solution models.Solution, inputString string, codeFile string, timeLimit int, memoryLimit int) (string, error) {
-	cmdArgs := util.GetDockerCommand(solution.Language, codeFile, inputString, memoryLimit)
+func executeCode(solution models.Solution, inputString string, codeFile string, timeLimit int, memoryLimit int) (string, time.Duration, error) {
+	cmdArgs := GetDockerCommand(solution.Language, codeFile, inputString, memoryLimit)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeLimit)*time.Millisecond)
 	defer cancel()
 
@@ -28,16 +26,18 @@ func executeCode(solution models.Solution, inputString string, codeFile string, 
 	cmd.Stdout = &out
 	cmd.Stderr = &out
 
+	startTime := time.Now()
 	err := cmd.Run()
+	duration := time.Since(startTime)
 	if err != nil {
-		return "", fmt.Errorf("failed to execute code: %v\nOutput: %s", err, out.String())
+		return "", duration, fmt.Errorf("failed to execute code: %v\nOutput: %s", err, out.String())
 	}
 
 	output := strings.TrimSpace(out.String())
 	if solution.Language == "Python" {
 		output = strings.Trim(output, "[]'\"")
 	}
-	return output, nil
+	return output, duration, nil
 }
 
 func RunCodeTestCases(language string, code string, testCases []models.TestCase) (int, []byte, int, bool, error) {
@@ -48,7 +48,7 @@ func RunCodeTestCases(language string, code string, testCases []models.TestCase)
 	// } else {
 	// 	fmt.Println("Identified code entry point:", entryPoint)
 	// }
-	extension, modifiedCode := util.GetFileExtension(language, code, entryPoint)
+	extension, modifiedCode := GetFileExtension(language, code, entryPoint)
 	codeFile, err := util.CreateTempFile(modifiedCode, extension)
 	if err != nil {
 		return 0, nil, 0, false, err
@@ -65,7 +65,8 @@ func RunCodeTestCases(language string, code string, testCases []models.TestCase)
 		Code:     code,
 	}
 
-	var allResults []map[string]interface{}
+	// var allResults []map[string]interface{}
+	var allResults = []models.TestCaseResult{}
 	totalTestCases := len(testCases)
 	passedTestCases := 0
 
@@ -81,17 +82,18 @@ func RunCodeTestCases(language string, code string, testCases []models.TestCase)
 			timeLimit = util.DEFAULT_TIME_LIMIT
 		}
 
-		output, err := executeCode(solution, input, codeFile, timeLimit, memoryLimit)
+		output, testDuration, err := executeCode(solution, input, codeFile, timeLimit, memoryLimit)
 		if err != nil {
 			log.Printf("Error executing code for test case #%d: %v", idx+1, err)
-
-			allResults = append(allResults, map[string]interface{}{
-				"test_case": idx + 1,
-				"passed":    false,
-				"expected":  expectedOutput,
-				"got":       "Error: " + err.Error(),
-				"error":     err.Error(),
-			})
+			if testCase.Public {
+				allResults = append(allResults, models.TestCaseResult{
+					TestCase:       testCase,
+					Passed:         false,
+					SolutionOutput: &output,
+					MemoryUsage:    memoryLimit, /// memory limit
+					Time:           int(testDuration),   /// time limit
+				})
+			}
 			continue
 		}
 
@@ -100,11 +102,12 @@ func RunCodeTestCases(language string, code string, testCases []models.TestCase)
 			passedTestCases++
 		}
 
-		allResults = append(allResults, map[string]interface{}{
-			"test_case": idx + 1,
-			"passed":    passed,
-			"expected":  expectedOutput,
-			"got":       output,
+		allResults = append(allResults, models.TestCaseResult{
+			TestCase:       testCase,
+			Passed:         passed,
+			SolutionOutput: &output,
+			MemoryUsage:    memoryLimit, /// memory limit
+			Time:           timeLimit,   /// time limit
 		})
 	}
 

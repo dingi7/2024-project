@@ -10,4 +10,5 @@ type Submission struct {
 	CreatedAt string  `json:"createdAt" bson:"createdAt" validate:"required"`
 	Language  string  `json:"language"`
 	IsRepo    bool    `json:"isRepo"`
+	TestCasesResults []TestCaseResult `json:"testCasesResults"`
 }

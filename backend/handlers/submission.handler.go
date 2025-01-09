@@ -45,15 +45,14 @@ func (h *SubmissionHandler) CreateSubmission(c *fiber.Ctx) error {
 	contestID := c.Params("contestId")
 	submission.CreatedAt = time.Now().Format(time.RFC3339)
 
+	if submission.IsRepo {
+		return h.handleRepoSubmission(c, ctx, submission, contestID)
+	}
+	
 	testCases, err := h.SubmissionService.GetContestTestCases(ctx, contestID)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error fetching test cases"})
 	}
-
-	if submission.IsRepo {
-		return h.handleRepoSubmission(c, ctx, submission, contestID)
-	}
-
 	return h.handleCodeSubmission(c, ctx, submission, contestID, testCases)
 }
 

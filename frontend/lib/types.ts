@@ -27,6 +27,7 @@ export interface TestCase {
     input: string;
     output: string;
     timeLimit: number;
+    public: boolean;
     memoryLimit: number;
 }
 
