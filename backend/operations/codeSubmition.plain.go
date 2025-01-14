@@ -86,25 +86,23 @@ func RunCodeTestCases(language string, code string, testCases []models.TestCase)
 		if err != nil {
 			log.Printf("Error executing code for test case #%d: %v", idx+1, err)
 			if testCase.Public {
-				testCaseResult := models.TestCaseResult{
+				allResults = append(allResults, models.TestCaseResult{
 					TestCase:       testCase,
 					Passed:         false,
 					SolutionOutput: &output,
 					MemoryUsage:    memoryLimit,
 					Time:           int(testDuration.Milliseconds()),
-				}
-				log.Printf("Test Case #%d Result: %+v", idx+1, testCaseResult)
-				allResults = append(allResults, testCaseResult)
+				})
 			}
 			continue
 		}
 
-		passed := output == expectedOutput
+		passed := output == expectedOutput && testDuration.Milliseconds() <= int64(timeLimit)
 		if passed {
 			passedTestCases++
 		}
 
-		testCaseResult := models.TestCaseResult{
+		testCaseResult := models.TestCaseResult{ // fix this
 			TestCase:       testCase,
 			Passed:         passed,
 			SolutionOutput: &output,
