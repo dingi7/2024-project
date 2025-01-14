@@ -5,6 +5,7 @@ import (
 	"backend/operations"
 	"backend/services"
 	"backend/util"
+	"encoding/json"
 	"fmt"
 
 	"context"
@@ -48,7 +49,7 @@ func (h *SubmissionHandler) CreateSubmission(c *fiber.Ctx) error {
 	if submission.IsRepo {
 		return h.handleRepoSubmission(c, ctx, submission, contestID)
 	}
-	
+
 	testCases, err := h.SubmissionService.GetContestTestCases(ctx, contestID)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error fetching test cases"})
@@ -71,10 +72,16 @@ func (h *SubmissionHandler) handleRepoSubmission(c *fiber.Ctx, ctx context.Conte
 }
 
 func (h *SubmissionHandler) handleCodeSubmission(c *fiber.Ctx, ctx context.Context, submission *models.Submission, contestID string, testCases []models.TestCase) error {
-	statusCode, _, score, passed, err := operations.RunCodeTestCases(submission.Language, submission.Code, testCases)
+	statusCode, results, score, passed, err := operations.RunCodeTestCases(submission.Language, submission.Code, testCases)
 	if err != nil {
 		return util.HandleError(c, "Error running test cases")
 	}
+
+	var testCaseResults []models.TestCaseResult
+	if err := json.Unmarshal(results, &testCaseResults); err != nil {
+		return util.HandleError(c, "Error parsing test case results")
+	}
+	submission.TestCasesResults = testCaseResults
 
 	return h.finalizeSubmission(c, ctx, submission, contestID, statusCode, score, passed)
 }

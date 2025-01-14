@@ -31,6 +31,20 @@ export interface TestCase {
     memoryLimit: number;
 }
 
+export interface TestCaseWithResult extends TestCase {
+    _id: {
+        $oid: string;
+    };
+}
+
+export interface TestCaseResult {
+    testcase: TestCaseWithResult;
+    passed: boolean;
+    solutionoutput: string;
+    memoryusage: number;
+    time: number;
+}
+
 export interface Contest {
     id: string;
     title: string;
@@ -60,6 +74,7 @@ export type Submission = {
     status: boolean;
     error?: string;
     message?: string;
+    testCaseResults?: TestCaseResult[];
 }
 
 export type PlaceholderSubmission = {
@@ -72,4 +87,5 @@ export type PlaceholderSubmission = {
     createdAt: string;
     error?: string;
     message?: string;
+    testCaseResults?: TestCaseResult[];
 }

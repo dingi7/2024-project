@@ -173,7 +173,6 @@ func (s *SubmissionService) GetContestTestCases(ctx context.Context, contestID s
 	return contest.TestCases, nil
 }
 
-
 func (s *SubmissionService) GetContestTestFiles(ctx context.Context, contestID string) ([]byte, error) {
 	objectID, err := primitive.ObjectIDFromHex(contestID)
 	if err != nil {

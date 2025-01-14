@@ -86,13 +86,15 @@ func RunCodeTestCases(language string, code string, testCases []models.TestCase)
 		if err != nil {
 			log.Printf("Error executing code for test case #%d: %v", idx+1, err)
 			if testCase.Public {
-				allResults = append(allResults, models.TestCaseResult{
+				testCaseResult := models.TestCaseResult{
 					TestCase:       testCase,
 					Passed:         false,
 					SolutionOutput: &output,
-					MemoryUsage:    memoryLimit, /// memory limit
-					Time:           int(testDuration),   /// time limit
-				})
+					MemoryUsage:    memoryLimit,
+					Time:           int(testDuration.Milliseconds()),
+				}
+				log.Printf("Test Case #%d Result: %+v", idx+1, testCaseResult)
+				allResults = append(allResults, testCaseResult)
 			}
 			continue
 		}
@@ -102,13 +104,15 @@ func RunCodeTestCases(language string, code string, testCases []models.TestCase)
 			passedTestCases++
 		}
 
-		allResults = append(allResults, models.TestCaseResult{
+		testCaseResult := models.TestCaseResult{
 			TestCase:       testCase,
 			Passed:         passed,
 			SolutionOutput: &output,
-			MemoryUsage:    memoryLimit, /// memory limit
-			Time:           timeLimit,   /// time limit
-		})
+			MemoryUsage:    memoryLimit,
+			Time:           int(testDuration.Milliseconds()),
+		}
+		log.Printf("Test Case #%d Result: %+v", idx+1, testCaseResult)
+		allResults = append(allResults, testCaseResult)
 	}
 
 	// Calculate the score as a percentage of passed test cases out of total test cases
