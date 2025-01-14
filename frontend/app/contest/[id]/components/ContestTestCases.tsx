@@ -83,7 +83,15 @@ const ContestTestCases: React.FC<ContestTestCasesProps> = ({
     };
 
     const handleNewTestCaseChange = (field: keyof TestCase, value: string) => {
-        setNewTestCase({ ...newTestCase, [field]: value });
+        if (field === 'timeLimit' || field === 'memoryLimit') {
+            const numValue = parseInt(value);
+            if (isNaN(numValue)) {
+                return;
+            }
+            setNewTestCase({ ...newTestCase, [field]: numValue });
+        } else {
+            setNewTestCase({ ...newTestCase, [field]: value });
+        }
     };
 
     const handleAddTestCase = async () => {
@@ -303,6 +311,18 @@ const ContestTestCases: React.FC<ContestTestCasesProps> = ({
                                 onChange={(e: ChangeEvent<HTMLInputElement>) =>
                                     handleNewTestCaseChange(
                                         'timeLimit',
+                                        e.target.value
+                                    )
+                                }
+                            />
+                        </TableCell>
+                        <TableCell>
+                            <Input
+                                placeholder='Memory limit'
+                                value={newTestCase.memoryLimit}
+                                onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                                    handleNewTestCaseChange(
+                                        'memoryLimit',
                                         e.target.value
                                     )
                                 }

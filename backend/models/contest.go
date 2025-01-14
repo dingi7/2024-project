@@ -27,7 +27,7 @@ type Contest struct {
 	TestCases        []TestCase `json:"testCases" bson:"testCases" validate:"dive,required"`
 	CreatedAt        time.Time  `json:"createdAt" bson:"createdAt"`
 	ContestRules     []byte     `json:"contestRules" bson:"contestRules"`
-	ContestStructure string     `json:"contestStructure" bson:"contestStructure"`
+	ContestStructure *string    `json:"contestStructure,omitempty" bson:"contestStructure,omitempty"`
 	TestFiles        []byte     `json:"testFiles" bson:"testFiles"`
-	TestFramework    string     `json:"testFramework" bson:"testFramework"`
+	TestFramework    *string    `json:"testFramework,omitempty" bson:"testFramework,omitempty"`
 }
