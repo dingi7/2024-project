@@ -18,6 +18,8 @@ import {
 } from "@/components/ui/select";
 import { PlaceholderSubmission, Submission } from "@/lib/types";
 import { useTranslation } from '@/lib/useTranslation';
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 type FilterOptions = {
   status: string;
@@ -162,16 +164,15 @@ const SubmissionTable = ({
             .map((submission) => (
               <TableRow key={submission?.createdAt || Math.random()}>
                 <TableCell>
-                  {submission?.createdAt 
+                  {submission?.createdAt
                     ? new Date(submission.createdAt).toISOString().split("T")[0]
                     : "N/A"}
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-col gap-1">
-                    <Badge 
-                      className={`inline-flex w-fit ${
-                        submission?.error ? 'bg-destructive text-destructive-foreground' : ''
-                      }`} 
+                    <Badge
+                      className={`inline-flex w-fit ${submission?.error ? 'bg-destructive text-destructive-foreground' : ''
+                        }`}
                       variant={getStatusBadgeVariant(submission?.status)}
                     >
                       {getStatusText(submission?.status, submission?.error)}
@@ -180,6 +181,14 @@ const SubmissionTable = ({
                 </TableCell>
                 <TableCell>
                   {submission?.score !== null ? submission.score : "-"}
+                </TableCell>
+                <TableCell
+                >
+                  <Button variant={"outline"}>
+                    <Link href={`/contest/${submission.id}/view`}>
+                    View Details
+                    </Link>
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}

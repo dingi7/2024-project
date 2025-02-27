@@ -78,7 +78,7 @@ export type Submission = {
 }
 
 export type PlaceholderSubmission = {
-    _id: string;
+    id: string;
     contestId: string;
     language: string;
     ownerId: string;
