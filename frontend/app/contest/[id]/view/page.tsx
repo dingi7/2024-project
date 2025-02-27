@@ -15,7 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TestCaseResult } from '@/lib/types';
 import { CheckCircle2, XCircle } from 'lucide-react';
-import { getSubmissionsByOwnerID } from '@/app/api/requests';
+import { getSubmissionById, getSubmissionsByOwnerID } from '@/app/api/requests';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/components/ui/use-toast';
 
@@ -57,7 +57,9 @@ export default function TestCaseResultsPage() {
             
             try {
                 setLoading(true);
-                const submissions = await getSubmissionsByOwnerID(params.id, session.user.id);
+                console.log("Getting submission by id")
+                const submissions = await getSubmissionById(params.id);
+                console.log("Submissions: ", submissions)
                 // Get the most recent submission's test results
                 const latestSubmission = submissions[submissions.length - 1];
                 if (latestSubmission?.testCaseResults) {

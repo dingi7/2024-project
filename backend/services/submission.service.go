@@ -3,6 +3,7 @@ package services
 import (
 	"backend/models"
 	"context"
+	"errors"
 	"fmt"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -47,6 +48,7 @@ func (s *SubmissionService) FindSubmissionByID(ctx context.Context, id string) (
 	if err != nil {
 		return nil, err
 	}
+	fmt.Printf("Submission found: %+v\n", submission)
 	return &submission, nil
 }
 
@@ -157,6 +159,26 @@ func (s *SubmissionService) GetSubmissionsByContestIDAndOwnerID(ctx context.Cont
 
 	fmt.Printf("Found %d submissions\n", len(submissions))
 	return submissions, nil
+}
+
+func (s *SubmissionService) GetSubmissionByID(id string) (*models.Submission, error) {
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, err
+	}
+
+	var submission models.Submission
+	filter := bson.M{"_id": objectID}
+	
+	err = s.SubmissionCollection.FindOne(context.Background(), filter).Decode(&submission)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, errors.New("submission not found")
+		}
+		return nil, err
+	}
+
+	return &submission, nil
 }
 
 func (s *SubmissionService) GetContestTestCases(ctx context.Context, contestID string) ([]models.TestCase, error) {

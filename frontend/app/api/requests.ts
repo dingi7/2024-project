@@ -84,6 +84,10 @@ export const getSubmissionsByOwnerID = async (
   return api.get(endpoints.getSubmissionsByOwnerID(contestId, ownerId));
 };
 
+export const getSubmissionById = async (id: string) => {
+  return api.get(`/submission/${id}`);
+};
+
 export const deleteTestCase = async (contestId: string, testCaseId: string) => {
   return api.del(endpoints.deleteTestCase(contestId, testCaseId));
 };

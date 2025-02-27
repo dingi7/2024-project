@@ -13,11 +13,11 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func RunRepoTestCases(repository string, testFile []byte, githubToken string) (int, []byte, int, bool, error) {
+func RunRepoTestCases(repository string, testFile []byte, githubToken string) (int, []byte, int, bool, int, int, error) {
 	var tempDir string
 	tempDir, err := util.CloneRepository(repository, githubToken)
 	if err != nil {
-		return 0, nil, 0, false, err
+		return 0, nil, 0, false, 0, 0, err
 	}
 	defer util.CleanupTempDir(tempDir)
 
@@ -40,11 +40,11 @@ func RunRepoTestCases(repository string, testFile []byte, githubToken string) (i
 
 	if err != nil {
 		if !strings.Contains(err.Error(), "exit status 1") {
-			return fiber.StatusInternalServerError, nil, 0, false, err
+			return fiber.StatusInternalServerError, nil, 0, false, 0, 0, err
 		}
 	}
 
-	return fiber.StatusOK, []byte(output), int(passedPercentage), passedAll, nil
+	return fiber.StatusOK, []byte(output), int(passedPercentage), passedAll, successCount, totalTestCases, nil
 }
 
 func runTestScript(testFile []byte, tempDir string) (string, int, int, error) {

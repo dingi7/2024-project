@@ -63,16 +63,16 @@ func (h *SubmissionHandler) handleRepoSubmission(c *fiber.Ctx, ctx context.Conte
 		return util.HandleError(c, "Error fetching test files")
 	}
 
-	statusCode, _, score, passed, err := operations.RunRepoTestCases(submission.Code, testFiles, c.Locals("githubToken").(string))
+	statusCode, _, score, passed, passedTestCases, totalTestCases, err := operations.RunRepoTestCases(submission.Code, testFiles, c.Locals("githubToken").(string))
 	if err != nil {
 		return util.HandleError(c, "Error cloning repository", fiber.Map{"message": err.Error()})
 	}
 
-	return h.finalizeSubmission(c, ctx, submission, contestID, statusCode, score, passed)
+	return h.finalizeSubmission(c, ctx, submission, contestID, statusCode, score, passed, passedTestCases, totalTestCases)
 }
 
 func (h *SubmissionHandler) handleCodeSubmission(c *fiber.Ctx, ctx context.Context, submission *models.Submission, contestID string, testCases []models.TestCase) error {
-	statusCode, results, score, passed, err := operations.RunCodeTestCases(submission.Language, submission.Code, testCases)
+	statusCode, results, score, passed, passedTestCases, totalTestCases, err := operations.RunCodeTestCases(submission.Language, submission.Code, testCases)
 	if err != nil {
 		return util.HandleError(c, "Error running test cases")
 	}
@@ -83,11 +83,11 @@ func (h *SubmissionHandler) handleCodeSubmission(c *fiber.Ctx, ctx context.Conte
 	}
 	submission.TestCasesResults = testCaseResults
 
-	return h.finalizeSubmission(c, ctx, submission, contestID, statusCode, score, passed)
+	return h.finalizeSubmission(c, ctx, submission, contestID, statusCode, score, passed, passedTestCases, totalTestCases)
 }
 
 func (h *SubmissionHandler) finalizeSubmission(c *fiber.Ctx, ctx context.Context, submission *models.Submission, contestID string,
-	statusCode int, score int, passed bool) error {
+	statusCode int, score int, passed bool, passedTestCases int, totalTestCases int) error {
 
 	// Create a new context with a 5-second timeout specifically for database operation
 
@@ -99,6 +99,8 @@ func (h *SubmissionHandler) finalizeSubmission(c *fiber.Ctx, ctx context.Context
 	submission.Status = passed
 	submission.Score = float64(score)
 	submission.CreatedAt = time.Now().Format(time.RFC3339)
+	submission.TotalTestCases = totalTestCases
+	submission.PassedTestCases = passedTestCases
 
 	fmt.Printf("Submission before save: %+v\n", submission)
 
@@ -132,4 +134,32 @@ func (h *SubmissionHandler) GetSubmissionsByContestID(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error fetching submissions"})
 	}
 	return c.Status(fiber.StatusOK).JSON(submissions)
+}
+
+func (h *SubmissionHandler) GetSubmissionByID(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if id == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Submission ID is required",
+		})
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
+	defer cancel()
+
+	submission, err := h.SubmissionService.FindSubmissionByID(ctx, id)
+	if err != nil {
+		if err.Error() == "submission not found" {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": "Submission not found",
+			})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to get submission: " + err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"submission": submission,
+	})
 }
