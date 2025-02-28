@@ -50,20 +50,15 @@ export default function TestCaseResultsPage() {
     const { data: session } = useSession();
     const [loading, setLoading] = useState(true);
     const [testResults, setTestResults] = useState<TestCaseResult[]>([]);
-
     useEffect(() => {
         const fetchTestResults = async () => {
             if (!params.id || !session?.user?.id) return;
             
             try {
                 setLoading(true);
-                console.log("Getting submission by id")
-                const submissions = await getSubmissionById(params.id);
-                console.log("Submissions: ", submissions)
-                // Get the most recent submission's test results
-                const latestSubmission = submissions[submissions.length - 1];
-                if (latestSubmission?.testCaseResults) {
-                    setTestResults(latestSubmission.testCaseResults);
+                const response = await getSubmissionById(params.id);
+                if (response.submission?.testCasesResults) {
+                    setTestResults(response.submission.testCasesResults);
                 }
             } catch (error) {
                 console.error('Failed to fetch test results:', error);
@@ -108,20 +103,20 @@ export default function TestCaseResultsPage() {
                         <div className="flex flex-col">
                             <span className="text-sm text-muted-foreground">Passed</span>
                             <span className="text-2xl font-bold text-green-600">
-                                {testResults.filter(r => r.passed).length}
+                                {testResults.filter(r => r.status).length}
                             </span>
                         </div>
                         <div className="flex flex-col">
                             <span className="text-sm text-muted-foreground">Failed</span>
                             <span className="text-2xl font-bold text-red-600">
-                                {testResults.filter(r => !r.passed).length}
+                                {testResults.filter(r => !r.status).length}
                             </span>
                         </div>
                         <div className="flex flex-col">
                             <span className="text-sm text-muted-foreground">Success Rate</span>
                             <span className="text-2xl font-bold">
                                 {testResults.length > 0 
-                                    ? Math.round((testResults.filter(r => r.passed).length / testResults.length) * 100)
+                                    ? Math.round((testResults.filter(r => r.status).length / testResults.length) * 100)
                                     : 0}%
                             </span>
                         </div>
@@ -148,10 +143,10 @@ export default function TestCaseResultsPage() {
                             </TableHeader>
                             <TableBody>
                                 {testResults.map((result) => (
-                                    <TableRow key={result.testcase._id.$oid}>
+                                    <TableRow key={result.testCase.id}>
                                         <TableCell>
                                             <div className="flex items-center gap-2">
-                                                {result.passed ? (
+                                                {result.status ? (
                                                     <>
                                                         <CheckCircle2 className="h-5 w-5 text-green-600" />
                                                         <Badge variant="success">Passed</Badge>
@@ -166,23 +161,23 @@ export default function TestCaseResultsPage() {
                                         </TableCell>
                                         <TableCell>
                                             <code className="font-mono bg-muted px-2 py-1 rounded">
-                                                {result.testcase.input}
+                                                {result.testCase.input}
                                             </code>
                                         </TableCell>
                                         <TableCell>
                                             <OutputComparison 
-                                                expected={result.testcase.output}
-                                                received={result.solutionoutput || ''}
+                                                expected={result.testCase.output}
+                                                received={result.SolutionOutput}
                                             />
                                         </TableCell>
                                         <TableCell>
-                                            <Badge variant={result.time > result.testcase.timeLimit ? "destructive" : "outline"}>
+                                            <Badge variant={result.time > result.testCase.timeLimit ? "destructive" : "outline"}>
                                                 {result.time}ms
                                             </Badge>
                                         </TableCell>
                                         <TableCell>
-                                            <Badge variant={result.memoryusage > result.testcase.memoryLimit ? "destructive" : "outline"}>
-                                                {result.memoryusage}MB
+                                            <Badge variant={result.memoryUsage > result.testCase.memoryLimit ? "destructive" : "outline"}>
+                                                {result.memoryUsage}MB
                                             </Badge>
                                         </TableCell>
                                     </TableRow>

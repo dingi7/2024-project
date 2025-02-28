@@ -84,7 +84,6 @@ const SubmissionForm = ({ onSubmit, selectedRepo }: Props) => {
             setIsSubmitting(false);
         }
     };
-
     if (selectedRepo) {
         return (
             <Popover open={isOpen} onOpenChange={setIsOpen}>

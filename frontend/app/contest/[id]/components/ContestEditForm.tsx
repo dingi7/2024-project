@@ -56,6 +56,7 @@ export default function ContestEditForm({ contest, onEdit, updateTestCases }: Pr
             });
         }
     };
+    console.log(contest.contestStructure)
 
     return (
         <div className='mt-8'>
@@ -148,7 +149,7 @@ export default function ContestEditForm({ contest, onEdit, updateTestCases }: Pr
                         {...register("testCaseFile")}
                     />
                 </div>
-                {!contest.contestStructure && (
+                {contest.contestStructure && (
                     <ContestTestCases
                         contestId={contest.id}
                         dbTestCases={contest.testCases}

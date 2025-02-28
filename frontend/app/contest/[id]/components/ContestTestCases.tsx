@@ -29,9 +29,9 @@ const ContestTestCases: React.FC<ContestTestCasesProps> = ({
     const [testCases, setTestCases] = useState<TestCase[] | []>(
         dbTestCases || []
     );
-    const [editingId, setEditingId] = useState<number | null>(null);
+    const [editingId, setEditingId] = useState<string | null>(null);
     const [newTestCase, setNewTestCase] = useState<TestCase>({
-        id: 0,
+        id: '0',
         input: '',
         output: '',
         timeLimit: 0,
@@ -39,11 +39,11 @@ const ContestTestCases: React.FC<ContestTestCasesProps> = ({
         memoryLimit: 0,
     });
 
-    const handleEdit = (id: number) => {
+    const handleEdit = (id: string) => {
         setEditingId(id);
     };
 
-    const handleSave = (id: number) => {
+    const handleSave = (id: string) => {
         setEditingId(null);
         const savedTestCase = testCases.find((test) => test.id === id);
         if (savedTestCase) {
@@ -57,7 +57,7 @@ const ContestTestCases: React.FC<ContestTestCasesProps> = ({
         saveContestTestCase(testCase, 'delete');
     };
     const handleInputChange = (
-        id: number,
+        id: string,
         field: keyof TestCase,
         value: string | number
     ) => {
@@ -74,7 +74,7 @@ const ContestTestCases: React.FC<ContestTestCasesProps> = ({
             )
         );
     };
-    const handleChangePublic = (id: number, checked: boolean) => {
+    const handleChangePublic = (id: string, checked: boolean) => {
         setTestCases(
             testCases.map((testCase) =>
                 testCase.id === id ? { ...testCase, public: checked } : testCase
@@ -105,7 +105,7 @@ const ContestTestCases: React.FC<ContestTestCasesProps> = ({
         setTestCases([...testCases, response]);
         saveContestTestCase(response, 'add');
         setNewTestCase({
-            id: 0,
+            id: '0',
             input: '',
             output: '',
             timeLimit: 0,
