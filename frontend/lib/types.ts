@@ -23,10 +23,26 @@ export interface ContestSolution {
 }
 
 export interface TestCase {
-    id: number;
+    id: string;
     input: string;
     output: string;
-    timeLimit: string;
+    timeLimit: number;
+    public: boolean;
+    memoryLimit: number;
+}
+
+export interface TestCaseWithResult extends TestCase {
+    _id: {
+        $oid: string;
+    };
+}
+
+export interface TestCaseResult {
+    testCase: TestCase;
+    status: boolean;
+    SolutionOutput: string;
+    memoryUsage: number;
+    time: number;
 }
 
 export interface Contest {
@@ -43,31 +59,35 @@ export interface Contest {
     testCases: TestCase[];
     createdAt: string;
     contestRules: string;
-    contestStructure: string;
+    contestStructure: string | null;
 }
 
 export type Submission = {
     id: string;
-    contestId: string;
+    contestID: string;
+    userID: string;
+    code: string;
+    status: boolean;
+    score: number;
     createdAt: string;
     language: string;
-    ownerName: string;
-    ownerEmail: string;
-    ownerId: string;
-    score: number;
-    status: boolean;
-    error?: string;
-    message?: string;
+    isRepo: boolean;
+    testCasesResults: TestCaseResult[];
+    totalTestCases: number;
+    passedTestCases: number;
 }
 
 export type PlaceholderSubmission = {
-    _id: string;
-    contestId: string;
-    language: string;
-    ownerId: string;
+    id: string;
+    contestID: string;
+    userID: string;
+    code: string;
+    status: boolean;
     score: number | null;
-    status: string | boolean;
     createdAt: string;
-    error?: string;
-    message?: string;
+    language: string;
+    isRepo: boolean;
+    testCasesResults?: TestCaseResult[];
+    totalTestCases?: number;
+    passedTestCases?: number;
 }

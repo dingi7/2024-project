@@ -13,7 +13,6 @@ import (
 func IdentifyCodeEntryPoint(code string) (string, error) {
 	promptTemplate := "Given the following code: %s, return ONLY the name of the function that serves as the entry point of the code. Return only the name, trim any other text."
 	prompt := fmt.Sprintf(promptTemplate, code)
-	fmt.Println(prompt)
 	ctx := context.Background()
 	client, err := genai.NewClient(ctx, option.WithAPIKey("AIzaSyCbsmw6BGrfEycp-OashELhIbP6tuM5S9I"))
 	if err != nil {
@@ -24,7 +23,6 @@ func IdentifyCodeEntryPoint(code string) (string, error) {
 	model := client.GenerativeModel("gemini-1.5-flash")
 	resp, err := model.GenerateContent(ctx, genai.Text(prompt))
 	if err != nil {
-		fmt.Println(err)
 		return "", err
 	}
 	parsedResponse := strings.TrimSpace(extractResponseContent(resp))

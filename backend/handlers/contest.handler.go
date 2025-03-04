@@ -78,17 +78,23 @@ func (h *ContestHandler) CreateContest(c *fiber.Ctx) error {
 
 	// Create a new Contest instance with the form data
 	contest := &models.Contest{
-		Title:            title,
-		Description:      description,
-		Language:         language,
-		StartDate:        startDate,
-		EndDate:          endDate,
-		Prize:            prize,
-		OwnerID:          ownerID,
-		CreatedAt:        time.Now(),
-		TestCases:        []models.TestCase{},
-		ContestStructure: contestStructure,
-		TestFramework:    testFramework,
+		Title:       title,
+		Description: description,
+		Language:    language,
+		StartDate:   startDate,
+		EndDate:     endDate,
+		Prize:       prize,
+		OwnerID:     ownerID,
+		CreatedAt:   time.Now(),
+		TestCases:   []models.TestCase{},
+	}
+
+	if contestStructure != "" {
+		contest.ContestStructure = &contestStructure
+	}
+
+	if testFramework != "" {
+		contest.TestFramework = &testFramework
 	}
 
 	if files, ok := form.File["contestRules[0]"]; ok {
@@ -236,7 +242,6 @@ func (h *ContestHandler) EditContest(c *fiber.Ctx) error {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 		}
 		existingContest.ContestRules = pdfData
-		fmt.Println("Contest rules updated")
 	}
 
 	// Validate updated contest data

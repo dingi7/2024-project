@@ -12,8 +12,8 @@ import { Input } from '@/components/ui/input';
 import { Pencil, Trash2, Plus } from 'lucide-react';
 import { TestCase } from '@/lib/types';
 import { addTestCase, deleteTestCase, editTestCase } from '@/app/api/requests';
-
-// optimize test cases adding
+import { Toggle } from '@/components/ui/toggle';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface ContestTestCasesProps {
     contestId: string;
@@ -29,20 +29,21 @@ const ContestTestCases: React.FC<ContestTestCasesProps> = ({
     const [testCases, setTestCases] = useState<TestCase[] | []>(
         dbTestCases || []
     );
-    const [editingId, setEditingId] = useState<number | null>(null);
+    const [editingId, setEditingId] = useState<string | null>(null);
     const [newTestCase, setNewTestCase] = useState<TestCase>({
-        id: 0,
+        id: '0',
         input: '',
         output: '',
-        timeLimit: '',
+        timeLimit: 0,
+        public: true,
+        memoryLimit: 0,
     });
 
-    const handleEdit = (id: number) => {
-
+    const handleEdit = (id: string) => {
         setEditingId(id);
     };
 
-    const handleSave = (id: number) => {
+    const handleSave = (id: string) => {
         setEditingId(null);
         const savedTestCase = testCases.find((test) => test.id === id);
         if (savedTestCase) {
@@ -56,33 +57,60 @@ const ContestTestCases: React.FC<ContestTestCasesProps> = ({
         saveContestTestCase(testCase, 'delete');
     };
     const handleInputChange = (
-        id: number,
+        id: string,
         field: keyof TestCase,
-        value: string
+        value: string | number
     ) => {
+        if (field === 'timeLimit' || field === 'memoryLimit') {
+            const numValue = parseInt(value as string);
+            if (isNaN(numValue)) {
+                return;
+            }
+            value = numValue;
+        }
         setTestCases(
             testCases.map((testCase) =>
                 testCase.id === id ? { ...testCase, [field]: value } : testCase
             )
         );
     };
+    const handleChangePublic = (id: string, checked: boolean) => {
+        setTestCases(
+            testCases.map((testCase) =>
+                testCase.id === id ? { ...testCase, public: checked } : testCase
+            )
+        );
+    };
 
     const handleNewTestCaseChange = (field: keyof TestCase, value: string) => {
-        setNewTestCase({ ...newTestCase, [field]: value });
+        if (field === 'timeLimit' || field === 'memoryLimit') {
+            const numValue = parseInt(value);
+            if (isNaN(numValue)) {
+                return;
+            }
+            setNewTestCase({ ...newTestCase, [field]: numValue });
+        } else {
+            setNewTestCase({ ...newTestCase, [field]: value });
+        }
     };
 
     const handleAddTestCase = async () => {
         const response = await addTestCase(contestId, {
             input: newTestCase.input,
             output: newTestCase.output,
+            timeLimit: newTestCase.timeLimit,
+            memoryLimit: newTestCase.memoryLimit,
+            public: true,
         });
         setTestCases([...testCases, response]);
         saveContestTestCase(response, 'add');
         setNewTestCase({
-            id: 0,
+            id: '0',
             input: '',
             output: '',
-            timeLimit: '',
+            timeLimit: 0,
+            public: true,
+            memoryLimit: 0,
         });
     };
 
@@ -95,6 +123,8 @@ const ContestTestCases: React.FC<ContestTestCasesProps> = ({
                         <TableHead>Input</TableHead>
                         <TableHead>Output</TableHead>
                         <TableHead>Time Limit (ms)</TableHead>
+                        <TableHead>Memory Limit (MB)</TableHead>
+                        <TableHead>Visibility</TableHead>
                         <TableHead>Actions</TableHead>
                     </TableRow>
                 </TableHeader>
@@ -153,6 +183,70 @@ const ContestTestCases: React.FC<ContestTestCasesProps> = ({
                                     />
                                 ) : (
                                     testCase.timeLimit
+                                )}
+                            </TableCell>
+                            <TableCell>
+                                {editingId === testCase.id ? (
+                                    <Input
+                                        value={testCase.memoryLimit}
+                                        onChange={(
+                                            e: ChangeEvent<HTMLInputElement>
+                                        ) =>
+                                            handleInputChange(
+                                                testCase.id,
+                                                'memoryLimit',
+                                                e.target.value
+                                            )
+                                        }
+                                    />
+                                ) : (
+                                    testCase.memoryLimit
+                                )}
+                            </TableCell>
+                            {/* <TableCell>
+                                {editingId === testCase.id ? (
+                                    <Input
+                                        value={testCase.public}
+                                        onChange={(
+                                            e: ChangeEvent<HTMLInputElement>
+                                        ) =>
+                                            handleInputChange(
+                                                testCase.id,
+                                                'public',
+                                                e.target.value
+                                            )
+                                        }
+                                    />
+                                ) : (
+                                    testCase.public
+                                )}
+                            </TableCell> */}
+                            <TableCell>
+                                {editingId === testCase.id ? (
+                                    <div className='flex items-center'>
+                                        <Checkbox
+                                            id={`public-checkbox-${testCase.id}`}
+                                            checked={testCase.public}
+                                            onCheckedChange={(checked) =>
+                                                handleChangePublic(
+                                                    testCase.id,
+                                                    checked as boolean
+                                                )
+                                            }
+                                        />
+                                        <label
+                                            htmlFor={`public-checkbox-${testCase.id}`}
+                                        >
+                                            {testCase.public
+                                                ? 'Public'
+                                                : 'Private'}
+                                        </label>
+                                        
+                                    </div>
+                                ) : testCase.public ? (
+                                    'Public'
+                                ) : (
+                                    'Private'
                                 )}
                             </TableCell>
                             <TableCell>
@@ -217,6 +311,18 @@ const ContestTestCases: React.FC<ContestTestCasesProps> = ({
                                 onChange={(e: ChangeEvent<HTMLInputElement>) =>
                                     handleNewTestCaseChange(
                                         'timeLimit',
+                                        e.target.value
+                                    )
+                                }
+                            />
+                        </TableCell>
+                        <TableCell>
+                            <Input
+                                placeholder='Memory limit'
+                                value={newTestCase.memoryLimit}
+                                onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                                    handleNewTestCaseChange(
+                                        'memoryLimit',
                                         e.target.value
                                     )
                                 }

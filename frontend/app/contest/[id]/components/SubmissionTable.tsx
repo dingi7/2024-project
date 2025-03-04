@@ -18,9 +18,11 @@ import {
 } from "@/components/ui/select";
 import { PlaceholderSubmission, Submission } from "@/lib/types";
 import { useTranslation } from '@/lib/useTranslation';
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 type FilterOptions = {
-  status: string;
+  status: "all" | "Passed" | "Failed" | "pending";
   sortBy: string;
   order: string;
 };
@@ -43,7 +45,7 @@ const SubmissionTable = ({
       return true;
     }
     if (filterOptions.status === "pending") {
-      return submission.status === "pending";
+      return submission.score === null;
     }
     if (filterOptions.status === "Passed") {
       return submission.status === true;
@@ -54,18 +56,15 @@ const SubmissionTable = ({
     return true;
   });
 
-  const getStatusBadgeVariant = (status: string | boolean | undefined) => {
+  const getStatusBadgeVariant = (status: boolean | undefined) => {
     if (status === undefined) return "destructive";
-    if (status === "pending") return "secondary";
-    if (status === false) return "destructive";
-    return status === true ? "success" : "destructive";
+    return status ? "success" : "destructive";
   };
 
-  const getStatusText = (status: string | boolean | undefined, error?: string) => {
-    if (error) return t('contestPage.submissionTable.status.error');
+  const getStatusText = (status: boolean | undefined, score: number | null) => {
+    if (score === null) return t('contestPage.submissionTable.status.pending');
     if (!status) return t('contestPage.submissionTable.status.failed');
-    if (status === "pending") return t('contestPage.submissionTable.status.pending');
-    return status === true ? t('contestPage.submissionTable.status.passed') : t('contestPage.submissionTable.status.failed');
+    return status ? t('contestPage.submissionTable.status.passed') : t('contestPage.submissionTable.status.failed');
   };
 
   const statusOptions = [
@@ -93,7 +92,7 @@ const SubmissionTable = ({
         </Label>
         <Select
           value={filterOptions.status}
-          onValueChange={(value) => onFilterChange({ ...filterOptions, status: value })}
+          onValueChange={(value) => onFilterChange({ ...filterOptions, status: value as "all" | "Passed" | "Failed" | "pending" })}
         >
           <SelectTrigger>
             <SelectValue placeholder={t('contestPage.filters.status.all')} />
@@ -159,30 +158,37 @@ const SubmissionTable = ({
                 return filterOptions.order === "asc" ? -comparison : comparison;
               }
             })
-            .map((submission) => (
+            .map((submission) => {
+              return(
               <TableRow key={submission?.createdAt || Math.random()}>
                 <TableCell>
-                  {submission?.createdAt 
+                  {submission?.createdAt
                     ? new Date(submission.createdAt).toISOString().split("T")[0]
                     : "N/A"}
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-col gap-1">
-                    <Badge 
-                      className={`inline-flex w-fit ${
-                        submission?.error ? 'bg-destructive text-destructive-foreground' : ''
-                      }`} 
+                    <Badge
+                      className="inline-flex w-fit"
                       variant={getStatusBadgeVariant(submission?.status)}
                     >
-                      {getStatusText(submission?.status, submission?.error)}
+                      {getStatusText(submission?.status, submission?.score)}
                     </Badge>
                   </div>
                 </TableCell>
                 <TableCell>
                   {submission?.score !== null ? submission.score : "-"}
                 </TableCell>
+                <TableCell
+                >
+                  <Button variant={"outline"}>
+                    <Link href={`/contest/${submission.id}/view`}>
+                    View Details
+                    </Link>
+                  </Button>
+                </TableCell>
               </TableRow>
-            ))}
+            )})}
         </TableBody>
       </Table>
     </div>

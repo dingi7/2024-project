@@ -29,9 +29,9 @@ import { useTranslation } from '@/lib/useTranslation';
 import { Contest, PlaceholderSubmission, Submission } from '@/lib/types';
 
 type FilterOptions = {
-    status: 'all' | 'Passed' | 'Failed' | string;
-    sortBy: 'date' | 'score' | string;
-    order: 'asc' | 'desc';
+    status: "all" | "Passed" | "Failed" | "pending";
+    sortBy: "date" | "score";
+    order: "asc" | "desc";
 };
 
 export default function ContestPage() {
@@ -54,9 +54,9 @@ export default function ContestPage() {
     const [repos, setRepos] = useState<any[]>([]);
 
     const [filterOptions, setFilterOptions] = useState<FilterOptions>({
-        status: 'all',
-        sortBy: 'date',
-        order: 'desc',
+        status: "all",
+        sortBy: "date",
+        order: "desc",
     });
 
     const [selectedRepo, setSelectedRepo] = useState<string>('');
@@ -165,10 +165,15 @@ export default function ContestPage() {
         };
 
         const placeholderSubmission: PlaceholderSubmission = {
-            ...submission,
-            status: 'pending',
+            id: submission._id,
+            contestID: submission.contestId,
+            userID: submission.ownerId,
+            code: submission.code,
+            language: submission.language,
+            status: false,
             score: null,
             createdAt: new Date().toISOString(),
+            isRepo: false
         };
 
         try {
@@ -194,6 +199,9 @@ export default function ContestPage() {
                 params?.id ?? '',
                 selectedRepo ? true : false
             );
+            // log the submissionResponse
+            console.log('Submission response received:', submissionResponse);
+            
 
             if ('error' in submissionResponse) {
                 throw new Error(
@@ -204,7 +212,7 @@ export default function ContestPage() {
             setSubmissions((prevSubmissions) => {
                 if (Array.isArray(prevSubmissions)) {
                     return prevSubmissions.map((sub) =>
-                        sub === placeholderSubmission ? submissionResponse : sub
+                        sub.id === placeholderSubmission.id ? submissionResponse : sub
                     ) as Submission[] | PlaceholderSubmission[];
                 }
                 return [submissionResponse];
@@ -258,9 +266,11 @@ export default function ContestPage() {
         if (filterOptions.status !== 'all') {
             filtered = filtered.filter((s) => {
                 if (filterOptions.status === 'Passed') {
-                    return s.status === true || s.status === 'Passed';
+                    return s.status === true;
                 } else if (filterOptions.status === 'Failed') {
-                    return s.status === false || s.status === 'Failed';
+                    return s.status === false;
+                } else if (filterOptions.status === 'pending') {
+                    return s.score === null;
                 }
                 return true;
             });
@@ -297,11 +307,13 @@ export default function ContestPage() {
     }, [contestState.contest]);
 
     const handleCloneRepo = async () => {
+        if (!contestState.contest?.contestStructure) return;
+        
         setIsCloning(true);
         try {
             const response = await createRepo({
-                templateCloneURL: contestState.contest!.contestStructure,
-                newRepoName: `contestify-${contestState.contest!.title}`,
+                templateCloneURL: contestState.contest.contestStructure,
+                newRepoName: `contestify-${contestState.contest.title}`,
             });
 
             if (response.error || response.status === 500) {
@@ -382,7 +394,6 @@ export default function ContestPage() {
             />
         );
     }
-
     return (
         <div className='flex flex-col flex-1'>
             <div className='container mx-auto py-8 px-4 md:px-6'>
@@ -391,7 +402,7 @@ export default function ContestPage() {
                         {t('contestPage.title')}
                     </h1>
                     <div className='flex gap-2'>
-                        {contestState.contest!.contestStructure ? (
+                        {contestState.contest.contestStructure != "null" && (
                             <>
                                 {!selectedRepo && (
                                     <Button
@@ -433,7 +444,8 @@ export default function ContestPage() {
                                     setSelectedRepo={setSelectedRepo}
                                 />
                             </>
-                        ) : (
+                        )}
+                        {contestState.contest.contestStructure == "null" &&(
                             <SubmissionForm
                                 onSubmit={handleSubmit}
                                 selectedRepo={

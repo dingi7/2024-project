@@ -144,6 +144,18 @@
             "failed": "Repository Creation Failed",
             "failedDesc": "Failed to create repository",
             "alreadyExists": "A repository with this name already exists. Please try a different name."
+        },
+        "submissionDetails": {
+            "title": "Test Case Results",
+            "testCase": "Test Case",
+            "input": "Input",
+            "expectedOutput": "Expected Output",
+            "actualOutput": "Actual Output",
+            "memory": "Memory",
+            "time": "Time",
+            "status": "Status",
+            "passed": "Passed",
+            "failed": "Failed"
         }
     },
     "header": {

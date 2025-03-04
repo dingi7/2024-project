@@ -124,6 +124,9 @@ func (s *ContestService) UpdateTestCase(ctx context.Context, id string, testCase
 		"$set": bson.M{
 			"testCases.$[tc].input":  testCase.Input,
 			"testCases.$[tc].output": testCase.Output,
+			"testCases.$[tc].public": testCase.Public,
+			"testCases.$[tc].timeLimit": testCase.TimeLimit,
+			"testCases.$[tc].memoryLimit": testCase.MemoryLimit,
 		},
 	}
 

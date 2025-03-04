@@ -128,7 +128,7 @@ const ContestPage = () => {
                                             startDate={contest.startDate}
                                             endDate={contest.endDate}
                                             prize={contest.prize}
-                                            contestStructure={contest.contestStructure}
+                                            contestStructure={contest.contestStructure!}
                                         />
                                     ))
                                 ) : (

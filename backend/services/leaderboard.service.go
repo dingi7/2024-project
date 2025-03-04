@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"fmt"
 	"sort"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -77,8 +76,6 @@ func (s *LeaderboardService) GetLeaderboard(ctx context.Context) ([]LeaderboardE
 	if err := cursor.All(ctx, &leaderboard); err != nil {
 		return nil, err
 	}
-
-	fmt.Println(leaderboard)
 
 	sort.Slice(leaderboard, func(i, j int) bool {
 		if leaderboard[i].TotalScore == leaderboard[j].TotalScore {

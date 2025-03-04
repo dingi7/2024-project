@@ -7,9 +7,12 @@ import (
 )
 
 type TestCase struct {
-	ID     primitive.ObjectID `json:"id" bson:"_id"`
-	Input  string             `json:"input"`
-	Output string             `json:"output"`
+	ID          primitive.ObjectID `json:"id" bson:"_id"`
+	Input       string             `json:"input"`
+	Output      string             `json:"output"`
+	TimeLimit   int                `json:"timeLimit"`
+	MemoryLimit int                `json:"memoryLimit"`
+	Public      bool               `json:"public"`
 }
 
 type Contest struct {
@@ -24,7 +27,7 @@ type Contest struct {
 	TestCases        []TestCase `json:"testCases" bson:"testCases" validate:"dive,required"`
 	CreatedAt        time.Time  `json:"createdAt" bson:"createdAt"`
 	ContestRules     []byte     `json:"contestRules" bson:"contestRules"`
-	ContestStructure string     `json:"contestStructure" bson:"contestStructure"`
+	ContestStructure *string    `json:"contestStructure,omitempty" bson:"contestStructure,omitempty"`
 	TestFiles        []byte     `json:"testFiles" bson:"testFiles"`
-	TestFramework    string     `json:"testFramework" bson:"testFramework"`
+	TestFramework    *string    `json:"testFramework,omitempty" bson:"testFramework,omitempty"`
 }
