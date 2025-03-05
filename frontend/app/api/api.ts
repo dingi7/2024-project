@@ -2,7 +2,7 @@ import { getSession, signOut } from 'next-auth/react';
 import { toast } from '@/components/ui/use-toast';
 
 // const host = 'http://127.0.0.1:3001/api/v1';
-const host = 'http://188.34.162.248/api/v1';
+const host = 'https://contestify.xyz/api/v1';
 
 interface RequestOptions {
     method: string;
