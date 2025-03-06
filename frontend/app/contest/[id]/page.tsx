@@ -29,9 +29,9 @@ import { useTranslation } from '@/lib/useTranslation';
 import { Contest, PlaceholderSubmission, Submission } from '@/lib/types';
 
 type FilterOptions = {
-    status: "all" | "Passed" | "Failed" | "pending";
-    sortBy: "date" | "score";
-    order: "asc" | "desc";
+    status: 'all' | 'Passed' | 'Failed' | 'pending';
+    sortBy: 'date' | 'score';
+    order: 'asc' | 'desc';
 };
 
 export default function ContestPage() {
@@ -54,9 +54,9 @@ export default function ContestPage() {
     const [repos, setRepos] = useState<any[]>([]);
 
     const [filterOptions, setFilterOptions] = useState<FilterOptions>({
-        status: "all",
-        sortBy: "date",
-        order: "desc",
+        status: 'all',
+        sortBy: 'date',
+        order: 'desc',
     });
 
     const [selectedRepo, setSelectedRepo] = useState<string>('');
@@ -173,7 +173,7 @@ export default function ContestPage() {
             status: false,
             score: null,
             createdAt: new Date().toISOString(),
-            isRepo: false
+            isRepo: false,
         };
 
         try {
@@ -201,7 +201,6 @@ export default function ContestPage() {
             );
             // log the submissionResponse
             console.log('Submission response received:', submissionResponse);
-            
 
             if ('error' in submissionResponse) {
                 throw new Error(
@@ -212,7 +211,9 @@ export default function ContestPage() {
             setSubmissions((prevSubmissions) => {
                 if (Array.isArray(prevSubmissions)) {
                     return prevSubmissions.map((sub) =>
-                        sub.id === placeholderSubmission.id ? submissionResponse : sub
+                        sub.id === placeholderSubmission.id
+                            ? submissionResponse
+                            : sub
                     ) as Submission[] | PlaceholderSubmission[];
                 }
                 return [submissionResponse];
@@ -308,7 +309,7 @@ export default function ContestPage() {
 
     const handleCloneRepo = async () => {
         if (!contestState.contest?.contestStructure) return;
-        
+
         setIsCloning(true);
         try {
             const response = await createRepo({
@@ -402,50 +403,53 @@ export default function ContestPage() {
                         {t('contestPage.title')}
                     </h1>
                     <div className='flex gap-2'>
-                        {contestState.contest.contestStructure != "null" && (
-                            <>
-                                {!selectedRepo && (
-                                    <Button
-                                        disabled={isCloning}
-                                        onClick={handleCloneRepo}
-                                    >
-                                        {isCloning ? (
-                                            <>
-                                                <RefreshCcwIcon className='w-4 h-4 mr-2 animate-spin' />
-                                                {t(
-                                                    'contestPage.buttons.cloning'
-                                                )}
-                                            </>
-                                        ) : (
-                                            t(
-                                                'contestPage.buttons.cloneStructure'
-                                            )
-                                        )}
-                                    </Button>
-                                )}
-                                {selectedRepo && (
-                                    <SubmissionForm
-                                        onSubmit={handleSubmit}
-                                        selectedRepo={
-                                            selectedRepo
-                                                ? repos.find(
-                                                      (repo) =>
-                                                          repo.name ===
-                                                          selectedRepo
-                                                  )
-                                                : null
-                                        }
+                        {contestState.contest.contestStructure &&
+                            contestState.contest.contestStructure !==
+                                'null' && (
+                                <>
+                                    {!selectedRepo && (
+                                        <Button
+                                            disabled={isCloning}
+                                            onClick={handleCloneRepo}
+                                        >
+                                            {isCloning ? (
+                                                <>
+                                                    <RefreshCcwIcon className='w-4 h-4 mr-2 animate-spin' />
+                                                    {t(
+                                                        'contestPage.buttons.cloning'
+                                                    )}
+                                                </>
+                                            ) : (
+                                                t(
+                                                    'contestPage.buttons.cloneStructure'
+                                                )
+                                            )}
+                                        </Button>
+                                    )}
+                                    {selectedRepo && (
+                                        <SubmissionForm
+                                            onSubmit={handleSubmit}
+                                            selectedRepo={
+                                                selectedRepo
+                                                    ? repos.find(
+                                                          (repo) =>
+                                                              repo.name ===
+                                                              selectedRepo
+                                                      )
+                                                    : null
+                                            }
+                                        />
+                                    )}
+                                    <GithubRepos
+                                        key={`repos-${repos.length}`}
+                                        repos={repos}
+                                        selectedRepo={selectedRepo}
+                                        setSelectedRepo={setSelectedRepo}
                                     />
-                                )}
-                                <GithubRepos
-                                    key={`repos-${repos.length}`}
-                                    repos={repos}
-                                    selectedRepo={selectedRepo}
-                                    setSelectedRepo={setSelectedRepo}
-                                />
-                            </>
-                        )}
-                        {contestState.contest.contestStructure == "null" &&(
+                                </>
+                            )}
+                        {(contestState.contest.contestStructure == 'null' ||
+                            !contestState.contest.contestStructure) && (
                             <SubmissionForm
                                 onSubmit={handleSubmit}
                                 selectedRepo={
