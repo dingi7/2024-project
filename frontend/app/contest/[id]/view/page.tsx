@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import {
@@ -15,30 +15,32 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TestCaseResult } from '@/lib/types';
 import { CheckCircle2, XCircle } from 'lucide-react';
-import { getSubmissionById, getSubmissionsByOwnerID } from '@/app/api/requests';
+import { getSubmissionById } from '@/app/api/requests';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/components/ui/use-toast';
+import { useTranslation } from '@/lib/useTranslation';
 
 const OutputComparison = ({ expected, received }: { expected: string, received: string }) => {
     const isMatch = expected === received;
+    const { t } = useTranslation();
     
     return (
         <div className="space-y-2">
             <div className="flex flex-col">
-                <span className="text-xs text-muted-foreground">Expected:</span>
+                <span className="text-xs text-muted-foreground">{t('testResults.expected')}:</span>
                 <code className={`font-mono px-2 py-1 rounded ${isMatch ? 'bg-muted' : 'bg-red-100 dark:bg-red-900'}`}>
                     {expected}
                 </code>
             </div>
             <div className="flex flex-col">
-                <span className="text-xs text-muted-foreground">Received:</span>
+                <span className="text-xs text-muted-foreground">{t('testResults.received')}:</span>
                 <code className={`font-mono px-2 py-1 rounded ${isMatch ? 'bg-muted' : 'bg-red-100 dark:bg-red-900'}`}>
                     {received}
                 </code>
             </div>
             {!isMatch && (
                 <div className="text-xs text-red-600 dark:text-red-400">
-                    Output does not match expected result
+                    {t('testResults.mismatch')}
                 </div>
             )}
         </div>
@@ -48,6 +50,7 @@ const OutputComparison = ({ expected, received }: { expected: string, received: 
 export default function TestCaseResultsPage() {
     const params = useParams<{ id: string }>();
     const { data: session } = useSession();
+    const { t } = useTranslation();
     const [loading, setLoading] = useState(true);
     const [testResults, setTestResults] = useState<TestCaseResult[]>([]);
     useEffect(() => {
@@ -63,8 +66,8 @@ export default function TestCaseResultsPage() {
             } catch (error) {
                 console.error('Failed to fetch test results:', error);
                 toast({
-                    title: 'Error',
-                    description: 'Failed to fetch test results.',
+                    title: t('testResults.error.title'),
+                    description: t('testResults.error.fetchFailed'),
                     variant: 'destructive',
                 });
             } finally {
@@ -87,33 +90,33 @@ export default function TestCaseResultsPage() {
 
     return (
         <div className="container mx-auto py-8">
-            <h1 className="text-3xl font-bold mb-6">Test Case Results</h1>
+            <h1 className="text-3xl font-bold mb-6">{t('testResults.title')}</h1>
             
             {/* Summary Card */}
             <Card className="mb-8">
                 <CardHeader>
-                    <CardTitle>Summary</CardTitle>
+                    <CardTitle>{t('testResults.summary.title')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div className="flex flex-col">
-                            <span className="text-sm text-muted-foreground">Total Tests</span>
+                            <span className="text-sm text-muted-foreground">{t('testResults.summary.totalTests')}</span>
                             <span className="text-2xl font-bold">{testResults.length}</span>
                         </div>
                         <div className="flex flex-col">
-                            <span className="text-sm text-muted-foreground">Passed</span>
+                            <span className="text-sm text-muted-foreground">{t('testResults.summary.passed')}</span>
                             <span className="text-2xl font-bold text-green-600">
                                 {testResults.filter(r => r.status).length}
                             </span>
                         </div>
                         <div className="flex flex-col">
-                            <span className="text-sm text-muted-foreground">Failed</span>
+                            <span className="text-sm text-muted-foreground">{t('testResults.summary.failed')}</span>
                             <span className="text-2xl font-bold text-red-600">
                                 {testResults.filter(r => !r.status).length}
                             </span>
                         </div>
                         <div className="flex flex-col">
-                            <span className="text-sm text-muted-foreground">Success Rate</span>
+                            <span className="text-sm text-muted-foreground">{t('testResults.summary.successRate')}</span>
                             <span className="text-2xl font-bold">
                                 {testResults.length > 0 
                                     ? Math.round((testResults.filter(r => r.status).length / testResults.length) * 100)
@@ -127,18 +130,18 @@ export default function TestCaseResultsPage() {
             {/* Detailed Results Table */}
             <Card>
                 <CardHeader>
-                    <CardTitle>Detailed Results</CardTitle>
+                    <CardTitle>{t('testResults.details.title')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     {testResults.length > 0 ? (
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead>Input</TableHead>
-                                    <TableHead className="w-1/3">Output</TableHead>
-                                    <TableHead>Time</TableHead>
-                                    <TableHead>Memory</TableHead>
+                                    <TableHead>{t('testResults.details.status')}</TableHead>
+                                    <TableHead>{t('testResults.details.input')}</TableHead>
+                                    <TableHead className="w-1/3">{t('testResults.details.output')}</TableHead>
+                                    <TableHead>{t('testResults.details.time')}</TableHead>
+                                    <TableHead>{t('testResults.details.memory')}</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -149,12 +152,12 @@ export default function TestCaseResultsPage() {
                                                 {result.status ? (
                                                     <>
                                                         <CheckCircle2 className="h-5 w-5 text-green-600" />
-                                                        <Badge variant="success">Passed</Badge>
+                                                        <Badge variant="success">{t('testResults.status.passed')}</Badge>
                                                     </>
                                                 ) : (
                                                     <>
                                                         <XCircle className="h-5 w-5 text-red-600" />
-                                                        <Badge variant="destructive">Failed</Badge>
+                                                        <Badge variant="destructive">{t('testResults.status.failed')}</Badge>
                                                     </>
                                                 )}
                                             </div>
@@ -186,11 +189,11 @@ export default function TestCaseResultsPage() {
                         </Table>
                     ) : (
                         <div className="text-center py-8 text-muted-foreground">
-                            No test results available
+                            {t('testResults.noResults')}
                         </div>
                     )}
                 </CardContent>
             </Card>
         </div>
     );
-} 
+}
