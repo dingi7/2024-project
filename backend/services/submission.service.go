@@ -53,9 +53,12 @@ func (s *SubmissionService) FindSubmissionByID(ctx context.Context, id string) (
 }
 
 func (s *SubmissionService) CreateSubmission(ctx context.Context, submission *models.Submission) (*models.Submission, error) {
-
-	_, err := s.SubmissionCollection.InsertOne(ctx, submission)
-	return submission, err
+	result, err := s.SubmissionCollection.InsertOne(ctx, submission)
+	if err != nil {
+		return nil, err
+	}
+	submission.ID = result.InsertedID.(primitive.ObjectID).Hex()
+	return submission, nil
 }
 
 func (s *SubmissionService) DeleteSubmission(ctx context.Context, id string) error {

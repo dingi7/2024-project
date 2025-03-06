@@ -154,6 +154,9 @@ func RunCodeTestCases(language string, code string, testCases []models.TestCase)
 			
 			if passed {
 				passedTestCases++
+			} else {
+				log.Printf("Test Case #%d Failed:\n  Input: %s\n  Expected Output: %s\n  Actual Output: %s",
+					idx+1, input, expectedOutput, execResult.Output)
 			}
 		}
 
