@@ -13,9 +13,11 @@
 # next.js
 /frontend/.next/
 /frontend/out/
+/frontend/.env
 
 # production
 /backend/build
+/backend/.env
 
 # misc
 .DS_Store
