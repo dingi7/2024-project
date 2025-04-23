@@ -22,7 +22,7 @@ type Contest struct {
 	StartDate        string     `json:"startDate" validate:"required" gorm:"type:varchar(100);column:start_date;not null"`
 	EndDate          string     `json:"endDate" validate:"required" gorm:"type:varchar(100);column:end_date;not null"`
 	Prize            string     `json:"prize,omitempty" gorm:"type:varchar(255)"`
-	OwnerID          string     `json:"ownerID" validate:"required" gorm:"type:uuid;column:owner_id;not null"`
+	OwnerID          string     `json:"ownerID" validate:"required" gorm:"type:varchar(255);column:owner_id;not null"`
 	TestCases        []TestCase `json:"testCases" validate:"dive,required" gorm:"foreignKey:ContestID"`
 	CreatedAt        time.Time  `json:"createdAt" gorm:"autoCreateTime"`
 	ContestRules     []byte     `json:"contestRules" gorm:"type:bytea;column:contest_rules"`

@@ -16,12 +16,15 @@ import (
 
 type SubmissionHandler struct {
 	SubmissionService *services.SubmissionService
+	UserService       *services.UserService
 }
 
 func NewSubmissionHandler(db *gorm.DB) *SubmissionHandler {
 	submissionService := services.NewSubmissionService(db)
+	userService := services.NewUserService(db)
 	return &SubmissionHandler{
 		SubmissionService: submissionService,
+		UserService:       userService,
 	}
 }
 
@@ -92,6 +95,16 @@ func (h *SubmissionHandler) finalizeSubmission(c *fiber.Ctx, ctx context.Context
 
 	submission.ContestID = contestID
 	submission.OwnerID = c.Locals("userID").(string)
+
+	// Get the user to set the owner name
+	user, err := h.UserService.FindUserByID(ctx, submission.OwnerID)
+	if err != nil {
+		fmt.Printf("Error finding user: %v\n", err)
+		// Continue even if user not found, just won't have owner name
+	} else {
+		submission.OwnerName = user.Name
+	}
+
 	submission.Status = passed
 	submission.Score = float64(score)
 	submission.CreatedAt = time.Now().Format(time.RFC3339)
