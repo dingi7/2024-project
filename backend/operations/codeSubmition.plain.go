@@ -33,7 +33,7 @@ func executeCode(solution models.Solution, inputString string, codeFile string, 
 
 	cmd := exec.CommandContext(ctx, "docker", cmdArgs...)
 	log.Printf("Running command: %v\n", cmd.Args)
-	
+
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
@@ -41,7 +41,7 @@ func executeCode(solution models.Solution, inputString string, codeFile string, 
 	startTime := time.Now()
 	err := cmd.Run()
 	duration := time.Since(startTime)
-	
+
 	result := ExecutionResult{
 		Duration: duration,
 		MemUsage: int64(memoryLimit), // Placeholder - would be better to get actual memory usage
@@ -144,14 +144,14 @@ func RunCodeTestCases(language string, code string, testCases []models.TestCase)
 		expectedOutput := strings.TrimSpace(testCase.Output)
 
 		execResult := executeCode(solution, input, codeFile, timeLimit, memoryLimit)
-		
+
 		// Determine if the test passed based on expected output and time requirements
 		var passed bool
 		if execResult.Error == nil {
-			passed = execResult.Output == expectedOutput && 
-			        !execResult.TimedOut && 
-			        int(execResult.Duration.Milliseconds()) <= timeLimit
-			
+			passed = execResult.Output == expectedOutput &&
+				!execResult.TimedOut &&
+				int(execResult.Duration.Milliseconds()) <= timeLimit
+
 			if passed {
 				passedTestCases++
 			}
@@ -159,16 +159,16 @@ func RunCodeTestCases(language string, code string, testCases []models.TestCase)
 
 		// Create test case result
 		testCaseResult := models.TestCaseResult{
-			TestCase:       testCase,
+			TestCaseID:     testCase.ID,
 			Passed:         passed,
 			SolutionOutput: &execResult.Output,
 			MemoryUsage:    int(execResult.MemUsage),
 			Time:           int(execResult.Duration.Milliseconds()),
 		}
-		
-		log.Printf("Test Case #%d Result: passed=%v, time=%dms, error=%v", 
+
+		log.Printf("Test Case #%d Result: passed=%v, time=%dms, error=%v",
 			idx+1, testCaseResult.Passed, testCaseResult.Time, execResult.Error)
-		
+
 		// Only include the test case in results if it's public or if we want to show all results
 		if testCase.Public {
 			allResults = append(allResults, testCaseResult)

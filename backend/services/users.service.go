@@ -10,9 +10,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
+	"gorm.io/gorm"
 )
 
 const (
@@ -21,48 +19,42 @@ const (
 )
 
 type UserService struct {
-	UserCollection       *mongo.Collection
-	ContestCollection    *mongo.Collection
-	SubmissionCollection *mongo.Collection
-	JWTSecret            []byte
-	RefreshSecret        []byte
+	DB            *gorm.DB
+	JWTSecret     []byte
+	RefreshSecret []byte
 }
 
-func NewUserService(client *mongo.Client) *UserService {
+func NewUserService(db *gorm.DB) *UserService {
 	return &UserService{
-		UserCollection:       client.Database("contestify").Collection("users"),
-		ContestCollection:    client.Database("contestify").Collection("contests"),
-		SubmissionCollection: client.Database("contestify").Collection("submissions"),
-		JWTSecret:            []byte(os.Getenv("ACCESS_TOKEN_SECRET")),
-		RefreshSecret:        []byte(os.Getenv("REFRESH_TOKEN_SECRET")),
+		DB:            db,
+		JWTSecret:     []byte(os.Getenv("ACCESS_TOKEN_SECRET")),
+		RefreshSecret: []byte(os.Getenv("REFRESH_TOKEN_SECRET")),
 	}
 }
 
 func (s *UserService) GetUsers(ctx context.Context) ([]models.User, error) {
 	var users []models.User
-	cursor, err := s.UserCollection.Find(ctx, bson.M{})
-	if err != nil {
-		return nil, err
-	}
-	defer cursor.Close(ctx)
-	if err := cursor.All(ctx, &users); err != nil {
-		return nil, err
+	result := s.DB.Find(&users)
+	if result.Error != nil {
+		return nil, result.Error
 	}
 	return users, nil
 }
 
 func (s *UserService) FindUserByID(ctx context.Context, id string) (*models.User, error) {
 	var user models.User
-	err := s.UserCollection.FindOne(ctx, bson.M{"_id": id}).Decode(&user)
-	if err != nil {
-		return nil, err
+	result := s.DB.Where("id = ?", id).First(&user)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("user not found")
+		}
+		return nil, result.Error
 	}
 	return &user, nil
 }
 
 func (s *UserService) CreateUser(ctx context.Context, user *models.User) error {
-	_, err := s.UserCollection.InsertOne(ctx, user)
-	return err
+	return s.DB.Create(user).Error
 }
 
 func (s *UserService) CreateAccessToken(user models.User, refreshToken string) (string, error) {
@@ -89,14 +81,9 @@ func (s *UserService) CreateAccessToken(user models.User, refreshToken string) (
 
 func (s *UserService) GetUsersAttendedContests(ctx context.Context, userID string) ([]models.Contest, error) {
 	var submissions []models.Submission
-	cursor, err := s.SubmissionCollection.Find(ctx, bson.M{"ownerId": userID})
-	if err != nil {
-		return nil, err
-	}
-	defer cursor.Close(ctx)
-
-	if err := cursor.All(ctx, &submissions); err != nil {
-		return nil, err
+	result := s.DB.Find(&submissions, "owner_id = ?", userID)
+	if result.Error != nil {
+		return nil, result.Error
 	}
 
 	// Use a map to store unique contest IDs
@@ -107,17 +94,13 @@ func (s *UserService) GetUsersAttendedContests(ctx context.Context, userID strin
 
 	var contests []models.Contest
 	for contestID := range contestIDs {
-		objectID, err := primitive.ObjectIDFromHex(contestID)
-		if err != nil {
-			return nil, fmt.Errorf("invalid contest ID: %v", err)
-		}
-
 		var contest models.Contest
-		if err := s.ContestCollection.FindOne(ctx, bson.M{"_id": objectID}).Decode(&contest); err != nil {
-			if err != mongo.ErrNoDocuments {
-				return nil, fmt.Errorf("error fetching contest: %v", err)
+		result := s.DB.First(&contest, "id = ?", contestID)
+		if result.Error != nil {
+			if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+				continue
 			}
-			continue
+			return nil, result.Error
 		}
 		contests = append(contests, contest)
 	}
@@ -146,15 +129,13 @@ func (s *UserService) CreateAccessTokenFromRefreshToken(refreshToken string) (st
 		return "", errors.New("invalid refresh token")
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	user, err := s.FindUserByID(ctx, userID)
-	if err != nil {
-		return "", err
+	var user models.User
+	result := s.DB.First(&user, "id = ?", userID)
+	if result.Error != nil {
+		return "", result.Error
 	}
 
-	return s.CreateAccessToken(*user, refreshToken)
+	return s.CreateAccessToken(user, refreshToken)
 }
 
 func (s *UserService) validateRefreshToken(refreshToken string) (bool, string, error) {

@@ -6,205 +6,123 @@ import (
 	"errors"
 	"fmt"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
+	"gorm.io/gorm"
 )
 
 type SubmissionService struct {
-	SubmissionCollection *mongo.Collection
-	ContestCollection    *mongo.Collection
-	UserCollection       *mongo.Collection
+	DB *gorm.DB
 }
 
-func NewSubmissionService(client *mongo.Client) *SubmissionService {
+func NewSubmissionService(db *gorm.DB) *SubmissionService {
 	return &SubmissionService{
-		SubmissionCollection: client.Database("contestify").Collection("submissions"),
-		ContestCollection:    client.Database("contestify").Collection("contests"),
-		UserCollection:       client.Database("contestify").Collection("users"),
+		DB: db,
 	}
 }
 
 func (s *SubmissionService) GetSubmissions(ctx context.Context) ([]models.Submission, error) {
 	var submissions []models.Submission
-	cursor, err := s.SubmissionCollection.Find(ctx, bson.M{})
-	if err != nil {
-		return nil, err
-	}
-	defer cursor.Close(ctx)
-	if err := cursor.All(ctx, &submissions); err != nil {
-		return nil, err
+	result := s.DB.Preload("TestCasesResults").Find(&submissions)
+	if result.Error != nil {
+		return nil, result.Error
 	}
 	return submissions, nil
 }
 
 func (s *SubmissionService) FindSubmissionByID(ctx context.Context, id string) (*models.Submission, error) {
-	objectID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return nil, err
-	}
 	var submission models.Submission
-	err = s.SubmissionCollection.FindOne(ctx, bson.M{"_id": objectID}).Decode(&submission)
-	if err != nil {
-		return nil, err
+	result := s.DB.Preload("TestCasesResults").First(&submission, "id = ?", id)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("submission not found")
+		}
+		return nil, result.Error
 	}
+
 	fmt.Printf("Submission found: %+v\n", submission)
 	return &submission, nil
 }
 
-func (s *SubmissionService) CreateSubmission(ctx context.Context, submission *models.Submission) (*models.Submission, error) {
+func (s *SubmissionService) GetSubmissionsByContestID(ctx context.Context, contestID string) ([]models.Submission, error) {
+	var submissions []models.Submission
+	result := s.DB.Preload("TestCasesResults").Where("contest_id = ?", contestID).Find(&submissions)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return submissions, nil
+}
 
-	_, err := s.SubmissionCollection.InsertOne(ctx, submission)
-	return submission, err
+func (s *SubmissionService) GetSubmissionsByOwnerID(ctx context.Context, ownerID string, contestID string) ([]models.Submission, error) {
+	var submissions []models.Submission
+	result := s.DB.Preload("TestCasesResults").Where("owner_id = ? AND contest_id = ?", ownerID, contestID).Find(&submissions)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return submissions, nil
+}
+
+func (s *SubmissionService) CreateSubmission(ctx context.Context, submission *models.Submission) (*models.Submission, error) {
+	result := s.DB.Create(submission)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return submission, nil
 }
 
 func (s *SubmissionService) DeleteSubmission(ctx context.Context, id string) error {
-	objectID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return err
+	var submission models.Submission
+	result := s.DB.Delete(&submission, "id = ?", id)
+	if result.Error != nil {
+		return result.Error
 	}
-	_, err = s.SubmissionCollection.DeleteOne(ctx, bson.M{"_id": objectID})
-	return err
+	return nil
 }
 
 func (s *SubmissionService) UpdateSubmission(ctx context.Context, id string, submission *models.Submission) error {
-	objectID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return err
-	}
-	update := bson.M{
-		"$set": bson.M{
-			"contestID": submission.ContestID,
-			"ownerID":   submission.OwnerID,
-			"language":  submission.Language,
-			"status":    submission.Status,
-			"createdAt": submission.CreatedAt,
-		},
-	}
-	_, err = s.SubmissionCollection.UpdateOne(ctx, bson.M{"_id": objectID}, update)
-	return err
-}
-
-func (s *SubmissionService) GetSubmissionsByContestID(ctx context.Context, contestID string) ([]bson.M, error) {
-	fmt.Printf("Querying for contestID: %s\n", contestID)
-
-	pipeline := mongo.Pipeline{
-		{{Key: "$match", Value: bson.M{"contestId": contestID}}},
-		{{Key: "$lookup", Value: bson.M{
-			"from":         "users",
-			"localField":   "ownerId",
-			"foreignField": "_id",
-			"as":           "owner",
-		}}},
-		{{Key: "$unwind", Value: "$owner"}},
-		{{Key: "$project", Value: bson.M{
-			"_id":        1,
-			"contestId":  1,
-			"ownerId":    1,
-			"language":   1,
-			"status":     1,
-			"score":      1,
-			"createdAt":  1,
-			"ownerName":  "$owner.name",
-			"ownerEmail": "$owner.email",
-		}}},
+	var existingSubmission models.Submission
+	result := s.DB.First(&existingSubmission, "id = ?", id)
+	if result.Error != nil {
+		return result.Error
 	}
 
-	cursor, err := s.SubmissionCollection.Aggregate(ctx, pipeline)
-	if err != nil {
-		fmt.Printf("Error in Aggregate: %v\n", err)
-		return nil, err
+	existingSubmission.ContestID = submission.ContestID
+	existingSubmission.OwnerID = submission.OwnerID
+	existingSubmission.Language = submission.Language
+	existingSubmission.Status = submission.Status
+	existingSubmission.CreatedAt = submission.CreatedAt
+
+	result = s.DB.Save(&existingSubmission)
+	if result.Error != nil {
+		return result.Error
 	}
-	defer cursor.Close(ctx)
-
-	var submissions []bson.M
-	if err := cursor.All(ctx, &submissions); err != nil {
-		fmt.Printf("Error in cursor.All: %v\n", err)
-		return nil, err
-	}
-	fmt.Printf("Found %d submissions\n", len(submissions))
-	return submissions, nil
-}
-
-func (s *SubmissionService) GetSubmissionsByOwnerID(ctx context.Context, ownerID string) ([]models.Submission, error) {
-	var submissions []models.Submission
-	cursor, err := s.SubmissionCollection.Find(ctx, bson.M{"ownerID": ownerID})
-	if err != nil {
-		return nil, err
-	}
-	defer cursor.Close(ctx)
-	if err := cursor.All(ctx, &submissions); err != nil {
-		return nil, err
-	}
-	return submissions, nil
-}
-
-func (s *SubmissionService) GetSubmissionsByContestIDAndOwnerID(ctx context.Context, contestID, ownerID string) ([]models.Submission, error) {
-	fmt.Printf("Querying for contestID: %s, ownerID: %s\n", contestID, ownerID)
-
-	filter := bson.M{"contestId": contestID, "ownerId": ownerID}
-
-	cursor, err := s.SubmissionCollection.Find(ctx, filter)
-	if err != nil {
-		fmt.Printf("Error in Find: %v\n", err)
-		return nil, err
-	}
-	defer cursor.Close(ctx)
-
-	var submissions []models.Submission
-	if err := cursor.All(ctx, &submissions); err != nil {
-		fmt.Printf("Error in cursor.All: %v\n", err)
-		return nil, err
-	}
-
-	fmt.Printf("Found %d submissions\n", len(submissions))
-	return submissions, nil
+	return nil
 }
 
 func (s *SubmissionService) GetSubmissionByID(id string) (*models.Submission, error) {
-	objectID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return nil, err
-	}
-
 	var submission models.Submission
-	filter := bson.M{"_id": objectID}
-	
-	err = s.SubmissionCollection.FindOne(context.Background(), filter).Decode(&submission)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, errors.New("submission not found")
+	result := s.DB.First(&submission, "id = ?", id)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("submission not found")
 		}
-		return nil, err
+		return nil, result.Error
 	}
-
 	return &submission, nil
 }
 
 func (s *SubmissionService) GetContestTestCases(ctx context.Context, contestID string) ([]models.TestCase, error) {
-	objectID, err := primitive.ObjectIDFromHex(contestID)
-	if err != nil {
-		return nil, err
-	}
-	query := bson.M{"_id": objectID}
 	var contest models.Contest
-	err = s.ContestCollection.FindOne(ctx, query).Decode(&contest)
-	if err != nil {
-		return nil, err
+	result := s.DB.First(&contest, "id = ?", contestID)
+	if result.Error != nil {
+		return nil, result.Error
 	}
 	return contest.TestCases, nil
 }
 
 func (s *SubmissionService) GetContestTestFiles(ctx context.Context, contestID string) ([]byte, error) {
-	objectID, err := primitive.ObjectIDFromHex(contestID)
-	if err != nil {
-		return nil, err
-	}
-	query := bson.M{"_id": objectID}
 	var contest models.Contest
-	err = s.ContestCollection.FindOne(ctx, query).Decode(&contest)
-	if err != nil {
-		return nil, err
+	result := s.DB.First(&contest, "id = ?", contestID)
+	if result.Error != nil {
+		return nil, result.Error
 	}
 	return contest.TestFiles, nil
 }

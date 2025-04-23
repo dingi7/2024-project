@@ -2,32 +2,31 @@ package models
 
 import (
 	"time"
-
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type TestCase struct {
-	ID          primitive.ObjectID `json:"id" bson:"_id"`
-	Input       string             `json:"input"`
-	Output      string             `json:"output"`
-	TimeLimit   int                `json:"timeLimit"`
-	MemoryLimit int                `json:"memoryLimit"`
-	Public      bool               `json:"public"`
+	ID          string `json:"id" gorm:"primaryKey;type:uuid;default:gen_random_uuid()"`
+	ContestID   string `json:"-" gorm:"type:uuid;index"`
+	Input       string `json:"input" gorm:"type:text"`
+	Output      string `json:"output" gorm:"type:text"`
+	TimeLimit   int    `json:"timeLimit" gorm:"type:int"`
+	MemoryLimit int    `json:"memoryLimit" gorm:"type:int"`
+	Public      bool   `json:"public" gorm:"type:boolean"`
 }
 
 type Contest struct {
-	ID               string     `json:"id,omitempty" bson:"_id,omitempty"`
-	Title            string     `json:"title" validate:"required"`
-	Description      string     `json:"description" validate:"required"`
-	Language         string     `json:"language" validate:"required"`
-	StartDate        string     `json:"startDate" bson:"startDate" validate:"required"`
-	EndDate          string     `json:"endDate" bson:"endDate" validate:"required"`
-	Prize            string     `json:"prize,omitempty" bson:"prize,omitempty"`
-	OwnerID          string     `json:"ownerID" bson:"ownerId" validate:"required"`
-	TestCases        []TestCase `json:"testCases" bson:"testCases" validate:"dive,required"`
-	CreatedAt        time.Time  `json:"createdAt" bson:"createdAt"`
-	ContestRules     []byte     `json:"contestRules" bson:"contestRules"`
-	ContestStructure *string    `json:"contestStructure,omitempty" bson:"contestStructure,omitempty"`
-	TestFiles        []byte     `json:"testFiles" bson:"testFiles"`
-	TestFramework    *string    `json:"testFramework,omitempty" bson:"testFramework,omitempty"`
+	ID               string     `json:"id,omitempty" gorm:"primaryKey;type:uuid;default:gen_random_uuid()"`
+	Title            string     `json:"title" validate:"required" gorm:"type:varchar(255);not null"`
+	Description      string     `json:"description" validate:"required" gorm:"type:text;not null"`
+	Language         string     `json:"language" validate:"required" gorm:"type:varchar(100);not null"`
+	StartDate        string     `json:"startDate" validate:"required" gorm:"type:varchar(100);column:start_date;not null"`
+	EndDate          string     `json:"endDate" validate:"required" gorm:"type:varchar(100);column:end_date;not null"`
+	Prize            string     `json:"prize,omitempty" gorm:"type:varchar(255)"`
+	OwnerID          string     `json:"ownerID" validate:"required" gorm:"type:uuid;column:owner_id;not null"`
+	TestCases        []TestCase `json:"testCases" validate:"dive,required" gorm:"foreignKey:ContestID"`
+	CreatedAt        time.Time  `json:"createdAt" gorm:"autoCreateTime"`
+	ContestRules     []byte     `json:"contestRules" gorm:"type:bytea;column:contest_rules"`
+	ContestStructure *string    `json:"contestStructure,omitempty" gorm:"type:text;column:contest_structure"`
+	TestFiles        []byte     `json:"testFiles" gorm:"type:bytea;column:test_files"`
+	TestFramework    *string    `json:"testFramework,omitempty" gorm:"type:varchar(100);column:test_framework"`
 }

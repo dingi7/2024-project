@@ -1,34 +1,32 @@
 package util
 
 import (
-	"context"
 	"log"
-	"time"
 
-	"go.mongodb.org/mongo-driver/mongo"
+	"gorm.io/gorm"
 )
 
-func DropDatabase(client *mongo.Client) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	err := client.Database("contestify").Drop(ctx)
+func DropDatabase(db *gorm.DB) {
+	// To drop all tables in PostgreSQL with GORM
+	err := db.Exec("DROP SCHEMA public CASCADE").Error
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	log.Println("Database 'contestify' has been dropped successfully")
-}
-
-func DropCollection(client *mongo.Client, collectionName string) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	err := client.Database("contestify").Collection(collectionName).Drop(ctx)
+	err = db.Exec("CREATE SCHEMA public").Error
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	log.Printf("Collection '%s' has been dropped successfully", collectionName)
+	log.Println("Database has been dropped successfully")
 }
 
+func DropTable(db *gorm.DB, tableName string) {
+	// Drop a specific table
+	err := db.Exec("DROP TABLE IF EXISTS " + tableName + " CASCADE").Error
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Printf("Table '%s' has been dropped successfully", tableName)
+}

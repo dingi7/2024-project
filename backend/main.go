@@ -16,11 +16,18 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error loading .env file: %v", err)
 	}
-	
-	client, err := config.InitDatabase()
+
+	// Initialize PostgreSQL database with GORM
+	db, err := config.InitDatabase()
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	// Run database migrations
+	if err := config.MigrateDatabase(); err != nil {
+		log.Fatalf("Database migration failed: %v", err)
+	}
+
 	app := fiber.New()
 
 	app.Use(logger.New())
@@ -33,7 +40,7 @@ func main() {
 		AllowCredentials: false,
 	}))
 
-	routes.Setup(app, client)
+	routes.Setup(app, db)
 
 	log.Println("Server starting on port 3001")
 	if err := app.Listen(":3001"); err != nil {

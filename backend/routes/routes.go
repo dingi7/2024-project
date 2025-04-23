@@ -5,18 +5,18 @@ import (
 	"backend/middlewares"
 
 	"github.com/gofiber/fiber/v2"
-	"go.mongodb.org/mongo-driver/mongo"
+	"gorm.io/gorm"
 )
 
-func Setup(app *fiber.App, client *mongo.Client) {
-
+func Setup(app *fiber.App, db *gorm.DB) {
 	api := app.Group("/api/v1")
 
-	userHandler := handlers.NewUserHandler(client)
-	contestHandler := handlers.NewContestHandler(client)
-	submissionHandler := handlers.NewSubmissionHandler(client)
-	leaderboardHandler := handlers.NewLeaderboardHandler(client)
+	userHandler := handlers.NewUserHandler(db)
+	contestHandler := handlers.NewContestHandler(db)
+	submissionHandler := handlers.NewSubmissionHandler(db)
+	leaderboardHandler := handlers.NewLeaderboardHandler(db)
 	githubHandler := handlers.NewGitHubHandler()
+
 	// public routes
 	api.Post("/auth/signIn", userHandler.UserSignIn)
 	api.Get("/contest", contestHandler.GetContests)

@@ -80,9 +80,9 @@ function Leaderboard() {
     };
 
     const filteredData = sortData(
-        leaderboardData.filter(user =>
+        leaderboardData?.filter(user =>
             user.username.toLowerCase().includes(searchQuery.toLowerCase())
-        )
+        ) ?? []
     );
 
     return (

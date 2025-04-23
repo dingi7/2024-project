@@ -1,34 +1,82 @@
 package config
 
 import (
-	"context"
+	"backend/models"
+	"fmt"
 	"log"
+	"os"
 	"time"
 
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
-var MongoClient *mongo.Client
+var DB *gorm.DB
 
-func InitDatabase() (*mongo.Client, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
-	defer cancel()
+func InitDatabase() (*gorm.DB, error) {
+	// Create a PostgreSQL connection string
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=UTC",
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_PASSWORD"),
+		os.Getenv("DB_NAME"),
+		os.Getenv("DB_PORT"),
+	)
 
-	clientOptions := options.Client().ApplyURI("mongodb+srv://contestify:rfvn66Irl0UYB1Sx@boardocluster.ysfd69e.mongodb.net/?retryWrites=true&w=majority&appName=BoardoCluster")
-	client, err := mongo.Connect(ctx, clientOptions)
+	// Configure GORM logger
+	gormLogger := logger.New(
+		log.New(os.Stdout, "\r\n", log.LstdFlags),
+		logger.Config{
+			SlowThreshold:             time.Second, // Slow SQL threshold
+			LogLevel:                  logger.Info, // Log level
+			IgnoreRecordNotFoundError: true,        // Ignore ErrRecordNotFound error for logger
+			ParameterizedQueries:      true,        // Don't include params in the SQL log
+			Colorful:                  true,        // Enable color
+		},
+	)
+
+	// Connect to the database
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+		Logger: gormLogger,
+	})
 	if err != nil {
+		log.Println("Error connecting to PostgreSQL!")
 		return nil, err
 	}
 
-	// Ping the database
-	err = client.Ping(ctx, nil)
+	// Get generic database object from GORM
+	sqlDB, err := db.DB()
 	if err != nil {
-		log.Println("Error connected to MongoDB!")
+		log.Println("Error getting generic database object!")
 		return nil, err
 	}
 
-	MongoClient = client
-	log.Println("Connected to MongoDB!")
-	return client, nil
+	// Set connection pool settings
+	sqlDB.SetMaxIdleConns(10)
+	sqlDB.SetMaxOpenConns(100)
+	sqlDB.SetConnMaxLifetime(time.Hour)
+
+	// Store the DB instance globally
+	DB = db
+	log.Println("Connected to PostgreSQL!")
+	return db, nil
+}
+
+// MigrateDatabase runs database migrations for all models
+func MigrateDatabase() error {
+	log.Println("Running database migrations...")
+	if DB == nil {
+		return fmt.Errorf("database not initialized")
+	}
+
+	// Run migrations for all models
+	return DB.AutoMigrate(
+		&models.User{},
+		&models.Contest{},
+		&models.TestCase{},
+		&models.Submission{},
+		&models.TestCaseResult{},
+		&models.Solution{},
+	)
 }

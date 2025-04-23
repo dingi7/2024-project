@@ -5,23 +5,21 @@ import (
 	"backend/operations"
 	"backend/services"
 	"backend/util"
+	"context"
 	"encoding/json"
 	"fmt"
-
-	"context"
-
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"go.mongodb.org/mongo-driver/mongo"
+	"gorm.io/gorm"
 )
 
 type SubmissionHandler struct {
 	SubmissionService *services.SubmissionService
 }
 
-func NewSubmissionHandler(client *mongo.Client) *SubmissionHandler {
-	submissionService := services.NewSubmissionService(client)
+func NewSubmissionHandler(db *gorm.DB) *SubmissionHandler {
+	submissionService := services.NewSubmissionService(db)
 	return &SubmissionHandler{
 		SubmissionService: submissionService,
 	}
@@ -89,8 +87,6 @@ func (h *SubmissionHandler) handleCodeSubmission(c *fiber.Ctx, ctx context.Conte
 func (h *SubmissionHandler) finalizeSubmission(c *fiber.Ctx, ctx context.Context, submission *models.Submission, contestID string,
 	statusCode int, score int, passed bool, passedTestCases int, totalTestCases int) error {
 
-	// Create a new context with a 5-second timeout specifically for database operation
-
 	fmt.Printf("Finalizing submission - ContestID: %s, UserID: %v, Score: %d, Passed: %v\n",
 		contestID, c.Locals("userID"), score, passed)
 
@@ -104,7 +100,7 @@ func (h *SubmissionHandler) finalizeSubmission(c *fiber.Ctx, ctx context.Context
 
 	fmt.Printf("Submission before save: %+v\n", submission)
 
-	// Use the new context for database operation
+	// Use the context for database operation
 	record, err := h.SubmissionService.CreateSubmission(ctx, submission)
 	if err != nil {
 		fmt.Printf("Error in finalizeSubmission: %v\n", err)
@@ -117,8 +113,11 @@ func (h *SubmissionHandler) finalizeSubmission(c *fiber.Ctx, ctx context.Context
 func (h *SubmissionHandler) GetSubmissionsByOwnerID(c *fiber.Ctx) error {
 	contestID := c.Params("contestId")
 	ownerID := c.Params("ownerId")
-	submissions, err := h.SubmissionService.GetSubmissionsByContestIDAndOwnerID(c.Context(), contestID, ownerID)
 
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	submissions, err := h.SubmissionService.GetSubmissionsByOwnerID(ctx, ownerID, contestID)
 	if err != nil {
 		return util.HandleError(c, "Error fetching submissions")
 	}
@@ -129,7 +128,10 @@ func (h *SubmissionHandler) GetSubmissionsByOwnerID(c *fiber.Ctx) error {
 func (h *SubmissionHandler) GetSubmissionsByContestID(c *fiber.Ctx) error {
 	contestID := c.Params("contestId")
 
-	submissions, err := h.SubmissionService.GetSubmissionsByContestID(c.Context(), contestID)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	submissions, err := h.SubmissionService.GetSubmissionsByContestID(ctx, contestID)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error fetching submissions"})
 	}
@@ -144,7 +146,7 @@ func (h *SubmissionHandler) GetSubmissionByID(c *fiber.Ctx) error {
 		})
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	submission, err := h.SubmissionService.FindSubmissionByID(ctx, id)
