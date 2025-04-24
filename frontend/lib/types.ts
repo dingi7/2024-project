@@ -38,11 +38,16 @@ export interface TestCaseWithResult extends TestCase {
 }
 
 export interface TestCaseResult {
-    testCase: TestCase;
-    status: boolean;
-    SolutionOutput: string;
+    // testCase: TestCase;
+    id: string;
+    input: string;
+    passed: boolean;
+    solutionOutput: string;
+    expectedOutput: string;
     memoryUsage: number;
     time: number;
+    memoryUsageLimit: number;
+    timeLimit: number;
 }
 
 export interface Contest {

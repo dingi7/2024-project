@@ -265,5 +265,36 @@
             "failed": "Failed",
             "anonymous": "Anonymous"
         }
+    },
+    "testResults": {
+        "title": "Test Case Results",
+        "expected": "Expected",
+        "received": "Received",
+        "mismatch": "Output does not match expected result",
+        "noResults": "No test results available",
+        "error": {
+            "title": "Error",
+            "fetchFailed": "Failed to fetch test results."
+        },
+        "summary": {
+            "title": "Summary",
+            "totalTests": "Total Tests",
+            "passed": "Passed",
+            "failed": "Failed",
+            "successRate": "Success Rate"
+        },
+        "details": {
+            "title": "Detailed Results",
+            "status": "Status",
+            "input": "Input",
+            "output": "Output",
+            "time": "Time",
+            "memory": "Memory"
+        },
+        "status": {
+            "passed": "Passed",
+            "failed": "Failed"
+        }
     }
 }
+

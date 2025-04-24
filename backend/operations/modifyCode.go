@@ -4,39 +4,112 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 func modifyJSCode(code string, entryPoint string) string {
 	// The JavaScript code to inject
 	template := `
-	%s
-	if (typeof %s === "function") {
-    const args = process.argv.slice(2); // Get command-line arguments
-    %s(...args);
-	}else{
-		console.log("Function '%s' not found");
-	}
+%s
+
+// Function to handle input properly
+function parseInput(input) {
+    try {
+        // Try to parse as JSON if it looks like JSON
+        if ((input.startsWith('{') && input.endsWith('}')) || 
+            (input.startsWith('[') && input.endsWith(']'))) {
+            return JSON.parse(input);
+        }
+        
+        // Try to parse as number
+        const num = Number(input);
+        if (!isNaN(num)) {
+            return num;
+        }
+        
+        // Return as string if all else fails
+        return input;
+    } catch (e) {
+        // Return original input if parsing fails
+        return input;
+    }
+}
+
+// Main execution
+if (typeof %s === "function") {
+    const args = process.argv.slice(2).map(parseInput); // Get and parse command-line arguments
+    const result = %s(...args);
+    
+    // Handle the result properly
+    if (result !== undefined) {
+        // For objects, stringify with pretty printing
+        if (typeof result === 'object' && result !== null) {
+            console.log(JSON.stringify(result));
+        } else {
+            console.log(result);
+        }
+    }
+} else {
+    console.error("Function '%s' not found");
+    process.exit(1);
+}
 `
 	// Replace the placeholder with the original code
 	modifiedCode := fmt.Sprintf(template, code, entryPoint, entryPoint, entryPoint)
-
 	return modifiedCode
 }
 
 func modifyPythonCode(code string, entryPoint string) string {
 	// The Python code to inject
 	template := `
+import sys
+
+# Simple approach: if there are command line arguments, use them as input
+# Otherwise, keep the standard input behavior
+if len(sys.argv) > 1:
+    # Save the original input function
+    original_input = input
+    
+    # Create a list of inputs from command line arguments
+    cli_inputs = sys.argv[1:]
+    cli_input_index = 0
+    
+    # Define our custom input function
+    def custom_input(prompt=''):
+        global cli_input_index
+        global cli_inputs
+        
+        # Print the prompt to simulate the normal input behavior
+        if prompt:
+            print(prompt, end='')
+            
+        # If we have inputs from command line, use them
+        if cli_input_index < len(cli_inputs):
+            result = cli_inputs[cli_input_index]
+            cli_input_index += 1
+            print(result)  # Echo the "typed" input
+            return result
+        
+        # Fall back to standard input if we run out of args
+        return original_input(prompt)
+    
+    # Replace the built-in input function
+    input = custom_input
+
 %s
+
 if __name__ == "__main__":
-    import sys
-    if '%s' in globals() and callable(globals()['%s']):
-        args = sys.argv[1:]  # Get command-line arguments
-        %s(*args)
-    else:
-        print("Function '%s' not found or is not callable")
+    try:
+        # If we have a callable entry point function, call it
+        if '%s' in globals() and callable(globals()['%s']):
+            result = %s()
+            if result is not None:
+                print(result)
+    except Exception as e:
+        print(f"Error: {e}")
 `
 	// Replace the placeholder with the original code and entry point
-	modifiedCode := fmt.Sprintf(template, code, entryPoint, entryPoint, entryPoint, entryPoint)
+	modifiedCode := fmt.Sprintf(template, code, entryPoint, entryPoint, entryPoint)
 
 	return modifiedCode
 }
@@ -87,6 +160,8 @@ func GetDockerCommand(language, codeFile, inputString string, memoryLimit int) [
 			),
 		}
 	case "Python":
+		// Escape single quotes in the input string
+		escapedInput := strings.ReplaceAll(inputString, "'", "'\\''")
 		cmdArgs = []string{
 			"run",
 			"--rm",
@@ -97,7 +172,7 @@ func GetDockerCommand(language, codeFile, inputString string, memoryLimit int) [
 			"python:3.8",
 			"bash",
 			"-c",
-			fmt.Sprintf("python3 /app/code.py %s", inputString),
+			fmt.Sprintf("python3 /app/code.py '%s'", escapedInput),
 		}
 	}
 	return cmdArgs

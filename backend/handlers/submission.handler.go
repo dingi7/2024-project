@@ -85,7 +85,9 @@ func (h *SubmissionHandler) handleCodeSubmission(c *fiber.Ctx, ctx context.Conte
 	if err != nil {
 		return util.HandleError(c, "Error fetching contest")
 	}
-	statusCode, results, score, passed, passedTestCases, totalTestCases, err := operations.RunCodeTestCases(submission.Language, submission.Code, testCases, contest.EnableAICodeEntryIdentification)
+
+	// Use the enhanced function with resource stats
+	statusCode, results, score, passed, passedTestCases, totalTestCases, execResults, err := operations.RunCodeTestCasesWithStats(submission.Language, submission.Code, testCases, contest.EnableAICodeEntryIdentification)
 	if err != nil {
 		return util.HandleError(c, "Error running test cases")
 	}
@@ -94,7 +96,25 @@ func (h *SubmissionHandler) handleCodeSubmission(c *fiber.Ctx, ctx context.Conte
 	if err := json.Unmarshal(results, &testCaseResults); err != nil {
 		return util.HandleError(c, "Error parsing test case results")
 	}
+
+	// Add the execution results to the submission
 	submission.TestCasesResults = testCaseResults
+
+	// Find max CPU and memory usage
+	var maxCPUUsage float64
+	var maxMemoryUsage int64
+
+	for _, result := range execResults {
+		if result.CPUUsage > maxCPUUsage {
+			maxCPUUsage = result.CPUUsage
+		}
+		if result.MemUsage > maxMemoryUsage {
+			maxMemoryUsage = result.MemUsage
+		}
+	}
+
+	submission.MaxCPUUsage = maxCPUUsage
+	submission.MaxMemoryUsage = int(maxMemoryUsage)
 
 	return h.finalizeSubmission(c, ctx, submission, contestID, statusCode, score, passed, passedTestCases, totalTestCases)
 }

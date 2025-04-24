@@ -2,18 +2,14 @@ package operations
 
 import (
 	"backend/models"
-	"backend/util"
 	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
 	"os/exec"
 	"strings"
 	"time"
-
-	"github.com/gofiber/fiber/v2"
 )
 
 // ExecutionResult contains the result of code execution
@@ -77,6 +73,8 @@ func executeCode(solution models.Solution, inputString string, codeFile string, 
 
 // formatOutputByLanguage handles language-specific output formatting
 func formatOutputByLanguage(output string, language string) string {
+	output = strings.TrimSpace(output)
+
 	switch language {
 	case "Python":
 		// Only trim if the output appears to be a Python string representation
@@ -85,7 +83,24 @@ func formatOutputByLanguage(output string, language string) string {
 			(strings.HasPrefix(output, "\"") && strings.HasSuffix(output, "\"")) {
 			return strings.Trim(output, "[]'\"")
 		}
+	case "JavaScript":
+		// Clean up any potential undefined/null outputs that Node might add
+		if output == "undefined" || output == "null" {
+			return ""
+		}
+
+		// If it looks like a JavaScript object/array literal
+		if (strings.HasPrefix(output, "{") && strings.HasSuffix(output, "}")) ||
+			(strings.HasPrefix(output, "[") && strings.HasSuffix(output, "]")) {
+			// Keep as is, it's a valid JSON-like output
+			return output
+		}
+
+		// Remove any trailing "undefined" that Node.js might append
+		output = strings.TrimSuffix(output, "undefined")
+		return strings.TrimSpace(output)
 	}
+
 	return output
 }
 
@@ -107,86 +122,11 @@ func killContainer(containerID string) {
 
 // RunCodeTestCases tests code against multiple test cases and returns results
 func RunCodeTestCases(language string, code string, testCases []models.TestCase, isAIEnabled bool) (int, []byte, int, bool, int, int, error) {
-	entryPoint := "main"
-	if isAIEnabled {
-		entryPoint, err := util.IdentifyCodeEntryPoint(code)
-		if err != nil || entryPoint == "" {
-			log.Printf("Warning: Could not identify entry point, using 'main': %v", err)
-			entryPoint = "main"
-		}
-	}
-	extension, modifiedCode := GetFileExtensionAndModifiedCode(language, code, entryPoint)
-	codeFile, err := util.CreateTempFile(modifiedCode, extension)
-	if err != nil {
-		return fiber.StatusInternalServerError, nil, 0, false, 0, 0, fmt.Errorf("failed to create temp file: %w", err)
-	}
-	defer cleanupTempFile(codeFile)
+	// Use the new implementation with Docker client
+	statusCode, jsonResult, scorePercentage, passedAll, passedTestCases, totalTestCases, _, err :=
+		RunCodeTestCasesWithStats(language, code, testCases, isAIEnabled)
 
-	// Handle case with no test cases
-	if len(testCases) == 0 {
-		return fiber.StatusOK, []byte("[]"), 100, true, 0, 0, nil
-	}
-
-	solution := models.Solution{
-		Language: language,
-		Code:     code,
-	}
-
-	var allResults []models.TestCaseResult
-	totalTestCases := len(testCases)
-	passedTestCases := 0
-
-	for idx, testCase := range testCases {
-		// Apply default limits if invalid values provided
-		timeLimit := applyDefaultIfInvalid(testCase.TimeLimit, util.DEFAULT_TIME_LIMIT, util.MAX_TIME_LIMIT)
-		memoryLimit := applyDefaultIfInvalid(testCase.MemoryLimit, util.DEFAULT_MEMORY_LIMIT, util.MAX_MEMORY_LIMIT)
-
-		input := strings.TrimSpace(testCase.Input)
-		expectedOutput := strings.TrimSpace(testCase.Output)
-
-		execResult := executeCode(solution, input, codeFile, timeLimit, memoryLimit)
-
-		// Determine if the test passed based on expected output and time requirements
-		var passed bool
-		if execResult.Error == nil {
-			passed = execResult.Output == expectedOutput &&
-				!execResult.TimedOut &&
-				int(execResult.Duration.Milliseconds()) <= timeLimit
-
-			if passed {
-				passedTestCases++
-			}
-		}
-
-		// Create test case result
-		testCaseResult := models.TestCaseResult{
-			TestCaseID:     testCase.ID,
-			Passed:         passed,
-			SolutionOutput: &execResult.Output,
-			MemoryUsage:    int(execResult.MemUsage),
-			Time:           int(execResult.Duration.Milliseconds()),
-		}
-
-		log.Printf("Test Case #%d Result: passed=%v, time=%dms, error=%v",
-			idx+1, testCaseResult.Passed, testCaseResult.Time, execResult.Error)
-
-		// Only include the test case in results if it's public or if we want to show all results
-		if testCase.Public {
-			allResults = append(allResults, testCaseResult)
-		}
-	}
-
-	// Calculate score percentage and whether all tests passed
-	scorePercentage := calculateScore(totalTestCases, passedTestCases)
-	passedAll := passedTestCases == totalTestCases
-
-	jsonResult, err := json.Marshal(allResults)
-	if err != nil {
-		log.Printf("Error marshaling results to JSON: %v", err)
-		return fiber.StatusInternalServerError, nil, 0, false, 0, 0, err
-	}
-
-	return fiber.StatusOK, jsonResult, scorePercentage, passedAll, passedTestCases, totalTestCases, nil
+	return statusCode, jsonResult, scorePercentage, passedAll, passedTestCases, totalTestCases, err
 }
 
 // applyDefaultIfInvalid returns a default value if the given value is invalid

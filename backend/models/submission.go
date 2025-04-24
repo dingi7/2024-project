@@ -14,4 +14,6 @@ type Submission struct {
 	TestCasesResults []TestCaseResult `json:"testCasesResults" gorm:"foreignKey:SubmissionID"`
 	TotalTestCases   int              `json:"totalTestCases" gorm:"type:int;column:total_test_cases"`
 	PassedTestCases  int              `json:"passedTestCases" gorm:"type:int;column:passed_test_cases"`
+	MaxCPUUsage      float64          `json:"maxCpuUsage" gorm:"type:float;column:max_cpu_usage"`
+	MaxMemoryUsage   int              `json:"maxMemoryUsage" gorm:"type:int;column:max_memory_usage"`
 }
