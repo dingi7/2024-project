@@ -16,15 +16,18 @@ import (
 
 type SubmissionHandler struct {
 	SubmissionService *services.SubmissionService
+	ContestService    *services.ContestService
 	UserService       *services.UserService
 }
 
 func NewSubmissionHandler(db *gorm.DB) *SubmissionHandler {
 	submissionService := services.NewSubmissionService(db)
 	userService := services.NewUserService(db)
+	contestService := services.NewContestService(db)
 	return &SubmissionHandler{
 		SubmissionService: submissionService,
 		UserService:       userService,
+		ContestService:    contestService,
 	}
 }
 
@@ -64,6 +67,11 @@ func (h *SubmissionHandler) handleRepoSubmission(c *fiber.Ctx, ctx context.Conte
 		return util.HandleError(c, "Error fetching test files")
 	}
 
+	// If no test files, return an error
+	if testFiles == nil {
+		return util.HandleError(c, "No test files available for this contest")
+	}
+
 	statusCode, _, score, passed, passedTestCases, totalTestCases, err := operations.RunRepoTestCases(submission.Code, testFiles, c.Locals("githubToken").(string))
 	if err != nil {
 		return util.HandleError(c, "Error cloning repository", fiber.Map{"message": err.Error()})
@@ -73,7 +81,11 @@ func (h *SubmissionHandler) handleRepoSubmission(c *fiber.Ctx, ctx context.Conte
 }
 
 func (h *SubmissionHandler) handleCodeSubmission(c *fiber.Ctx, ctx context.Context, submission *models.Submission, contestID string, testCases []models.TestCase) error {
-	statusCode, results, score, passed, passedTestCases, totalTestCases, err := operations.RunCodeTestCases(submission.Language, submission.Code, testCases)
+	contest, err := h.ContestService.FindContestByID(ctx, contestID, submission.OwnerID)
+	if err != nil {
+		return util.HandleError(c, "Error fetching contest")
+	}
+	statusCode, results, score, passed, passedTestCases, totalTestCases, err := operations.RunCodeTestCases(submission.Language, submission.Code, testCases, contest.EnableAICodeEntryIdentification)
 	if err != nil {
 		return util.HandleError(c, "Error running test cases")
 	}

@@ -41,7 +41,7 @@ if __name__ == "__main__":
 	return modifiedCode
 }
 
-func GetFileExtension(language string, code string, entryPoint string) (string, string) {
+func GetFileExtensionAndModifiedCode(language string, code string, entryPoint string) (string, string) {
 	extension := ""
 	modifiedCode := code
 	switch language {

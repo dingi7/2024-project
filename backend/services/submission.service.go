@@ -111,7 +111,7 @@ func (s *SubmissionService) GetSubmissionByID(id string) (*models.Submission, er
 
 func (s *SubmissionService) GetContestTestCases(ctx context.Context, contestID string) ([]models.TestCase, error) {
 	var contest models.Contest
-	result := s.DB.First(&contest, "id = ?", contestID)
+	result := s.DB.Preload("TestCases").First(&contest, "id = ?", contestID)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -124,5 +124,8 @@ func (s *SubmissionService) GetContestTestFiles(ctx context.Context, contestID s
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	return contest.TestFiles, nil
+	if contest.TestFiles == nil {
+		return nil, nil
+	}
+	return *contest.TestFiles, nil
 }

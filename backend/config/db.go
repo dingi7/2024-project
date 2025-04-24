@@ -9,7 +9,7 @@ import (
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
+	// "gorm.io/gorm/logger"
 )
 
 var DB *gorm.DB
@@ -24,21 +24,21 @@ func InitDatabase() (*gorm.DB, error) {
 		os.Getenv("DB_PORT"),
 	)
 
-	// Configure GORM logger
-	gormLogger := logger.New(
-		log.New(os.Stdout, "\r\n", log.LstdFlags),
-		logger.Config{
-			SlowThreshold:             time.Second, // Slow SQL threshold
-			LogLevel:                  logger.Info, // Log level
-			IgnoreRecordNotFoundError: true,        // Ignore ErrRecordNotFound error for logger
-			ParameterizedQueries:      true,        // Don't include params in the SQL log
-			Colorful:                  true,        // Enable color
-		},
-	)
+	// // Configure GORM logger
+	// gormLogger := logger.New(
+	// 	log.New(os.Stdout, "\r\n", log.LstdFlags),
+	// 	logger.Config{
+	// 		SlowThreshold:             time.Second, // Slow SQL threshold
+	// 		LogLevel:                  logger.Info, // Log level
+	// 		IgnoreRecordNotFoundError: true,        // Ignore ErrRecordNotFound error for logger
+	// 		ParameterizedQueries:      true,        // Don't include params in the SQL log
+	// 		Colorful:                  true,        // Enable color
+	// 	},
+	// )
 
 	// Connect to the database
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
-		Logger: gormLogger,
+		// Logger: gormLogger,
 	})
 	if err != nil {
 		log.Println("Error connecting to PostgreSQL!")
@@ -78,5 +78,6 @@ func MigrateDatabase() error {
 		&models.Submission{},
 		&models.TestCaseResult{},
 		&models.Solution{},
+		&models.ContestInvitation{},
 	)
 }

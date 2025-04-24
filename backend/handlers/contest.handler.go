@@ -77,6 +77,27 @@ func (h *ContestHandler) CreateContest(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
+	// Get public and invite-only flags (optional)
+	isPublicStr, _ := getFormValue(form, "isPublic")
+	inviteOnlyStr, _ := getFormValue(form, "inviteOnly")
+
+	// Default to public if not specified
+	isPublic := true
+	if isPublicStr == "false" {
+		isPublic = false
+	}
+
+	// Default to not invite-only if not specified
+	inviteOnly := false
+	if inviteOnlyStr == "true" {
+		inviteOnly = true
+	}
+
+	// If invite-only is true, isPublic must be false
+	if inviteOnly && isPublic {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invite-only contests must be private"})
+	}
+
 	// Create a new Contest instance with the form data
 	contest := &models.Contest{
 		Title:       title,
@@ -88,6 +109,8 @@ func (h *ContestHandler) CreateContest(c *fiber.Ctx) error {
 		OwnerID:     ownerID,
 		CreatedAt:   time.Now(),
 		TestCases:   []models.TestCase{},
+		IsPublic:    isPublic,
+		InviteOnly:  inviteOnly,
 	}
 
 	if contestStructure != "" {
@@ -103,7 +126,7 @@ func (h *ContestHandler) CreateContest(c *fiber.Ctx) error {
 		if err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 		}
-		contest.ContestRules = pdfData
+		contest.ContestRules = &pdfData
 	}
 
 	if testFiles, ok := form.File["testFiles[0]"]; ok {
@@ -114,7 +137,7 @@ func (h *ContestHandler) CreateContest(c *fiber.Ctx) error {
 		if err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 		}
-		contest.TestFiles = testFileData
+		contest.TestFiles = &testFileData
 	}
 
 	// Validate contest data
@@ -144,7 +167,13 @@ func (h *ContestHandler) GetContests(c *fiber.Ctx) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	contests, err := h.ContestService.GetContests(ctx)
+	// Get userID from context if authenticated
+	var userID string
+	if c.Locals("userID") != nil {
+		userID = c.Locals("userID").(string)
+	}
+
+	contests, err := h.ContestService.GetContests(ctx, userID)
 	if err != nil {
 		log.Printf("Error fetching contests: %v", err)
 		return util.HandleError(c, "Failed to fetch contests")
@@ -158,8 +187,20 @@ func (h *ContestHandler) GetContestById(c *fiber.Ctx) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	contest, err := h.ContestService.FindContestByID(ctx, id)
+	// Get user ID from context if authenticated
+	var userID string
+	if c.Locals("userID") != nil {
+		userID = c.Locals("userID").(string)
+	}
+
+	// Get the contest with access check
+	contest, err := h.ContestService.FindContestByID(ctx, id, userID)
 	if err != nil {
+		if err.Error() == "access denied" {
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+				"error": "You do not have access to this contest",
+			})
+		}
 		log.Printf("Error fetching contest: %v", err)
 		return util.HandleError(c, "Failed to fetch contest")
 	}
@@ -172,6 +213,27 @@ func (h *ContestHandler) DeleteContest(c *fiber.Ctx) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
+	// Get user ID from context
+	userID := c.Locals("userID").(string)
+
+	// Get the existing contest to check permissions
+	existingContest, err := h.ContestService.FindContestByID(ctx, id, userID)
+	if err != nil {
+		if err.Error() == "access denied" {
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+				"error": "You do not have access to this contest",
+			})
+		}
+		return util.HandleError(c, "Failed to fetch contest")
+	}
+
+	// Only the owner can delete the contest
+	if existingContest.OwnerID != userID {
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			"error": "Only the contest owner can delete this contest",
+		})
+	}
+
 	if err := h.ContestService.DeleteContest(ctx, id); err != nil {
 		log.Printf("Error deleting contest: %v", err)
 		return util.HandleError(c, "Failed to delete contest")
@@ -182,15 +244,37 @@ func (h *ContestHandler) DeleteContest(c *fiber.Ctx) error {
 
 func (h *ContestHandler) EditContest(c *fiber.Ctx) error {
 	id := c.Params("id")
-	var contest models.Contest
-	if err := c.BodyParser(&contest); err != nil {
+	var contestUpdate models.Contest
+	if err := c.BodyParser(&contestUpdate); err != nil {
+		fmt.Println("Error parsing request body:", err)
 		return util.HandleError(c, "Invalid request body")
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	if err := h.ContestService.EditContest(ctx, id, &contest); err != nil {
+	// Get user ID from context
+	userID := c.Locals("userID").(string)
+
+	// Get the existing contest to check permissions
+	existingContest, err := h.ContestService.FindContestByID(ctx, id, userID)
+	if err != nil {
+		if err.Error() == "access denied" {
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+				"error": "You do not have access to this contest",
+			})
+		}
+		return util.HandleError(c, "Failed to fetch contest")
+	}
+
+	// Only the owner can edit the contest
+	if existingContest.OwnerID != userID {
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			"error": "Only the contest owner can edit this contest",
+		})
+	}
+
+	if err := h.ContestService.EditContest(ctx, id, &contestUpdate); err != nil {
 		log.Printf("Error updating contest: %v", err)
 		return util.HandleError(c, "Failed to update contest")
 	}
@@ -208,12 +292,33 @@ func (h *ContestHandler) AddTestCase(c *fiber.Ctx) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
+	// Get user ID from context
+	userID := c.Locals("userID").(string)
+
+	// Get the existing contest to check permissions
+	existingContest, err := h.ContestService.FindContestByID(ctx, contestID, userID)
+	if err != nil {
+		if err.Error() == "access denied" {
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+				"error": "You do not have access to this contest",
+			})
+		}
+		return util.HandleError(c, "Failed to fetch contest")
+	}
+
+	// Only the owner can add test cases
+	if existingContest.OwnerID != userID {
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			"error": "Only the contest owner can add test cases",
+		})
+	}
+
 	if err := h.ContestService.AddTestCase(ctx, contestID, &testCase); err != nil {
 		log.Printf("Error adding test case: %v", err)
 		return util.HandleError(c, "Failed to add test case")
 	}
 
-	return c.JSON(fiber.Map{"message": "Test case added successfully", "testCase": testCase})
+	return c.JSON(testCase)
 }
 
 func (h *ContestHandler) UpdateTestCase(c *fiber.Ctx) error {
@@ -222,8 +327,32 @@ func (h *ContestHandler) UpdateTestCase(c *fiber.Ctx) error {
 		return util.HandleError(c, "Invalid request body")
 	}
 
+	contestID := c.Params("contestId")
+	testCase.ContestID = contestID
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+
+	// Get user ID from context
+	userID := c.Locals("userID").(string)
+
+	// Get the existing contest to check permissions
+	existingContest, err := h.ContestService.FindContestByID(ctx, contestID, userID)
+	if err != nil {
+		if err.Error() == "access denied" {
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+				"error": "You do not have access to this contest",
+			})
+		}
+		return util.HandleError(c, "Failed to fetch contest")
+	}
+
+	// Only the owner can update test cases
+	if existingContest.OwnerID != userID {
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			"error": "Only the contest owner can update test cases",
+		})
+	}
 
 	if err := h.ContestService.UpdateTestCase(ctx, &testCase); err != nil {
 		log.Printf("Error updating test case: %v", err)
@@ -234,11 +363,32 @@ func (h *ContestHandler) UpdateTestCase(c *fiber.Ctx) error {
 }
 
 func (h *ContestHandler) DeleteTestCase(c *fiber.Ctx) error {
+	contestID := c.Params("contestId")
 	testCaseID := c.Params("testCaseId")
-	fmt.Printf("Deleting test case ID: %s\n", testCaseID)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+
+	// Get user ID from context
+	userID := c.Locals("userID").(string)
+
+	// Get the existing contest to check permissions
+	existingContest, err := h.ContestService.FindContestByID(ctx, contestID, userID)
+	if err != nil {
+		if err.Error() == "access denied" {
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+				"error": "You do not have access to this contest",
+			})
+		}
+		return util.HandleError(c, "Failed to fetch contest")
+	}
+
+	// Only the owner can delete test cases
+	if existingContest.OwnerID != userID {
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			"error": "Only the contest owner can delete test cases",
+		})
+	}
 
 	if err := h.ContestService.DeleteTestCase(ctx, testCaseID); err != nil {
 		log.Printf("Error deleting test case: %v", err)

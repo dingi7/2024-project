@@ -16,6 +16,7 @@ func Setup(app *fiber.App, db *gorm.DB) {
 	submissionHandler := handlers.NewSubmissionHandler(db)
 	leaderboardHandler := handlers.NewLeaderboardHandler(db)
 	githubHandler := handlers.NewGitHubHandler()
+	invitationHandler := handlers.NewInvitationHandler(db)
 
 	// public routes
 	api.Post("/auth/signIn", userHandler.UserSignIn)
@@ -25,17 +26,37 @@ func Setup(app *fiber.App, db *gorm.DB) {
 
 	// private routes
 	api.Use(middlewares.AuthMiddleware)
-	api.Post("/codeSubmit/:contestId", submissionHandler.CreateSubmission)
-	api.Get("/submissions/:contestId", submissionHandler.GetSubmissionsByContestID)
-	api.Get("/submissions/:contestId/:ownerId", submissionHandler.GetSubmissionsByOwnerID)
-	api.Get("/submission/:id", submissionHandler.GetSubmissionByID)
+
+	// Contest creation and management (no access check needed)
 	api.Post("/contest", contestHandler.CreateContest)
+	api.Get("/users/:userId/contests", userHandler.GetUsersAttendedContests)
+	api.Post("/contest/github/createRepo", githubHandler.CreateRepositoryFromTemplate)
+
+	// Specific contest routes (needs access check)
+	contestAccess := middlewares.ContestAccessMiddleware(db)
+
+	// Get contest by ID - Need special handling as it's used to check if user has access
 	api.Get("/contest/:id", contestHandler.GetContestById)
+
+	// Routes that require contest access
+	api.Post("/codeSubmit/:contestId", contestAccess, submissionHandler.CreateSubmission)
+	api.Get("/submissions/:contestId", contestAccess, submissionHandler.GetSubmissionsByContestID)
+	api.Get("/submissions/:contestId/:ownerId", contestAccess, submissionHandler.GetSubmissionsByOwnerID)
+
+	// Contest management routes - only owner can access (checked in handlers)
 	api.Put("/contest/:id", contestHandler.EditContest)
 	api.Delete("/contest/:id", contestHandler.DeleteContest)
 	api.Post("/contest/:id/TestCases", contestHandler.AddTestCase)
-	api.Put("/contest/:id/TestCases", contestHandler.UpdateTestCase)
+	api.Put("/contest/:contestId/TestCases", contestHandler.UpdateTestCase)
 	api.Delete("/contest/:contestId/TestCases/:testCaseId", contestHandler.DeleteTestCase)
-	api.Get("/users/:userId/contests", userHandler.GetUsersAttendedContests)
-	api.Post("/contest/github/createRepo", githubHandler.CreateRepositoryFromTemplate)
+
+	// Get submission by ID doesn't need contest access middleware (checked in handler)
+	api.Get("/submission/:id", submissionHandler.GetSubmissionByID)
+
+	// invitation routes
+	api.Post("/contest/:contestId/invitations", invitationHandler.CreateInvitation)
+	api.Get("/contest/:contestId/invitations", invitationHandler.GetInvitationsForContest)
+	api.Get("/invitations", invitationHandler.GetInvitationsForUser)
+	api.Put("/invitation/:invitationId/respond", invitationHandler.RespondToInvitation)
+	api.Delete("/invitation/:invitationId", invitationHandler.CancelInvitation)
 }

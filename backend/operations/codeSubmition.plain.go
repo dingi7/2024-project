@@ -106,15 +106,16 @@ func killContainer(containerID string) {
 }
 
 // RunCodeTestCases tests code against multiple test cases and returns results
-func RunCodeTestCases(language string, code string, testCases []models.TestCase) (int, []byte, int, bool, int, int, error) {
-	// Try to identify entry point or use default
-	entryPoint, err := util.IdentifyCodeEntryPoint(code)
-	if err != nil || entryPoint == "" {
-		log.Printf("Warning: Could not identify entry point, using 'main': %v", err)
-		entryPoint = "main"
+func RunCodeTestCases(language string, code string, testCases []models.TestCase, isAIEnabled bool) (int, []byte, int, bool, int, int, error) {
+	entryPoint := "main"
+	if isAIEnabled {
+		entryPoint, err := util.IdentifyCodeEntryPoint(code)
+		if err != nil || entryPoint == "" {
+			log.Printf("Warning: Could not identify entry point, using 'main': %v", err)
+			entryPoint = "main"
+		}
 	}
-
-	extension, modifiedCode := GetFileExtension(language, code, entryPoint)
+	extension, modifiedCode := GetFileExtensionAndModifiedCode(language, code, entryPoint)
 	codeFile, err := util.CreateTempFile(modifiedCode, extension)
 	if err != nil {
 		return fiber.StatusInternalServerError, nil, 0, false, 0, 0, fmt.Errorf("failed to create temp file: %w", err)

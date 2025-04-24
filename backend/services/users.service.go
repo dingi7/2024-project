@@ -167,3 +167,13 @@ func (s *UserService) ValidateGitHubToken(token string) (bool, error) {
 
 	return resp.StatusCode == http.StatusOK, nil
 }
+
+// FindUsersByEmail finds users by email address
+func (s *UserService) FindUsersByEmail(ctx context.Context, email string) ([]models.User, error) {
+	var users []models.User
+	result := s.DB.Where("email = ?", email).Find(&users)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return users, nil
+}
