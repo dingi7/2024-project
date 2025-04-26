@@ -51,6 +51,8 @@ const ContestScheme = z.object({
     contestStructure: z.string().optional(),
     testFiles: z.any().optional(),
     testFramework: z.enum(['jest', 'unittest', 'pytest']).optional(),
+    isPublic: z.boolean().default(true),
+    inviteOnly: z.boolean().default(false),
 });
 
 type ContestType = z.infer<typeof ContestScheme>;
@@ -133,6 +135,8 @@ export default function Component() {
                 : null,
             testFramework: data.contestStructure ? data.testFramework : null,
             testFiles: data.contestStructure ? data.testFiles : null,
+            isPublic: data.isPublic,
+            inviteOnly: data.inviteOnly,
         };
 
         try {
@@ -548,6 +552,58 @@ export default function Component() {
                                     {errors.prize.message}
                                 </p>
                             )}
+                        </div>
+                        <div className='grid gap-2'>
+                            <div className='flex items-center space-x-2'>
+                                <Controller
+                                    name='isPublic'
+                                    control={control}
+                                    defaultValue={true}
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <input
+                                                type='checkbox'
+                                                id='isPublic'
+                                                checked={field.value}
+                                                onChange={field.onChange}
+                                                className='h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary'
+                                            />
+                                            <Label htmlFor='isPublic'>
+                                                {t('createContest.form.isPublic.label') || 'Public Contest'}
+                                            </Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                            <p className='text-sm text-muted-foreground'>
+                                {t('createContest.form.isPublic.description') || 'Public contests are visible to all users'}
+                            </p>
+                        </div>
+                        <div className='grid gap-2'>
+                            <div className='flex items-center space-x-2'>
+                                <Controller
+                                    name='inviteOnly'
+                                    control={control}
+                                    defaultValue={false}
+                                    render={({ field }) => (
+                                        <div className='flex items-center space-x-2'>
+                                            <input
+                                                type='checkbox'
+                                                id='inviteOnly'
+                                                checked={field.value}
+                                                onChange={field.onChange}
+                                                className='h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary'
+                                            />
+                                            <Label htmlFor='inviteOnly'>
+                                                {t('createContest.form.inviteOnly.label') || 'Invite Only'}
+                                            </Label>
+                                        </div>
+                                    )}
+                                />
+                            </div>
+                            <p className='text-sm text-muted-foreground'>
+                                {t('createContest.form.inviteOnly.description') || 'Only invited users can participate in this contest'}
+                            </p>
                         </div>
 
                         <div className='grid gap-2'>

@@ -96,3 +96,20 @@ export type PlaceholderSubmission = {
     totalTestCases?: number;
     passedTestCases?: number;
 }
+
+export interface Invitation {
+    id: string;
+    contestID: string;
+    userID: string;
+    userEmail?: string;
+    status: 'pending' | 'accepted' | 'rejected';
+    createdAt: string;
+    updatedAt: string;
+    contest?: Contest;
+    user?: {
+        id: string;
+        name: string;
+        email: string;
+        image: string;
+    };
+}

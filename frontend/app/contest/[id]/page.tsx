@@ -27,6 +27,7 @@ import { decodeBase64ToBlobUrl, reloadSession } from '@/lib/utils';
 import { useTranslation } from '@/lib/useTranslation';
 
 import { Contest, PlaceholderSubmission, Submission } from '@/lib/types';
+import InvitationManager from './components/InvitationManager';
 
 type FilterOptions = {
     status: "all" | "Passed" | "Failed" | "pending";
@@ -474,20 +475,28 @@ export default function ContestPage() {
                     </div>
                 </div>
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-8'>
-                    <ContestDetails
-                        contest={contestState.contest!}
-                        setContest={(contest) =>
-                            setContestState((prev) => ({
-                                ...prev,
-                                contest: contest,
-                            }))
-                        }
-                        isOwner={contestState.isOwner}
-                        isEditEnabled={isEditEnabled}
-                        setIsEditEnabled={setIsEditEnabled}
-                        onEdit={handleEditContest}
-                        contestRules={contestState.contestRulesBlobURL}
-                    />
+                    <div className="space-y-6">
+                        <ContestDetails
+                            contest={contestState.contest!}
+                            setContest={(contest) =>
+                                setContestState((prev) => ({
+                                    ...prev,
+                                    contest: contest,
+                                }))
+                            }
+                            isOwner={contestState.isOwner}
+                            isEditEnabled={isEditEnabled}
+                            setIsEditEnabled={setIsEditEnabled}
+                            onEdit={handleEditContest}
+                            contestRules={contestState.contestRulesBlobURL}
+                        />
+                        {isContestActive && (
+                            <InvitationManager 
+                                contestId={params?.id ?? ''}
+                                isOwner={contestState.isOwner}
+                            />
+                        )}
+                    </div>
                     <SubmissionTable
                         submissions={filteredSubmissions}
                         filterOptions={filterOptions as FilterOptions}
