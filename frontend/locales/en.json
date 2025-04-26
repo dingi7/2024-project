@@ -295,6 +295,24 @@
             "passed": "Passed",
             "failed": "Failed"
         }
+    },
+    "invitations": {
+        "title": "Invitations",
+        "loading": "Loading invitations...",
+        "noInvitations": "No invitations found",
+        "unknownContest": "Unknown Contest",
+        "from": "From",
+        "pending": "Pending",
+        "accepted": "Accepted",
+        "rejected": "Rejected",
+        "accept": "Accept",
+        "decline": "Decline",
+        "accepted": "Invitation Accepted",
+        "declined": "Invitation Declined",
+        "acceptedDescription": "You have accepted the invitation to join the contest.",
+        "declinedDescription": "You have declined the invitation to join the contest.",
+        "error": "Error",
+        "errorDescription": "There was an error processing your response to the invitation."
     }
 }
 

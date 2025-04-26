@@ -72,23 +72,51 @@ export default function InvitationManager({ contestId, isOwner }: InvitationMana
     
     setIsLoading(true);
     try {
-      await createInvitation(contestId, { userEmail: userEmail });
-      toast({
-        title: 'Invitation sent',
-        description: 'The invitation was sent successfully.',
-        variant: 'success',
-      });
-      const response = await getContestInvitations(contestId);
-      setInvitations(response);
-      setUserEmail('');
-      setIsDialogOpen(false);
-    } catch (error) {
+      const result = await createInvitation(contestId, { userEmail: userEmail });
+      
+      // Only proceed if we got a successful response
+      if (result) {
+        toast({
+          title: 'Invitation sent',
+          description: 'The invitation was sent successfully.',
+          variant: 'success',
+        });
+        
+        // Refresh the invitations list
+        const response = await getContestInvitations(contestId);
+        if (response) {
+          setInvitations(response);
+        }
+        
+        setUserEmail('');
+        setIsDialogOpen(false);
+      }
+    } catch (error: any) {
       console.error('Failed to send invitation:', error);
-      toast({
-        title: 'Failed to send invitation',
-        description: 'An error occurred while sending the invitation.',
-        variant: 'destructive',
-      });
+      
+      // Handle specific error for duplicate invitation
+      if (error.response && error.response.data && error.response.data.error) {
+        const errorMessage = error.response.data.error;
+        if (errorMessage.includes('already has a pending invitation')) {
+          toast({
+            title: 'Duplicate invitation',
+            description: 'This user already has a pending invitation for this contest.',
+            variant: 'destructive',
+          });
+        } else {
+          toast({
+            title: 'Failed to send invitation',
+            description: errorMessage || 'An error occurred while sending the invitation.',
+            variant: 'destructive',
+          });
+        }
+      } else {
+        toast({
+          title: 'Failed to send invitation',
+          description: 'An error occurred while sending the invitation.',
+          variant: 'destructive',
+        });
+      }
     } finally {
       setIsLoading(false);
     }

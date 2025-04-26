@@ -9,6 +9,7 @@ import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ModeToggle } from "./ModeToggle";
 import LanguageToggle from "./LanguageToggle";
+import InvitationsPopup from "./InvitationsPopup";
 import { useTranslation } from "@/lib/useTranslation";
 
 type Props = {};
@@ -70,6 +71,7 @@ function Header({}: Props) {
       <div className="flex items-center gap-4">
         <LanguageToggle />
         <ModeToggle />
+        {session?.user && <InvitationsPopup />}
         <ProfileAvatar />
         <button className="lg:hidden" onClick={toggleMenu}>
           {menuOpen ? (

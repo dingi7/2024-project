@@ -115,7 +115,7 @@ const request = async (
                 description: 'You have been logged out.',
                 variant: 'destructive',
             });
-            return;
+            throw new Error('Unauthorized');
         }
         if (res.status === 500) {
             toast({
@@ -123,26 +123,26 @@ const request = async (
                 description: 'An error occurred while processing your request.',
                 variant: 'destructive',
             });
-            return;
+            throw new Error('Internal Server Error');
         }
 
         if (!res.ok) {
-            toast({
-                title: 'Error',
-                description: responseData.message,
-                variant: 'destructive',
-            });
-            return;
+            const error = new Error(responseData.message || 'Request failed');
+            (error as any).response = { status: res.status, data: responseData };
+            throw error;
         }
 
         return responseData;
     } catch (error: any) {
-        toast({
-            title: 'Error',
-            description: error.message,
-            variant: 'destructive',
-        });
-        return;
+        if (!error.response) {
+            // Only show toast for network errors, not for errors we've already handled
+            toast({
+                title: 'Error',
+                description: error.message,
+                variant: 'destructive',
+            });
+        }
+        throw error;
     }
 };
 
