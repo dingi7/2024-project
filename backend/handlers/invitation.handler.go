@@ -51,6 +51,16 @@ func (h *InvitationHandler) CreateInvitation(c *fiber.Ctx) error {
 	// Get current user ID
 	currentUserID := c.Locals("userID").(string)
 
+	currentUser, err := h.UserService.FindUserByID(ctx, currentUserID)
+	if err != nil {
+		return util.HandleError(c, "User not found")
+	}
+	if currentUser.Email == request.UserEmail {
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			"error": "You cannot invite yourself to the contest",
+		})
+	}
+
 	// Get the contest
 	contest, err := h.ContestService.FindContestByID(ctx, request.ContestID, currentUserID)
 	if err != nil {
@@ -84,8 +94,7 @@ func (h *InvitationHandler) CreateInvitation(c *fiber.Ctx) error {
 	}
 
 	for _, invitation := range invitations {
-		if invitation.ContestID == request.ContestID &&
-			invitation.Status == models.InvitationStatusPending {
+		if invitation.ContestID == request.ContestID {
 			return c.Status(fiber.StatusConflict).JSON(fiber.Map{
 				"error": "User already has a pending invitation for this contest",
 			})
@@ -113,6 +122,10 @@ func (h *InvitationHandler) CreateInvitation(c *fiber.Ctx) error {
 	if err == nil && len(existingUsers) > 0 {
 		// If user exists, set the user ID
 		invitation.UserID = existingUsers[0].ID
+	} else {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "User not found",
+		})
 	}
 
 	// Save the invitation
