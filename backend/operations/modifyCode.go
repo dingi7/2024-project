@@ -87,7 +87,7 @@ if len(sys.argv) > 1:
         if cli_input_index < len(cli_inputs):
             result = cli_inputs[cli_input_index]
             cli_input_index += 1
-            print(result)  # Echo the "typed" input
+            # Don't echo the input - let the user code handle output
             return result
         
         # Fall back to standard input if we run out of args
