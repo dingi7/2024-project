@@ -2,37 +2,27 @@
 
 import { useEffect, useState, useRef } from "react";
 import { Bell } from "lucide-react";
-import { 
-  getUserInvitations, 
-  respondToInvitation, 
-  getContestById, 
-  getGithubUserInfoById 
-} from "@/app/api/requests";
-import { Invitation, Contest } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { formatDate } from "@/lib/utils";
-
-// Enhanced invitation interface to include additional fields from the API response
-interface EnhancedInvitation extends Invitation {
-  contestDetails?: Contest;
-  inviterDetails?: {
-    name?: string;
-    login?: string;
-    avatar_url?: string;
-  };
-  // Additional fields from the API that aren't in the original Invitation type
-  invitedBy?: string;
-  invitedAt?: string;
-  contestId?: string; // Some APIs use contestId instead of contestID
-}
+import { useInvitationStore, EnhancedInvitation } from "@/lib/stores/invitationStore";
 
 export default function InvitationsPopup() {
-  const [invitations, setInvitations] = useState<EnhancedInvitation[]>([]);
-  const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  
+  // Use the invitation store
+  const {
+    invitations,
+    enhancedInvitations,
+    isLoading,
+    isRefreshing,
+    fetchInvitations,
+    enhanceInvitations,
+    respondToInvite,
+    getPendingInvitations
+  } = useInvitationStore();
 
   useEffect(() => {
     // Add click outside listener to close dropdown
@@ -48,68 +38,29 @@ export default function InvitationsPopup() {
     };
   }, [dropdownRef]);
 
-  const fetchInvitationDetails = async (invitation: EnhancedInvitation): Promise<EnhancedInvitation> => {
-    const enhancedInvitation: EnhancedInvitation = { ...invitation };
-    
-    try {
-      // Get contest details
-      const contestId = invitation.contestID || invitation.contestId;
-      if (contestId) {
-        const contestResponse = await getContestById(contestId);
-        if (contestResponse) {
-          enhancedInvitation.contestDetails = contestResponse;
-        }
-      }
-      
-      // Get inviter details
-      if (invitation.invitedBy) {
-        const inviterResponse = await getGithubUserInfoById(invitation.invitedBy);
-        enhancedInvitation.inviterDetails = inviterResponse;
-      }
-    } catch (error) {
-      console.error("Error fetching invitation details:", error);
-    }
-    
-    return enhancedInvitation;
-  };
-
-  const fetchInvitations = async () => {
-    try {
-      setLoading(true);
-      const response = await getUserInvitations();
-      console.log(response)
-      const invitationData = response || [];
-      
-      // Fetch additional details for each invitation
-      const enhancedInvitations = await Promise.all(
-        invitationData.map(fetchInvitationDetails)
-      );
-      
-      setInvitations(enhancedInvitations);
-    } catch (error) {
-      console.error("Error fetching invitations:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Effect to fetch fresh invitations when the popup opens
   useEffect(() => {
     if (open) {
       fetchInvitations();
     }
-  }, [open]);
+  }, [open, fetchInvitations]);
+
+  // Effect to enhance invitations when they change
+  useEffect(() => {
+    if (open && invitations.length > 0) {
+      enhanceInvitations();
+    }
+  }, [open, invitations, enhanceInvitations]);
 
   const handleResponse = async (invitationId: string, accept: boolean) => {
     try {
-      await respondToInvitation(invitationId, { accept });
+      await respondToInvite(invitationId, accept);
       toast({
         title: accept ? "Invitation Accepted" : "Invitation Declined",
         description: accept 
           ? "You have accepted the invitation to join the contest." 
           : "You have declined the invitation to join the contest.",
       });
-      // Update the list after responding
-      fetchInvitations();
     } catch (error) {
       console.error("Error responding to invitation:", error);
       toast({
@@ -120,7 +71,7 @@ export default function InvitationsPopup() {
     }
   };
 
-  const pendingInvitations = invitations.filter(inv => inv.status === 'pending');
+  const pendingInvitations = getPendingInvitations();
   const hasPendingInvitations = pendingInvitations.length > 0;
 
   const toggleOpen = () => setOpen(!open);
@@ -143,18 +94,25 @@ export default function InvitationsPopup() {
       {/* Dropdown Menu */}
       {open && (
         <div className="absolute right-0 mt-2 w-80 rounded-md shadow-lg bg-background border z-50 overflow-hidden">
-          <div className="py-2 px-3 border-b">
+          <div className="py-2 px-3 border-b flex justify-between items-center">
             <h3 className="font-medium">Invitations</h3>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={fetchInvitations} 
+              disabled={isLoading || isRefreshing}
+              className="h-7 px-2 text-xs"
+            >
+              Refresh
+            </Button>
           </div>
 
           <div className="max-h-[70vh] overflow-y-auto">
-            {loading ? (
-              <div className="py-4 text-center">Loading invitations...</div>
-            ) : invitations.length === 0 ? (
+            {enhancedInvitations.length === 0 ? (
               <div className="py-4 text-center">No invitations found</div>
             ) : (
               <div className="divide-y">
-                {invitations.map((invitation) => (
+                {enhancedInvitations.map((invitation) => (
                   <div 
                     key={invitation.id} 
                     className="p-3 hover:bg-muted/50"

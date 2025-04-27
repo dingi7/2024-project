@@ -2,7 +2,7 @@
 
 import { CodeIcon, MenuIcon, XIcon } from "lucide-react";
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ProfileAvatar from "./Avatar";
 import SignOutButton from "./SignOutButton";
 import { useSession } from "next-auth/react";
@@ -11,6 +11,7 @@ import { ModeToggle } from "./ModeToggle";
 import LanguageToggle from "./LanguageToggle";
 import InvitationsPopup from "./InvitationsPopup";
 import { useTranslation } from "@/lib/useTranslation";
+import { useInvitationStore } from "@/lib/stores/invitationStore";
 
 type Props = {};
 
@@ -18,6 +19,7 @@ function Header({}: Props) {
   const { data: session } = useSession();
   const [menuOpen, setMenuOpen] = useState(false);
   const { t } = useTranslation();
+  const { fetchInvitations } = useInvitationStore();
 
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
@@ -26,6 +28,13 @@ function Header({}: Props) {
   const closeMenu = () => {
     setMenuOpen(false);
   };
+
+  // Initial fetch of invitations when user logs in
+  useEffect(() => {
+    if (session?.user) {
+      fetchInvitations();
+    }
+  }, [session?.user, fetchInvitations]);
 
   const menuVariants = {
     closed: { opacity: 0, y: -20 },
