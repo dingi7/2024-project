@@ -8,6 +8,8 @@ import { useEffect, useState } from "react";
 import {
     getGithubUserInfoById,
     getUserAttendedContests,
+    getUserOwnedContests,
+    getUserInvitedContests,
 } from "../api/requests";
 import { Contest } from "@/lib/types";
 import { useTranslation } from "@/lib/useTranslation";
@@ -30,7 +32,11 @@ export default function Component() {
         html_url: string;
     } | null>(null);
     const [contests, setContests] = useState<Contest[]>([]);
+    const [ownedContests, setOwnedContests] = useState<Contest[]>([]);
+    const [invitedContests, setInvitedContests] = useState<Contest[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isLoadingOwned, setIsLoadingOwned] = useState(true);
+    const [isLoadingInvited, setIsLoadingInvited] = useState(true);
     const { t } = useTranslation();
 
     useEffect(() => {
@@ -54,6 +60,49 @@ export default function Component() {
                 setIsLoading(false);
             }
         };
+        
+        const fetchOwnedContests = async () => {
+            if (!user?.id) return;
+            try {
+                setIsLoadingOwned(true);
+                const contests: Contest[] = await getUserOwnedContests(
+                    user.id
+                );
+                setOwnedContests(
+                    contests.sort(
+                        (a, b) =>
+                            new Date(a.createdAt).getTime() -
+                            new Date(b.createdAt).getTime()
+                    )
+                );
+            } catch (error) {
+                console.error("Error fetching owned contests:", error);
+            } finally {
+                setIsLoadingOwned(false);
+            }
+        };
+        
+        const fetchInvitedContests = async () => {
+            if (!user?.id) return;
+            try {
+                setIsLoadingInvited(true);
+                const contests: Contest[] = await getUserInvitedContests(
+                    user.id
+                );
+                setInvitedContests(
+                    contests.sort(
+                        (a, b) =>
+                            new Date(a.createdAt).getTime() -
+                            new Date(b.createdAt).getTime()
+                    )
+                );
+            } catch (error) {
+                console.error("Error fetching invited contests:", error);
+            } finally {
+                setIsLoadingInvited(false);
+            }
+        };
+        
         const fetchUserInfo = async () => {
             if (!user?.id) return;
             try {
@@ -65,6 +114,8 @@ export default function Component() {
         };
         fetchUserInfo();
         fetchContests();
+        fetchOwnedContests();
+        fetchInvitedContests();
     }, [user?.id]);
 
     return (
@@ -189,6 +240,111 @@ export default function Component() {
                             })
                         )}
                     </div>
+                    
+                    <div className="mt-8">
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-lg font-medium">
+                                {t("profile.ownedContests") || "Contests You Own"}
+                            </h2>
+                            <Link
+                                href="/contest/create"
+                                className="text-sm text-primary hover:underline"
+                                prefetch={false}
+                            >
+                                {t("profile.createContest") || "Create New Contest"}
+                            </Link>
+                        </div>
+                        <div className="grid gap-4">
+                            {isLoadingOwned ? (
+                                <div className="text-center text-muted-foreground">
+                                    {t("profile.loading")}
+                                </div>
+                            ) : ownedContests.length === 0 ? (
+                                <div className="text-center text-muted-foreground">
+                                    {t("profile.noOwnedContests") || "You don't own any contests yet"}
+                                </div>
+                            ) : (
+                                ownedContests.map((contest: Contest) => {
+                                    return (
+                                        <div
+                                            key={contest.id}
+                                            className="grid grid-cols-[auto_1fr_auto] items-center gap-4"
+                                        >
+                                            <div className="bg-muted rounded-md flex items-center justify-center aspect-square w-10">
+                                                <CrownIcon className="w-5 h-5 text-muted-foreground" />
+                                            </div>
+                                            <div>
+                                                <div className="font-medium">
+                                                    {contest.title}
+                                                </div>
+                                                <div className="text-sm text-muted-foreground">
+                                                    {new Date(
+                                                        contest.startDate
+                                                    ).toLocaleDateString()}
+                                                </div>
+                                            </div>
+                                            <Button variant="default">
+                                                <Link
+                                                    href={`/contest/${contest.id}`}
+                                                >
+                                                    {t("profile.manageContest") || "Manage"}
+                                                </Link>
+                                            </Button>
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
+                    </div>
+                    
+                    <div className="mt-8">
+                        <div className="flex items-center justify-between mb-4">
+                            <h2 className="text-lg font-medium">
+                                {t("profile.invitedContests") || "Contests You're Invited To"}
+                            </h2>
+                        </div>
+                        <div className="grid gap-4">
+                            {isLoadingInvited ? (
+                                <div className="text-center text-muted-foreground">
+                                    {t("profile.loading")}
+                                </div>
+                            ) : invitedContests.length === 0 ? (
+                                <div className="text-center text-muted-foreground">
+                                    {t("profile.noInvitedContests") || "You don't have any contest invitations"}
+                                </div>
+                            ) : (
+                                invitedContests.map((contest: Contest) => {
+                                    return (
+                                        <div
+                                            key={contest.id}
+                                            className="grid grid-cols-[auto_1fr_auto] items-center gap-4"
+                                        >
+                                            <div className="bg-muted rounded-md flex items-center justify-center aspect-square w-10">
+                                                <EnvelopeIcon className="w-5 h-5 text-muted-foreground" />
+                                            </div>
+                                            <div>
+                                                <div className="font-medium">
+                                                    {contest.title}
+                                                </div>
+                                                <div className="text-sm text-muted-foreground">
+                                                    {new Date(
+                                                        contest.startDate
+                                                    ).toLocaleDateString()}
+                                                </div>
+                                            </div>
+                                            <Button variant="default">
+                                                <Link
+                                                    href={`/contest/${contest.id}`}
+                                                >
+                                                    {t("profile.viewContest") || "View"}
+                                                </Link>
+                                            </Button>
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -215,6 +371,45 @@ function TrophyIcon(props: React.ComponentProps<"svg">) {
             <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
             <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
             <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+        </svg>
+    );
+}
+
+function CrownIcon(props: React.ComponentProps<"svg">) {
+    return (
+        <svg
+            {...props}
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        >
+            <path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14" />
+        </svg>
+    );
+}
+
+function EnvelopeIcon(props: React.ComponentProps<"svg">) {
+    return (
+        <svg
+            {...props}
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+        >
+            <rect width="20" height="16" x="2" y="4" rx="2" />
+            <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
         </svg>
     );
 }

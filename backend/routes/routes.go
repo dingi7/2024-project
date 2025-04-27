@@ -30,6 +30,8 @@ func Setup(app *fiber.App, db *gorm.DB) {
 	// Contest creation and management (no access check needed)
 	api.Post("/contest", contestHandler.CreateContest)
 	api.Get("/users/:userId/contests", userHandler.GetUsersAttendedContests)
+	api.Get("/users/:userId/owned-contests", contestHandler.GetUserOwnedContests)
+	api.Get("/users/:userId/invited-contests", contestHandler.GetUserInvitedContests)
 	api.Post("/contest/github/createRepo", githubHandler.CreateRepositoryFromTemplate)
 
 	// Specific contest routes (needs access check)

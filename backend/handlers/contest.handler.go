@@ -398,6 +398,64 @@ func (h *ContestHandler) DeleteTestCase(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"message": "Test case deleted successfully"})
 }
 
+// GetUserOwnedContests gets all contests owned by a specific user
+func (h *ContestHandler) GetUserOwnedContests(c *fiber.Ctx) error {
+	userId := c.Params("userId")
+	if userId == "" {
+		return util.HandleError(c, "User ID is required")
+	}
+
+	// Verify the request is authorized
+	requestingUserID := c.Locals("userID").(string)
+	
+	// Only allow users to fetch their own owned contests for security
+	if userId != requestingUserID {
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			"error": "You can only view your own owned contests",
+		})
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	contests, err := h.ContestService.GetUserOwnedContests(ctx, userId)
+	if err != nil {
+		log.Printf("Error fetching user's owned contests: %v", err)
+		return util.HandleError(c, "Failed to fetch user's owned contests")
+	}
+
+	return c.JSON(contests)
+}
+
+// GetUserInvitedContests gets all contests a user has been invited to
+func (h *ContestHandler) GetUserInvitedContests(c *fiber.Ctx) error {
+	userId := c.Params("userId")
+	if userId == "" {
+		return util.HandleError(c, "User ID is required")
+	}
+
+	// Verify the request is authorized
+	requestingUserID := c.Locals("userID").(string)
+	
+	// Only allow users to fetch their own invited contests for security
+	if userId != requestingUserID {
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			"error": "You can only view your own invited contests",
+		})
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	contests, err := h.ContestService.GetUserInvitedContests(ctx, userId)
+	if err != nil {
+		log.Printf("Error fetching user's invited contests: %v", err)
+		return util.HandleError(c, "Failed to fetch user's invited contests")
+	}
+
+	return c.JSON(contests)
+}
+
 func validateContest(contest *models.Contest) error {
 	validate := validator.New()
 	validate.RegisterValidation("datetime", func(fl validator.FieldLevel) bool {

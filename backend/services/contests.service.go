@@ -173,3 +173,49 @@ func (s *ContestService) UpdateTestCase(ctx context.Context, testCase *models.Te
 func (s *ContestService) DeleteTestCase(ctx context.Context, testCaseID string) error {
 	return s.DB.Delete(&models.TestCase{}, "id = ?", testCaseID).Error
 }
+
+// GetUserOwnedContests returns all contests where the user is the owner
+func (s *ContestService) GetUserOwnedContests(ctx context.Context, userID string) ([]models.Contest, error) {
+	if userID == "" {
+		return nil, fmt.Errorf("user ID is required")
+	}
+
+	var ownedContests []models.Contest
+	if err := s.DB.Preload("TestCases").Where("owner_id = ?", userID).Find(&ownedContests).Error; err != nil {
+		return nil, err
+	}
+
+	return ownedContests, nil
+}
+
+// GetUserInvitedContests returns all contests the user has been invited to
+func (s *ContestService) GetUserInvitedContests(ctx context.Context, userID string) ([]models.Contest, error) {
+	if userID == "" {
+		return nil, fmt.Errorf("user ID is required")
+	}
+
+	// Get IDs of contests the user has been invited to
+	var invitedContestIDs []string
+	if err := s.DB.Model(&models.ContestInvitation{}).
+		Distinct("contest_id").
+		Where("(user_id = ? OR user_email = (SELECT email FROM users WHERE id = ?)) AND status = ?",
+			userID, userID, models.InvitationStatusAccepted).
+		Pluck("contest_id", &invitedContestIDs).Error; err != nil {
+		return nil, err
+	}
+
+	// If no invitations found, return empty slice
+	if len(invitedContestIDs) == 0 {
+		return []models.Contest{}, nil
+	}
+
+	// Get the contests
+	var invitedContests []models.Contest
+	if err := s.DB.Preload("TestCases").
+		Where("id IN ? AND owner_id != ?", invitedContestIDs, userID).
+		Find(&invitedContests).Error; err != nil {
+		return nil, err
+	}
+
+	return invitedContests, nil
+}

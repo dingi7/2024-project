@@ -18,6 +18,8 @@ export const endpoints = {
   getLeaderboard: "/leaderboard",
   editContest: (id: string) => `/contest/${id}`,
   getUserAttendedContests: (userId: string) => `/users/${userId}/contests`,
+  getUserOwnedContests: (userId: string) => `/users/${userId}/owned-contests`,
+  getUserInvitedContests: (userId: string) => `/users/${userId}/invited-contests`,
   createRepo: "/contest/github/createRepo",
   createInvitation: (contestId: string) => `/contest/${contestId}/invitations`,
   getContestInvitations: (contestId: string) => `/contest/${contestId}/invitations`,
@@ -105,6 +107,18 @@ export const getUserAttendedContests = async (
   userId: string
 ): Promise<Contest[]> => {
   return api.get(endpoints.getUserAttendedContests(userId));
+};
+
+export const getUserOwnedContests = async (
+  userId: string
+): Promise<Contest[]> => {
+  return api.get(endpoints.getUserOwnedContests(userId));
+};
+
+export const getUserInvitedContests = async (
+  userId: string
+): Promise<Contest[]> => {
+  return api.get(endpoints.getUserInvitedContests(userId));
 };
 
 export const createRepo = async (payload: {
