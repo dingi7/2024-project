@@ -18,7 +18,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 interface ContestTestCasesProps {
     contestId: string;
     dbTestCases: TestCase[];
-    saveContestTestCase: (testCase: TestCase, action: 'delete' | 'add') => void;
+    saveContestTestCase: (testCase: TestCase, action: 'delete' | 'add' | 'edit') => void;
 }
 
 const ContestTestCases: React.FC<ContestTestCasesProps> = ({
@@ -47,7 +47,14 @@ const ContestTestCases: React.FC<ContestTestCasesProps> = ({
         setEditingId(null);
         const savedTestCase = testCases.find((test) => test.id === id);
         if (savedTestCase) {
-            editTestCase(contestId, savedTestCase);
+            editTestCase(contestId, savedTestCase)
+                .then(response => {
+                    // Update the parent component's state with a single edit action
+                    saveContestTestCase(savedTestCase, 'edit');
+                })
+                .catch(error => {
+                    console.error('Failed to edit test case:', error);
+                });
         }
     };
 

@@ -10,6 +10,7 @@ import { z } from 'zod';
 import { toast } from '@/components/ui/use-toast';
 import { decodeBase64ToBlobUrl } from '@/lib/utils';
 import { useTranslation } from '@/lib/useTranslation';
+import { useContestStore } from '../../../../lib/stores/contestStore';
 
 const ContestScheme = z.object({
     title: z.string().min(3).max(32),
@@ -26,7 +27,7 @@ type ContestType = z.infer<typeof ContestScheme>;
 type Props = {
     onEdit: (updatedContest: Contest) => void;
     contest: Contest;
-    updateTestCases: (testCase: TestCase, action: 'delete' | 'add') => void;
+    updateTestCases: (testCase: TestCase, action: 'delete' | 'add' | 'edit') => void;
 };
 
 export default function ContestEditForm({ contest, onEdit, updateTestCases }: Props) {
