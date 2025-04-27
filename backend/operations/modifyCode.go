@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
 
@@ -114,6 +115,17 @@ if __name__ == "__main__":
 	return modifiedCode
 }
 
+func modifyJavaCode(code string, entryPoint string) string {
+	// Replace public class with "public class Main" to match the file name
+	modifiedCode := code
+
+	// Use regex to find and replace "public class X" with "public class Main"
+	re := regexp.MustCompile(`public\s+class\s+\w+`)
+	modifiedCode = re.ReplaceAllString(modifiedCode, "public class Main")
+
+	return modifiedCode
+}
+
 func GetFileExtensionAndModifiedCode(language string, code string, entryPoint string) (string, string) {
 	extension := ""
 	modifiedCode := code
@@ -126,6 +138,7 @@ func GetFileExtensionAndModifiedCode(language string, code string, entryPoint st
 		modifiedCode = modifyJSCode(code, entryPoint)
 	case "Java":
 		extension = "java"
+		modifiedCode = modifyJavaCode(code, entryPoint)
 	case "C++":
 		extension = "cpp"
 	case "C#":

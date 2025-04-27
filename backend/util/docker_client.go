@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
@@ -82,6 +83,11 @@ func (d *DockerClient) ExecuteContainer(ctx context.Context, image, codeFile, in
 	filename := filepath.Base(codeFile)
 	containerPath := "/app/" + filename
 
+	// For Java files, always use Main.java as the container path
+	if extension == ".java" {
+		containerPath = "/app/Main.java"
+	}
+
 	// Create a container configuration
 	config := &container.Config{
 		Image: image,
@@ -110,7 +116,34 @@ func (d *DockerClient) ExecuteContainer(ctx context.Context, image, codeFile, in
 	// Create the container
 	resp, err := d.client.ContainerCreate(ctx, config, hostConfig, nil, nil, "")
 	if err != nil {
-		return "", nil, fmt.Errorf("failed to create container: %w", err)
+		// Check if the error is because the image doesn't exist
+		if strings.Contains(err.Error(), "No such image") {
+			log.Printf("Image %s not found, attempting to pull...", image)
+
+			// Pull the image using docker command line
+			cmd := exec.Command("docker", "pull", image)
+			var outBuf bytes.Buffer
+			var errBuf bytes.Buffer
+			cmd.Stdout = &outBuf
+			cmd.Stderr = &errBuf
+
+			pullErr := cmd.Run()
+			if pullErr != nil {
+				log.Printf("Docker pull output: %s", outBuf.String())
+				log.Printf("Docker pull error: %s", errBuf.String())
+				return "", nil, fmt.Errorf("failed to pull image %s: %w", image, pullErr)
+			}
+
+			log.Printf("Successfully pulled image %s", image)
+
+			// Try to create the container again
+			resp, err = d.client.ContainerCreate(ctx, config, hostConfig, nil, nil, "")
+			if err != nil {
+				return "", nil, fmt.Errorf("failed to create container after pulling image: %w", err)
+			}
+		} else {
+			return "", nil, fmt.Errorf("failed to create container: %w", err)
+		}
 	}
 
 	containerID := resp.ID
@@ -247,7 +280,8 @@ func collectStats(ctx context.Context, cli *client.Client, containerID string, s
 
 	// Try multiple times to get initial stats
 	var statsJSON types.StatsJSON
-	var err error
+	var statsErr error
+
 	for retries := 0; retries < 3; retries++ {
 		// Check if parent context is done before each attempt
 		select {
@@ -265,26 +299,27 @@ func collectStats(ctx context.Context, cli *client.Client, containerID string, s
 			continue
 		}
 
-		err = json.NewDecoder(statsOpts.Body).Decode(&statsJSON)
+		statsErr = json.NewDecoder(statsOpts.Body).Decode(&statsJSON)
 		statsOpts.Body.Close()
 
-		if err == nil {
+		if statsErr == nil {
 			// Successfully decoded stats
 			break
 		}
 
-		if err == io.EOF {
+		if statsErr == io.EOF {
 			log.Printf("Container not ready for stats yet (attempt %d), retrying...", retries+1)
 			time.Sleep(200 * time.Millisecond)
 			continue
 		}
 
-		log.Printf("Error decoding initial stats (attempt %d): %v", retries+1, err)
+		log.Printf("Error decoding initial stats (attempt %d): %v", retries+1, statsErr)
 		time.Sleep(200 * time.Millisecond)
 	}
 
-	// If we got valid stats, send them
-	if err == nil {
+	// Send the stats to the channel if we got valid data
+	// We know we have valid stats if err is nil at this point
+	if statsErr == nil {
 		select {
 		case statsCh <- &statsJSON:
 			// Stats sent successfully
@@ -443,14 +478,20 @@ func getContainerCommand(extension, containerPath, inputString string) []string 
 		return []string{"/bin/sh", "-c", fmt.Sprintf("node %s '%s' 2>&1", containerPath, escapedInput)}
 	case ".java":
 		dir := filepath.Dir(containerPath)
-		return []string{"/bin/sh", "-c", fmt.Sprintf("javac %s && cd %s && java Main %s", containerPath, dir, inputString)}
+		// Pipe the input string to stdin using echo
+		return []string{"/bin/sh", "-c", fmt.Sprintf("javac %s && cd %s && echo '%s' | java Main",
+			containerPath, dir, strings.ReplaceAll(inputString, "'", "'\\''"))}
 	case ".cpp":
 		dir := filepath.Dir(containerPath)
 		executable := filepath.Join(dir, "a.out")
-		return []string{"/bin/sh", "-c", fmt.Sprintf("g++ %s -o %s && %s %s", containerPath, executable, executable, inputString)}
+		// Pipe the input string to stdin using echo
+		return []string{"/bin/sh", "-c", fmt.Sprintf("g++ %s -o %s && echo '%s' | %s",
+			containerPath, executable, strings.ReplaceAll(inputString, "'", "'\\''"), executable)}
 	case ".cs":
 		dir := filepath.Dir(containerPath)
-		return []string{"/bin/sh", "-c", fmt.Sprintf("cd %s && dotnet run --project . -- %s", dir, inputString)}
+		// Pipe the input string to stdin using echo
+		return []string{"/bin/sh", "-c", fmt.Sprintf("cd %s && dotnet run --project . <<< '%s'",
+			dir, strings.ReplaceAll(inputString, "'", "'\\''"))}
 	default:
 		return []string{"/bin/sh", "-c", fmt.Sprintf("cat %s", containerPath)}
 	}
