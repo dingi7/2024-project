@@ -2,8 +2,8 @@
 
 import { useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import Link from 'next/link';
 import { useSession } from 'next-auth/react';
+import Link from 'next/link';
 
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -13,19 +13,20 @@ import ContestDetails from './components/ContestDetails';
 import SubmissionForm from './components/SubmissionForm';
 import SubmissionTable from './components/SubmissionTable';
 import GithubRepos from './github/repoList';
-import { TimeLocked } from './components/TimeLocked';
-import { useContestStore } from '../../../lib/stores/contestStore';
-import { useTranslation } from '@/lib/useTranslation';
+import TimeLocked from './components/TimeLocked';
 import InvitationManager from './components/InvitationManager';
 
+import { useContestStore } from '../../../lib/stores/ContestStore';
+import { useTranslation } from '@/lib/useTranslation';
+
 // Import the FilterOptions type from store
-import type { FilterOptions } from '../../../lib/stores/contestStore';
+import type { FilterOptions } from '../../../lib/stores/ContestStore';
 
 export default function ContestPage() {
     const { t } = useTranslation();
     const { data: session, status } = useSession();
     const params = useParams<{ id: string }>();
-    
+
     // Get all state and actions from the store
     const {
         loading,
@@ -37,51 +38,54 @@ export default function ContestPage() {
         repos,
         selectedRepo,
         filterOptions,
-        
+
         setIsEditEnabled,
         setSelectedRepo,
         setFilterOptions,
-        
+
         fetchContestAndSubmissions,
         handleEditContest,
         handleSubmit,
         handleCloneRepo,
         refreshGithubRepos,
-        
+
         getFilteredSubmissions,
-        isContestActive
+        isContestActive,
     } = useContestStore();
-    
+
     // Filtered submissions computed value
     const filteredSubmissions = getFilteredSubmissions();
-    
+
     // Fetch contest data when component mounts or parameters change
     useEffect(() => {
         if (status === 'authenticated' && session?.user?.id) {
             fetchContestAndSubmissions(
-                params?.id ?? '', 
+                params?.id ?? '',
                 session.user.id,
                 session.githubAccessToken
             );
         }
     }, [params, session?.user?.id, status, fetchContestAndSubmissions]);
-    
+
     const handleRefresh = async () => {
         if (session?.user?.id) {
             await fetchContestAndSubmissions(
-                params?.id ?? '', 
+                params?.id ?? '',
                 session.user.id,
                 session.githubAccessToken
             );
         }
     };
-    
-    const handleSubmitWrapper = async (solution: { code: string; language: string }) => {
+
+    const handleSubmitWrapper = async (solution: {
+        code: string;
+        language: string;
+    }) => {
         if (session?.user?.id) {
             await handleSubmit(solution, params?.id ?? '', session.user.id);
         }
     };
-    
+
     const handleCloneRepoWrapper = async () => {
         if (session?.githubAccessToken) {
             await handleCloneRepo(params?.id ?? '');
@@ -91,7 +95,7 @@ export default function ContestPage() {
             }, 2000);
         }
     };
-    
+
     const handleEditContestWrapper = (updatedContest: any) => {
         handleEditContest(updatedContest, params?.id ?? '');
     };
@@ -136,7 +140,7 @@ export default function ContestPage() {
                         {t('contestPage.title')}
                     </h1>
                     <div className='flex gap-2'>
-                        {contest.contestStructure != "null" && (
+                        {contest.contestStructure != 'null' && (
                             <>
                                 {!selectedRepo && (
                                     <Button
@@ -146,10 +150,14 @@ export default function ContestPage() {
                                         {isCloning ? (
                                             <>
                                                 <RefreshCcwIcon className='w-4 h-4 mr-2 animate-spin' />
-                                                {t('contestPage.buttons.cloning')}
+                                                {t(
+                                                    'contestPage.buttons.cloning'
+                                                )}
                                             </>
                                         ) : (
-                                            t('contestPage.buttons.cloneStructure')
+                                            t(
+                                                'contestPage.buttons.cloneStructure'
+                                            )
                                         )}
                                     </Button>
                                 )}
@@ -159,9 +167,10 @@ export default function ContestPage() {
                                         selectedRepo={
                                             selectedRepo
                                                 ? repos.find(
-                                                    (repo) =>
-                                                        repo.name === selectedRepo
-                                                )
+                                                      (repo) =>
+                                                          repo.name ===
+                                                          selectedRepo
+                                                  )
                                                 : null
                                         }
                                         contestLanguage={contest.language}
@@ -175,15 +184,15 @@ export default function ContestPage() {
                                 />
                             </>
                         )}
-                        {contest.contestStructure == "null" && (
+                        {contest.contestStructure == 'null' && (
                             <SubmissionForm
                                 onSubmit={handleSubmitWrapper}
                                 selectedRepo={
                                     selectedRepo
                                         ? repos.find(
-                                            (repo) =>
-                                                repo.name === selectedRepo
-                                        )
+                                              (repo) =>
+                                                  repo.name === selectedRepo
+                                          )
                                         : null
                                 }
                                 contestLanguage={contest.language}
@@ -201,7 +210,7 @@ export default function ContestPage() {
                     </div>
                 </div>
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-8'>
-                    <div className="space-y-6">
+                    <div className='space-y-6'>
                         <ContestDetails
                             contest={contest}
                             setContest={useContestStore.getState().setContest}
@@ -212,7 +221,7 @@ export default function ContestPage() {
                             contestRules={contestRulesBlobURL}
                         />
                         {isContestActive() && (
-                            <InvitationManager 
+                            <InvitationManager
                                 contestId={params?.id ?? ''}
                                 isOwner={isOwner}
                             />

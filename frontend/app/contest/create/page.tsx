@@ -57,7 +57,7 @@ const ContestScheme = z.object({
 
 type ContestType = z.infer<typeof ContestScheme>;
 
-export default function Component() {
+export default function CreateContest() {
     const { toast } = useToast();
     let { data: session, status } = useSession();
     const router = useRouter();

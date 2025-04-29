@@ -11,7 +11,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useRouter } from 'next/navigation';
 import ContestEditForm from './ContestEditForm';
 import { useTranslation } from '@/lib/useTranslation';
-import { useContestStore } from '../../../../lib/stores/contestStore';
+import { useContestStore } from '../../../../lib/stores/ContestStore';
 
 type Props = {
     contest: Contest;
@@ -23,7 +23,7 @@ type Props = {
     contestRules: string | null;
 };
 
-const ContestDetails = ({
+export default function ContestDetails({
     contest,
     isOwner,
     setContest,
@@ -31,7 +31,7 @@ const ContestDetails = ({
     setIsEditEnabled,
     onEdit,
     contestRules,
-}: Props) => {
+}: Props) {
     const { toast } = useToast();
     const router = useRouter();
     const { t } = useTranslation();
@@ -161,5 +161,3 @@ const ContestDetails = ({
         </div>
     );
 };
-
-export default ContestDetails;

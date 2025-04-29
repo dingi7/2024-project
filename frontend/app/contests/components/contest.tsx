@@ -2,7 +2,7 @@ import { useTranslation } from '@/lib/useTranslation';
 import Link from 'next/link';
 import { GithubIcon } from 'lucide-react';
 
-function Contest({
+export default function Contest({
     title,
     description,
     id,
@@ -81,5 +81,3 @@ function Contest({
         </div>
     );
 }
-
-export default Contest;

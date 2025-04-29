@@ -1,6 +1,5 @@
 "use client";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
@@ -16,7 +15,7 @@ import { useTranslation } from "@/lib/useTranslation";
 import { GithubIcon } from "lucide-react";
 import { MapPinIcon } from "lucide-react";
 
-export default function Component() {
+export default function ProfilePage() {
     const { data: session } = useSession();
     const user = session?.user;
     const [userInfo, setUserInfo] = useState<{

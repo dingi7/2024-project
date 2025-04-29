@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-const Search = ({ onSearch }: { onSearch: (query: string) => void }) => {
+export default function Search({ onSearch }: { onSearch: (query: string) => void }) {
     const [searchQuery, setSearchQuery] = useState('');
 
     const handleSearch = () => {
@@ -22,5 +22,3 @@ const Search = ({ onSearch }: { onSearch: (query: string) => void }) => {
         </div>
     );
 };
-
-export default Search;

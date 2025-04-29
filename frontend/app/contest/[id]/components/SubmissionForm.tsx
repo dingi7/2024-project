@@ -24,7 +24,7 @@ type Props = {
     contestLanguage: string;
 };
 
-const SubmissionForm = ({ onSubmit, selectedRepo, contestLanguage }: Props) => {
+export default function SubmissionForm({ onSubmit, selectedRepo, contestLanguage }: Props) {
     console.log(contestLanguage);
     const {t} = useTranslation();
     const [code, setCode] = useState(
@@ -164,5 +164,3 @@ const SubmissionForm = ({ onSubmit, selectedRepo, contestLanguage }: Props) => {
         </Popover>
     );
 };
-
-export default SubmissionForm;

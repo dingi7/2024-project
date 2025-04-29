@@ -10,7 +10,6 @@ import { z } from 'zod';
 import { toast } from '@/components/ui/use-toast';
 import { decodeBase64ToBlobUrl } from '@/lib/utils';
 import { useTranslation } from '@/lib/useTranslation';
-import { useContestStore } from '../../../../lib/stores/contestStore';
 
 const ContestScheme = z.object({
     title: z.string().min(3).max(32),

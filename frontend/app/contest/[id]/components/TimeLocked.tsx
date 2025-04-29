@@ -6,7 +6,7 @@ interface TimeLockedProps {
     endDate: string;
 }
 
-export function TimeLocked({ startDate, endDate }: TimeLockedProps) {
+export default function TimeLocked({ startDate, endDate }: TimeLockedProps) {
     const { t } = useTranslation();
     const [timeLeft, setTimeLeft] = useState('');
     const [isLoading, setIsLoading] = useState(true);
