@@ -1,6 +1,8 @@
 module backend
 
-go 1.22
+go 1.23
+
+toolchain go1.23.8
 
 require (
 	github.com/go-git/go-git v4.7.0+incompatible
@@ -60,6 +62,7 @@ require (
 	github.com/opencontainers/image-spec v1.1.0 // indirect
 	github.com/pjbgf/sha1cd v0.3.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/resend/resend-go/v2 v2.19.0 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3 // indirect
 	github.com/skeema/knownhosts v1.2.2 // indirect

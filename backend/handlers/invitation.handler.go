@@ -134,7 +134,12 @@ func (h *InvitationHandler) CreateInvitation(c *fiber.Ctx) error {
 		return util.HandleError(c, "Error creating invitation")
 	}
 
-	// In a real application, you might want to send an email notification to the user here
+	// Send email notification to the user
+	err = util.SendContestInviteEmail(request.UserEmail, contest.Title, contest.ID)
+	if err != nil {
+		log.Printf("Error sending email notification: %v", err)
+		return util.HandleError(c, "Error sending email notification")
+	}
 
 	return c.Status(fiber.StatusCreated).JSON(invitation)
 }

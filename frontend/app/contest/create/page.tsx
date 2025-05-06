@@ -66,9 +66,22 @@ export default function CreateContest() {
     const { t } = useTranslation();
 
     useEffect(() => {
+        console.log(session);
+
         reloadSession();
         fetchGithubRepos();
+        if (!isAdmin) {
+            router.replace('/');
+        }
     }, [status]);
+
+    const isAdmin = session?.role === 'admin';
+    console.log(session);
+
+    // Admin check and redirect
+    if (status === 'loading') {
+        return null;
+    }
 
     const fetchGithubRepos = async () => {
         if (!session?.githubAccessToken) {
@@ -569,14 +582,17 @@ export default function CreateContest() {
                                                 className='h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary'
                                             />
                                             <Label htmlFor='isPublic'>
-                                                {t('createContest.form.isPublic.label') || 'Public Contest'}
+                                                {t(
+                                                    'createContest.form.isPublic.label'
+                                                ) || 'Public Contest'}
                                             </Label>
                                         </div>
                                     )}
                                 />
                             </div>
                             <p className='text-sm text-muted-foreground'>
-                                {t('createContest.form.isPublic.description') || 'Public contests are visible to all users'}
+                                {t('createContest.form.isPublic.description') ||
+                                    'Public contests are visible to all users'}
                             </p>
                         </div>
                         <div className='grid gap-2'>
@@ -595,14 +611,19 @@ export default function CreateContest() {
                                                 className='h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary'
                                             />
                                             <Label htmlFor='inviteOnly'>
-                                                {t('createContest.form.inviteOnly.label') || 'Invite Only'}
+                                                {t(
+                                                    'createContest.form.inviteOnly.label'
+                                                ) || 'Invite Only'}
                                             </Label>
                                         </div>
                                     )}
                                 />
                             </div>
                             <p className='text-sm text-muted-foreground'>
-                                {t('createContest.form.inviteOnly.description') || 'Only invited users can participate in this contest'}
+                                {t(
+                                    'createContest.form.inviteOnly.description'
+                                ) ||
+                                    'Only invited users can participate in this contest'}
                             </p>
                         </div>
 

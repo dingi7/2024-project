@@ -5,6 +5,8 @@ import (
 	"backend/routes"
 	"log"
 
+	"backend/util"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -27,6 +29,9 @@ func main() {
 	if err := config.MigrateDatabase(); err != nil {
 		log.Fatalf("Database migration failed: %v", err)
 	}
+
+	// Ensure admin users are set
+	util.EnsureAdminUsers(db)
 
 	app := fiber.New()
 

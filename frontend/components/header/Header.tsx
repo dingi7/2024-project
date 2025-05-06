@@ -11,7 +11,7 @@ import { ModeToggle } from "./ModeToggle";
 import LanguageToggle from "./LanguageToggle";
 import InvitationsPopup from "./InvitationsPopup";
 import { useTranslation } from "@/lib/useTranslation";
-import { useInvitationStore } from "@/lib/stores/invitationStore";
+import { useInvitationStore } from "@/lib/stores/InvitationStore";
 
 type Props = {};
 
@@ -66,7 +66,7 @@ function Header({}: Props) {
         >
           {t("header.leaderboard")}
         </Link>
-        {session?.user && (
+        {session?.user && session.role === "admin" && (
           <Link
             href="/contest/create"
             className="text-sm font-bold hover:underline underline-offset-4"
@@ -118,7 +118,7 @@ function Header({}: Props) {
             >
               {t("header.leaderboard")}
             </Link>
-            {session?.user ? (
+            {session?.user && session.role === "admin" ? (
               <>
                 <Link
                   href="/contest/create"

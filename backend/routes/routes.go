@@ -23,6 +23,8 @@ func Setup(app *fiber.App, db *gorm.DB) {
 	api.Get("/contest", contestHandler.GetContests)
 	api.Get("/leaderboard", leaderboardHandler.GetLeaderboard)
 	api.Post("/auth/refresh", userHandler.RefreshAccessToken)
+	api.Post("/admin/invite", handlers.SendAdminInvite(db))
+	api.Post("/admin/accept-invite", handlers.AcceptAdminInvite(db))
 
 	// private routes
 	api.Use(middlewares.AuthMiddleware)

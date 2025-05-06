@@ -34,6 +34,7 @@ const authOptions: NextAuthOptions = {
                 name: user.name,
                 image: user.image,
                 GitHubAccessToken: account?.access_token,
+                role: 'user',
             };
 
             try {
@@ -45,6 +46,7 @@ const authOptions: NextAuthOptions = {
                 user.githubAccessToken = account!.access_token || 'invalid';
                 user.accessToken = result.accessToken;
                 user.refreshToken = result.refreshToken;
+                user.role = result.role;
                 return true;
             } catch (e) {
                 console.error('SignIn error:', e);
@@ -62,10 +64,12 @@ const authOptions: NextAuthOptions = {
                 token.accessTokenExpires = Date.now() + 1000 * 60 * 60 * 24;
                 token.id = user.id;
                 token.githubAccessToken = user.githubAccessToken;
+                token.role = user.role;
             } else if (account) {
                 token.accessToken = account.access_token;
                 token.refreshToken = account?.refresh_token;
                 token.id = account.id;
+                token.role = account.role;
             }
             if (Date.now() < (token.accessTokenExpires as number)) {
                 return token;
@@ -88,6 +92,7 @@ const authOptions: NextAuthOptions = {
             session.accessToken = token.accessToken as string;
             session.refreshToken = token.refreshToken as string;
             session.githubAccessToken = token.githubAccessToken as string;
+            session.role = token.role as string;
             return session;
         },
     },

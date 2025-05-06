@@ -79,5 +79,6 @@ func MigrateDatabase() error {
 		&models.TestCaseResult{},
 		&models.Solution{},
 		&models.ContestInvitation{},
+		&models.AdminInvite{},
 	)
 }

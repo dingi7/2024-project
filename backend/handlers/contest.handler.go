@@ -19,16 +19,29 @@ import (
 
 type ContestHandler struct {
 	ContestService *services.ContestService
+	UserService    *services.UserService
 }
 
 func NewContestHandler(db *gorm.DB) *ContestHandler {
 	contestService := services.NewContestService(db)
+	userService := services.NewUserService(db)
 	return &ContestHandler{
 		ContestService: contestService,
+		UserService:    userService,
 	}
 }
 
 func (h *ContestHandler) CreateContest(c *fiber.Ctx) error {
+	userID := c.Locals("userID").(string)
+	user, err := h.UserService.FindUserByID(context.Background(), userID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to get user"})
+	}
+
+	if !user.IsAdmin() {
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": "You are not authorized to create a contest"})
+	}
+
 	const allowedLanguages = "python, java, javascript, c++, c#"
 
 	form, err := c.MultipartForm()

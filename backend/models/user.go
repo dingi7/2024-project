@@ -9,5 +9,19 @@ type User struct {
 	Provider          string    `json:"provider" gorm:"type:varchar(100)"`
 	Image             string    `json:"image" gorm:"type:text"`
 	GitHubAccessToken string    `json:"githubAccessToken" gorm:"type:text;column:github_access_token"`
+	Role              string    `json:"role" gorm:"type:varchar(100)"`
 	CreatedAt         time.Time `json:"createdAt" gorm:"autoCreateTime"`
+}
+
+const (
+	RoleAdmin = "admin"
+	RoleUser  = "user"
+)
+
+func (u *User) IsAdmin() bool {
+	return u.Role == RoleAdmin
+}
+
+func (u *User) IsUser() bool {
+	return u.Role == RoleUser
 }

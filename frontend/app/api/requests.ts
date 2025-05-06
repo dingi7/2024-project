@@ -152,3 +152,11 @@ export const respondToInvitation = async (invitationId: string, payload: { accep
 export const cancelInvitation = async (invitationId: string) => {
   return api.del(endpoints.cancelInvitation(invitationId));
 };
+
+export const acceptAdminInvite = async (token: string) => {
+  return api.post('/admin/accept-invite', { token });
+};
+
+export const sendAdminInvite = async (email: string) => {
+  return api.post('/admin/invite', { email });
+};

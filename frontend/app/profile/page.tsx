@@ -9,6 +9,7 @@ import {
     getUserAttendedContests,
     getUserOwnedContests,
     getUserInvitedContests,
+    sendAdminInvite,
 } from "../api/requests";
 import { Contest } from "@/lib/types";
 import { useTranslation } from "@/lib/useTranslation";
@@ -37,6 +38,11 @@ export default function ProfilePage() {
     const [isLoadingOwned, setIsLoadingOwned] = useState(true);
     const [isLoadingInvited, setIsLoadingInvited] = useState(true);
     const { t } = useTranslation();
+    const [showInvite, setShowInvite] = useState(false);
+    const [inviteEmail, setInviteEmail] = useState("");
+    const [inviteLoading, setInviteLoading] = useState(false);
+    const [inviteMessage, setInviteMessage] = useState<string | null>(null);
+    const [inviteError, setInviteError] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchContests = async () => {
@@ -117,6 +123,22 @@ export default function ProfilePage() {
         fetchInvitedContests();
     }, [user?.id]);
 
+    const handleInvite = async () => {
+        setInviteLoading(true);
+        setInviteMessage(null);
+        setInviteError(null);
+        try {
+            const res = await sendAdminInvite(inviteEmail);
+            setInviteMessage(res.message || "Admin invite sent!");
+            setInviteEmail("");
+            setShowInvite(false);
+        } catch (e: any) {
+            setInviteError(e?.response?.data?.error || e?.message || "Failed to send invite.");
+        } finally {
+            setInviteLoading(false);
+        }
+    };
+
     return (
         <div className="w-full max-w-5xl mx-auto py-8 px-4 md:px-6 flex flex-col flex-1">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -184,6 +206,38 @@ export default function ProfilePage() {
                             Joined GitHub
                         </span>
                     </div>
+                    {/* Admin Invite UI */}
+                    {session?.role === 'admin' && (
+                        <div className="mt-6">
+                            <button
+                                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+                                onClick={() => setShowInvite((v) => !v)}
+                            >
+                                Invite Admin
+                            </button>
+                            {showInvite && (
+                                <div className="mt-4 flex flex-col items-start gap-2">
+                                    <input
+                                        type="email"
+                                        className="border rounded px-3 py-2 w-64"
+                                        placeholder="Recipient's email"
+                                        value={inviteEmail}
+                                        onChange={(e) => setInviteEmail(e.target.value)}
+                                        disabled={inviteLoading}
+                                    />
+                                    <button
+                                        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
+                                        onClick={handleInvite}
+                                        disabled={inviteLoading || !inviteEmail}
+                                    >
+                                        {inviteLoading ? 'Sending...' : 'Send Invite'}
+                                    </button>
+                                    {inviteMessage && <div className="text-green-600 mt-2">{inviteMessage}</div>}
+                                    {inviteError && <div className="text-red-600 mt-2">{inviteError}</div>}
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
                 <div className="bg-background rounded-lg border p-6 col-span-2">
                     <div className="flex items-center justify-between mb-4">

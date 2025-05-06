@@ -68,6 +68,7 @@ func (s *UserService) CreateAccessToken(user models.User, refreshToken string) (
 	claims := jwt.MapClaims{
 		"id":           user.ID,
 		"github_token": user.GitHubAccessToken,
+		"email":        user.Email,
 		"exp":          time.Now().Add(AccessTokenExpiry).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

@@ -44,9 +44,12 @@ func AuthMiddleware(c *fiber.Ctx) error {
 		// You can access the claims here, e.g., user ID
 		userID := claims["id"]
 		githubToken := claims["github_token"]
+		email := claims["email"]
+
 		// Add the user ID to the context for use in protected routes
 		c.Locals("userID", userID)
 		c.Locals("githubToken", githubToken)
+		c.Locals("email", email)
 		return c.Next()
 	}
 

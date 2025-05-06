@@ -54,6 +54,7 @@ func (h *UserHandler) UserSignIn(c *fiber.Ctx) error {
 	ctx, cancel := context.WithTimeout(context.Background(), requestTimeout)
 	defer cancel()
 
+	var role string
 	// Check if user exists
 	existingUser, err := h.UserService.FindUserByID(ctx, user.ID)
 	if err != nil {
@@ -64,6 +65,7 @@ func (h *UserHandler) UserSignIn(c *fiber.Ctx) error {
 				log.Printf("Failed to create user: %v", err)
 				return util.HandleError(c, "Failed to create user")
 			}
+			role = user.Role
 		} else {
 			log.Printf("Database error: %v", err)
 			return util.HandleError(c, "Database error")
@@ -71,6 +73,7 @@ func (h *UserHandler) UserSignIn(c *fiber.Ctx) error {
 	} else {
 		// User exists
 		log.Printf("User already exists: %v", existingUser)
+		role = existingUser.Role
 	}
 
 	accessToken, err := h.UserService.CreateAccessToken(user, "")
@@ -84,7 +87,7 @@ func (h *UserHandler) UserSignIn(c *fiber.Ctx) error {
 		return util.HandleError(c, "Failed to create refresh token")
 	}
 
-	return c.JSON(fiber.Map{"accessToken": accessToken, "refreshToken": refreshToken})
+	return c.JSON(fiber.Map{"accessToken": accessToken, "refreshToken": refreshToken, "role": role})
 }
 
 func (h *UserHandler) RefreshAccessToken(c *fiber.Ctx) error {

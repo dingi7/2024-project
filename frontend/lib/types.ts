@@ -12,6 +12,7 @@ export interface User {
     name: string | undefined | null;
     image: string | undefined | null;
     GitHubAccessToken: string | undefined;
+    role: string | undefined;
 }
 
 export interface ContestSolution {
