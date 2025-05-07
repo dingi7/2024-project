@@ -69,6 +69,7 @@ func (s *UserService) CreateAccessToken(user models.User, refreshToken string) (
 		"id":           user.ID,
 		"github_token": user.GitHubAccessToken,
 		"email":        user.Email,
+		"role":         user.Role,
 		"exp":          time.Now().Add(AccessTokenExpiry).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -113,6 +114,7 @@ func (s *UserService) CreateRefreshToken(user models.User) (string, error) {
 	claims := jwt.MapClaims{
 		"id":           user.ID,
 		"github_token": user.GitHubAccessToken,
+		
 		"exp":          time.Now().Add(RefreshTokenExpiry).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
