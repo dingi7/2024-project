@@ -46,6 +46,14 @@ export default function SubmissionForm({ onSubmit, selectedRepo, contestLanguage
         { value: 'C#', monacoValue: 'csharp', label: 'C#' },
     ], []);
 
+    // Sync language state with contestLanguage prop, matching correct casing
+    useEffect(() => {
+        const match = languages.find(
+            l => l.value.toLowerCase() === contestLanguage.toLowerCase()
+        );
+        setLanguage(match ? match.value : languages[0].value);
+    }, [contestLanguage, languages]);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);

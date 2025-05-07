@@ -257,10 +257,36 @@ func (h *ContestHandler) DeleteContest(c *fiber.Ctx) error {
 
 func (h *ContestHandler) EditContest(c *fiber.Ctx) error {
 	id := c.Params("id")
+
+	contentType := c.Get("Content-Type")
 	var contestUpdate models.Contest
-	if err := c.BodyParser(&contestUpdate); err != nil {
-		fmt.Println("Error parsing request body:", err)
-		return util.HandleError(c, "Invalid request body")
+
+	if strings.HasPrefix(contentType, "multipart/form-data") {
+		// Parse multipart form
+		form, err := c.MultipartForm()
+		if err != nil {
+			return util.HandleError(c, "Invalid multipart form data")
+		}
+
+		// Parse regular fields
+		if err := c.BodyParser(&contestUpdate); err != nil {
+			fmt.Println("Error parsing request body:", err)
+			return util.HandleError(c, "Invalid request body")
+		}
+
+		// Handle contestRules file upload (look for contestRules[0])
+		if files, ok := form.File["contestRules[0]"]; ok && len(files) > 0 {
+			pdfData, err := util.HandlePDFUpload(files)
+			if err != nil {
+				return util.HandleError(c, err.Error())
+			}
+			contestUpdate.ContestRules = &pdfData
+		}
+	} else {
+		if err := c.BodyParser(&contestUpdate); err != nil {
+			fmt.Println("Error parsing request body:", err)
+			return util.HandleError(c, "Invalid request body")
+		}
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -420,7 +446,7 @@ func (h *ContestHandler) GetUserOwnedContests(c *fiber.Ctx) error {
 
 	// Verify the request is authorized
 	requestingUserID := c.Locals("userID").(string)
-	
+
 	// Only allow users to fetch their own owned contests for security
 	if userId != requestingUserID {
 		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
@@ -449,7 +475,7 @@ func (h *ContestHandler) GetUserInvitedContests(c *fiber.Ctx) error {
 
 	// Verify the request is authorized
 	requestingUserID := c.Locals("userID").(string)
-	
+
 	// Only allow users to fetch their own invited contests for security
 	if userId != requestingUserID {
 		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
