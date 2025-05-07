@@ -16,7 +16,7 @@ import { useInvitationStore } from "@/lib/stores/invitationStore";
 type Props = {};
 
 function Header({}: Props) {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [menuOpen, setMenuOpen] = useState(false);
   const { t } = useTranslation();
   const { fetchInvitations } = useInvitationStore();
@@ -66,7 +66,7 @@ function Header({}: Props) {
         >
           {t("header.leaderboard")}
         </Link>
-        {session?.role == "admin" && (
+        {status === "authenticated" && session?.role === "admin" && (
           <Link
             href="/contest/create"
             className="text-sm font-bold hover:underline underline-offset-4"
@@ -118,7 +118,7 @@ function Header({}: Props) {
             >
               {t("header.leaderboard")}
             </Link>
-            {session?.user && session.role === "admin" ? (
+            {status === "authenticated" && session?.user && session.role === "admin" ? (
               <>
                 <Link
                   href="/contest/create"
