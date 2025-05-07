@@ -32,7 +32,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { createContest } from '@/app/api/requests';
-import { getSession, useSession } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 import { useToast } from '@/components/ui/use-toast';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -106,7 +106,7 @@ export default function CreateContest() {
         if (!isAdmin) {
             router.replace('/');
         }
-    }, [status, isAdmin, router, reloadSession, fetchGithubRepos]);
+    });
 
     const {
         register,
