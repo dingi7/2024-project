@@ -20,7 +20,7 @@ func Setup(app *fiber.App, db *gorm.DB) {
 
 	// public routes
 	api.Post("/auth/signIn", userHandler.UserSignIn)
-	api.Get("/contest", contestHandler.GetContests)
+	api.Get("/contest", middlewares.AttachLocalsIfTokenPresent(), contestHandler.GetContests)
 	api.Get("/leaderboard", leaderboardHandler.GetLeaderboard)
 	api.Post("/auth/refresh", userHandler.RefreshAccessToken)
 	api.Post("/admin/invite", handlers.SendAdminInvite(db))

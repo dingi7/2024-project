@@ -94,22 +94,22 @@ func (h *ContestHandler) CreateContest(c *fiber.Ctx) error {
 	isPublicStr, _ := getFormValue(form, "isPublic")
 	inviteOnlyStr, _ := getFormValue(form, "inviteOnly")
 
-	// Default to public if not specified
-	isPublic := true
-	if isPublicStr == "false" {
-		isPublic = false
-	}
+	// Robustly parse boolean values
+	isPublic := parseBool(isPublicStr, true)
+	inviteOnly := parseBool(inviteOnlyStr, false)
 
-	// Default to not invite-only if not specified
-	inviteOnly := false
-	if inviteOnlyStr == "true" {
-		inviteOnly = true
-	}
-
+	// if isPublic {
+	// 	inviteOnly = false
+	// }
+	// if inviteOnly {
+	// 	isPublic = false
+	// }
 	// If invite-only is true, isPublic must be false
 	if inviteOnly && isPublic {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invite-only contests must be private"})
 	}
+
+	log.Printf("DEBUG: isPublic=%v, inviteOnly=%v", isPublic, inviteOnly)
 
 	// Create a new Contest instance with the form data
 	contest := &models.Contest{
@@ -157,6 +157,8 @@ func (h *ContestHandler) CreateContest(c *fiber.Ctx) error {
 	if err := validateContest(contest); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
+
+	log.Printf("DEBUG: contest.IsPublic=%v, contest.InviteOnly=%v", contest.IsPublic, contest.InviteOnly)
 
 	// Create a context with a timeout
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -287,6 +289,11 @@ func (h *ContestHandler) EditContest(c *fiber.Ctx) error {
 			fmt.Println("Error parsing request body:", err)
 			return util.HandleError(c, "Invalid request body")
 		}
+	}
+
+	// After parsing contestUpdate, add the check for inviteOnly && isPublic
+	if contestUpdate.InviteOnly && contestUpdate.IsPublic {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invite-only contests must be private"})
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -511,4 +518,16 @@ func getFormValue(form *multipart.Form, key string) (string, error) {
 		return "", fmt.Errorf("missing required field: %s", key)
 	}
 	return values[0], nil
+}
+
+// parseBool parses a string to bool, accepting "true", "1" as true and "false", "0" as false. Defaults to defaultVal if not matched.
+func parseBool(str string, defaultVal bool) bool {
+	s := strings.ToLower(strings.TrimSpace(str))
+	if s == "true" || s == "1" {
+		return true
+	}
+	if s == "false" || s == "0" {
+		return false
+	}
+	return defaultVal
 }

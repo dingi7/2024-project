@@ -30,7 +30,7 @@ type Contest struct {
 	TestFiles                       *[]byte             `json:"testFiles,omitempty" gorm:"type:bytea;column:test_files"`
 	TestFramework                   *string             `json:"testFramework,omitempty" gorm:"type:varchar(100);column:test_framework"`
 	EnableAICodeEntryIdentification bool                `json:"enableAICodeEntryIdentification" gorm:"type:boolean;column:enable_ai_code_entry_identification"`
-	IsPublic                        bool                `json:"isPublic" gorm:"type:boolean;column:is_public;default:true"`
-	InviteOnly                      bool                `json:"inviteOnly" gorm:"type:boolean;column:invite_only;default:false"`
+	IsPublic                        bool                `json:"isPublic" gorm:"type:boolean"`
+	InviteOnly                      bool                `json:"inviteOnly" gorm:"type:boolean"`
 	InvitedUsers                    []ContestInvitation `json:"invitedUsers,omitempty" gorm:"foreignKey:ContestID"`
 }
