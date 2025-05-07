@@ -106,7 +106,7 @@ export default function CreateContest() {
         if (!isAdmin) {
             router.replace('/');
         }
-    });
+    }, [status]);
 
     const {
         register,
