@@ -38,14 +38,11 @@ function Header({}: Props) {
     }
     if (!session?.role) {
       reloadSession();
-      setTimeout(() => {
-        setIsAdmin(session?.role == "admin");
-      }, 1000);
     }
-    if (session?.role) {
+    setTimeout(() => {
       setIsAdmin(session?.role == "admin");
-    }
-  }, [session?.user, fetchInvitations, session?.role]);
+    }, 1000);
+  }, [status]);
 
   const menuVariants = {
     closed: { opacity: 0, y: -20 },
