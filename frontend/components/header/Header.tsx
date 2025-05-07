@@ -66,7 +66,7 @@ function Header({}: Props) {
         >
           {t("header.leaderboard")}
         </Link>
-        {session?.user && session.role === "admin" && (
+        {session?.role == "admin" && (
           <Link
             href="/contest/create"
             className="text-sm font-bold hover:underline underline-offset-4"
