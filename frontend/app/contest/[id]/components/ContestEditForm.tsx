@@ -185,7 +185,7 @@ export default function ContestEditForm({
                     </div>
                 )}
 
-                {!contest.contestStructure && (
+                {contest.contestStructure && (
                     <ContestTestCases
                         contestId={contest.id}
                         dbTestCases={contest.testCases}
