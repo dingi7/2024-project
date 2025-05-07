@@ -26,7 +26,7 @@ function LanguageToggle({}: Props) {
         router.push(`${pathname}?${params.toString()}`, { scroll: false });
       }
     }
-  }, []);
+  });
 
   const handleLanguageChange = (newLocale: string) => {
     // Store in localStorage

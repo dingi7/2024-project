@@ -36,7 +36,7 @@ import { getSession, useSession } from 'next-auth/react';
 import { useToast } from '@/components/ui/use-toast';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import GithubRepos from '../[id]/github/repoList';
+import GithubRepos from '../[id]/github/RepoList';
 import { useTranslation } from '@/lib/useTranslation';
 
 const ContestScheme = z.object({
@@ -67,21 +67,8 @@ export default function CreateContest() {
     const [isLoading, setIsLoading] = useState(false);
     const { t } = useTranslation();
 
-    useEffect(() => {
-        reloadSession();
-        fetchGithubRepos();
-        if (!isAdmin) {
-            router.replace('/');
-        }
-    }, [status]);
-
     const isAdmin = session?.role === 'admin';
     console.log(session);
-
-    // Admin check and redirect
-    if (status === 'loading') {
-        return null;
-    }
 
     const fetchGithubRepos = async () => {
         if (!session?.githubAccessToken) {
@@ -113,6 +100,14 @@ export default function CreateContest() {
         }
     };
 
+    useEffect(() => {
+        reloadSession();
+        fetchGithubRepos();
+        if (!isAdmin) {
+            router.replace('/');
+        }
+    }, [status, isAdmin, router, reloadSession, fetchGithubRepos]);
+
     const {
         register,
         control,
@@ -122,6 +117,10 @@ export default function CreateContest() {
         setValue,
         watch,
     } = useForm<ContestType>({ resolver: zodResolver(ContestScheme) });
+
+    if (status === 'loading') {
+        return null;
+    }
 
     const handleCreateContest: SubmitHandler<ContestType> = async (data) => {
         if (!session!.user.id || !session) {
