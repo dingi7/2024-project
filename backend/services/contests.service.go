@@ -97,6 +97,7 @@ func (s *ContestService) CheckUserContestAccess(ctx context.Context, userID stri
 
 	// If no user ID is provided, and the contest is not public, deny access
 	if userID == "" {
+		log.Printf("DEBUG: userID is empty, denying access")
 		return false, nil
 	}
 
@@ -107,9 +108,10 @@ func (s *ContestService) CheckUserContestAccess(ctx context.Context, userID stri
 
 	// If the contest is invite-only, check for an invitation
 	if contest.InviteOnly {
+		log.Printf("DEBUG: contest is invite-only, checking for invitation")
 		var invitation models.ContestInvitation
-		result := s.DB.Where("contest_id = ? AND (user_id = ? OR user_email = (SELECT email FROM users WHERE id = ?)) AND status = ?",
-			contestID, userID, userID, models.InvitationStatusAccepted).First(&invitation)
+		result := s.DB.Where("contest_id = ? AND (user_id = ? OR user_email = (SELECT email FROM users WHERE id = ?))",
+			contestID, userID, userID).First(&invitation)
 
 		if result.Error != nil {
 			if errors.Is(result.Error, gorm.ErrRecordNotFound) {
