@@ -67,7 +67,7 @@ export default function AllSubmissionsPage() {
 
     useEffect(() => {
         fetchContestAndSubmissions();
-    }, [params.id]);
+    }, [params.id, fetchContestAndSubmissions]);
 
     const handleSort = (key: typeof sortConfig.key) => {
         setSortConfig(current => ({

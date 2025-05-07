@@ -1,9 +1,5 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import ContestTestCases from './ContestTestCases';
 import { formatDate } from '@/lib/utils';
 import { Contest, TestCase } from '@/lib/types';
 import { deleteContest } from '@/app/api/requests';
@@ -11,7 +7,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useRouter } from 'next/navigation';
 import ContestEditForm from './ContestEditForm';
 import { useTranslation } from '@/lib/useTranslation';
-import { useContestStore } from '../../../../lib/stores/ContestStore';
+import { useContestStore } from '../../../../lib/stores/contestStore';
 
 type Props = {
     contest: Contest;

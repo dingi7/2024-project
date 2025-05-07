@@ -20,7 +20,7 @@ import { PlaceholderSubmission, Submission } from "@/lib/types";
 import { useTranslation } from '@/lib/useTranslation';
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { FilterOptions } from "../../../../lib/stores/ContestStore";
+import { FilterOptions } from "../../../../lib/stores/contestStore";
 
 type Props = {
   submissions: Submission[] | PlaceholderSubmission[];

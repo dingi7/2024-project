@@ -12,15 +12,14 @@ import { RefreshCcwIcon } from 'lucide-react';
 import ContestDetails from './components/ContestDetails';
 import SubmissionForm from './components/SubmissionForm';
 import SubmissionTable from './components/SubmissionTable';
-import GithubRepos from './github/repoList';
+import GithubRepos from './github/RepoList';
 import TimeLocked from './components/TimeLocked';
 import InvitationManager from './components/InvitationManager';
 
-import { useContestStore } from '../../../lib/stores/ContestStore';
+import { useContestStore } from '../../../lib/stores/contestStore';
 import { useTranslation } from '@/lib/useTranslation';
 
 // Import the FilterOptions type from store
-import type { FilterOptions } from '../../../lib/stores/ContestStore';
 
 export default function ContestPage() {
     const { t } = useTranslation();
@@ -65,7 +64,7 @@ export default function ContestPage() {
                 session.githubAccessToken
             );
         }
-    }, [params, session?.user?.id, status, fetchContestAndSubmissions]);
+    }, [params, session?.user?.id, status, fetchContestAndSubmissions, session?.githubAccessToken]);
 
     const handleRefresh = async () => {
         if (session?.user?.id) {

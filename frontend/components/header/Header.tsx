@@ -11,7 +11,7 @@ import { ModeToggle } from "./ModeToggle";
 import LanguageToggle from "./LanguageToggle";
 import InvitationsPopup from "./InvitationsPopup";
 import { useTranslation } from "@/lib/useTranslation";
-import { useInvitationStore } from "@/lib/stores/InvitationStore";
+import { useInvitationStore } from "@/lib/stores/invitationStore";
 
 type Props = {};
 

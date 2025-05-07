@@ -14,7 +14,8 @@ import {
 } from '@/components/ui/table';
 import { ArrowUpDown } from "lucide-react";
 
-import LeaderboardTop3Card from './components/leaderboardTop3Card';
+// eslint-disable-next-line import/no-unresolved
+import LeaderboardTop3Card from './components/LeaderboardTop3Card';
 
 import { getLeaderboard } from '../api/requests';
 import { useTranslation } from "@/lib/useTranslation";
