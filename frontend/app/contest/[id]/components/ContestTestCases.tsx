@@ -12,20 +12,19 @@ import { Input } from '@/components/ui/input';
 import { Pencil, Trash2, Plus } from 'lucide-react';
 import { TestCase } from '@/lib/types';
 import { addTestCase, deleteTestCase, editTestCase } from '@/app/api/requests';
-import { Toggle } from '@/components/ui/toggle';
 import { Checkbox } from '@/components/ui/checkbox';
 
 interface ContestTestCasesProps {
     contestId: string;
     dbTestCases: TestCase[];
-    saveContestTestCase: (testCase: TestCase, action: 'delete' | 'add') => void;
+    saveContestTestCase: (testCase: TestCase, action: 'delete' | 'add' | 'edit') => void;
 }
 
-const ContestTestCases: React.FC<ContestTestCasesProps> = ({
+export default function ContestTestCases({
     contestId,
     dbTestCases,
     saveContestTestCase,
-}) => {
+}: ContestTestCasesProps) {
     const [testCases, setTestCases] = useState<TestCase[] | []>(
         dbTestCases || []
     );
@@ -47,7 +46,14 @@ const ContestTestCases: React.FC<ContestTestCasesProps> = ({
         setEditingId(null);
         const savedTestCase = testCases.find((test) => test.id === id);
         if (savedTestCase) {
-            editTestCase(contestId, savedTestCase);
+            editTestCase(contestId, savedTestCase)
+                .then(response => {
+                    // Update the parent component's state with a single edit action
+                    saveContestTestCase(savedTestCase, 'edit');
+                })
+                .catch(error => {
+                    console.error('Failed to edit test case:', error);
+                });
         }
     };
 
@@ -203,24 +209,6 @@ const ContestTestCases: React.FC<ContestTestCasesProps> = ({
                                     testCase.memoryLimit
                                 )}
                             </TableCell>
-                            {/* <TableCell>
-                                {editingId === testCase.id ? (
-                                    <Input
-                                        value={testCase.public}
-                                        onChange={(
-                                            e: ChangeEvent<HTMLInputElement>
-                                        ) =>
-                                            handleInputChange(
-                                                testCase.id,
-                                                'public',
-                                                e.target.value
-                                            )
-                                        }
-                                    />
-                                ) : (
-                                    testCase.public
-                                )}
-                            </TableCell> */}
                             <TableCell>
                                 {editingId === testCase.id ? (
                                     <div className='flex items-center'>
@@ -241,108 +229,98 @@ const ContestTestCases: React.FC<ContestTestCasesProps> = ({
                                                 ? 'Public'
                                                 : 'Private'}
                                         </label>
-                                        
                                     </div>
-                                ) : testCase.public ? (
-                                    'Public'
                                 ) : (
-                                    'Private'
+                                    testCase.public ? 'Public' : 'Private'
                                 )}
                             </TableCell>
                             <TableCell>
-                                <div className='flex-col flex justify-center items-center gap-2'>
-                                    {editingId === testCase.id ? (
+                                {editingId === testCase.id ? (
+                                    <Button onClick={() => handleSave(testCase.id)}>
+                                        Save
+                                    </Button>
+                                ) : (
+                                    <div className='flex gap-2'>
                                         <Button
-                                            onClick={(e) => {
-                                                e.preventDefault();
-                                                handleSave(testCase.id);
-                                            }}
-                                        >
-                                            Save
-                                        </Button>
-                                    ) : (
-                                        <Button
-                                            onClick={(e) => {
-                                                e.preventDefault();
-                                                handleEdit(testCase.id);
-                                            }}
+                                            variant='ghost'
+                                            size='icon'
+                                            onClick={() => handleEdit(testCase.id)}
                                         >
                                             <Pencil className='h-4 w-4' />
                                         </Button>
-                                    )}
-                                    <Button
-                                        onClick={() => handleDelete(testCase)}
-                                    >
-                                        <Trash2 className='h-4 w-4' />
-                                    </Button>
-                                </div>
+                                        <Button
+                                            variant='ghost'
+                                            size='icon'
+                                            onClick={() => handleDelete(testCase)}
+                                        >
+                                            <Trash2 className='h-4 w-4' />
+                                        </Button>
+                                    </div>
+                                )}
                             </TableCell>
                         </TableRow>
                     ))}
-                    <TableRow>
-                        <TableCell>
-                            <Input
-                                placeholder='New input - separated by commas'
-                                value={newTestCase.input}
-                                onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                                    handleNewTestCaseChange(
-                                        'input',
-                                        e.target.value
-                                    )
-                                }
-                            />
-                        </TableCell>
-                        <TableCell>
-                            <Input
-                                placeholder='New output - separated by commas'
-                                value={newTestCase.output}
-                                onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                                    handleNewTestCaseChange(
-                                        'output',
-                                        e.target.value
-                                    )
-                                }
-                            />
-                        </TableCell>
-                        <TableCell>
-                            <Input
-                                placeholder='Time limit'
-                                value={newTestCase.timeLimit}
-                                onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                                    handleNewTestCaseChange(
-                                        'timeLimit',
-                                        e.target.value
-                                    )
-                                }
-                            />
-                        </TableCell>
-                        <TableCell>
-                            <Input
-                                placeholder='Memory limit'
-                                value={newTestCase.memoryLimit}
-                                onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                                    handleNewTestCaseChange(
-                                        'memoryLimit',
-                                        e.target.value
-                                    )
-                                }
-                            />
-                        </TableCell>
-                        <TableCell>
-                            <Button
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    handleAddTestCase();
-                                }}
-                            >
-                                <Plus className='h-4 w-4 mr-2' /> Add
-                            </Button>
-                        </TableCell>
-                    </TableRow>
                 </TableBody>
             </Table>
+            <div className='mt-4'>
+                <h3 className='text-xl font-semibold mb-2'>Add New Test Case</h3>
+                <div className='grid grid-cols-2 gap-4'>
+                    <div>
+                        <label className='block text-sm font-medium mb-1'>
+                            Input
+                        </label>
+                        <Input
+                            value={newTestCase.input}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                                handleNewTestCaseChange('input', e.target.value)
+                            }
+                        />
+                    </div>
+                    <div>
+                        <label className='block text-sm font-medium mb-1'>
+                            Output
+                        </label>
+                        <Input
+                            value={newTestCase.output}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                                handleNewTestCaseChange('output', e.target.value)
+                            }
+                        />
+                    </div>
+                    <div>
+                        <label className='block text-sm font-medium mb-1'>
+                            Time Limit (ms)
+                        </label>
+                        <Input
+                            type='number'
+                            value={newTestCase.timeLimit}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                                handleNewTestCaseChange('timeLimit', e.target.value)
+                            }
+                        />
+                    </div>
+                    <div>
+                        <label className='block text-sm font-medium mb-1'>
+                            Memory Limit (MB)
+                        </label>
+                        <Input
+                            type='number'
+                            value={newTestCase.memoryLimit}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                                handleNewTestCaseChange('memoryLimit', e.target.value)
+                            }
+                        />
+                    </div>
+                </div>
+                <Button
+                    className='mt-4'
+                    onClick={handleAddTestCase}
+                    disabled={!newTestCase.input || !newTestCase.output}
+                >
+                    <Plus className='h-4 w-4 mr-2' />
+                    Add Test Case
+                </Button>
+            </div>
         </div>
     );
 };
-
-export default ContestTestCases;

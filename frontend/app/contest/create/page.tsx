@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
 import { SubmitHandler, useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -51,11 +52,14 @@ const ContestScheme = z.object({
     contestStructure: z.string().optional(),
     testFiles: z.any().optional(),
     testFramework: z.enum(['jest', 'unittest', 'pytest']).optional(),
+    isPublic: z.boolean().default(true),
+    inviteOnly: z.boolean().default(false),
+    enableAICodeEntryIdentification: z.boolean().default(false),
 });
 
 type ContestType = z.infer<typeof ContestScheme>;
 
-export default function Component() {
+export default function CreateContest() {
     const { toast } = useToast();
     let { data: session, status } = useSession();
     const router = useRouter();
@@ -66,7 +70,18 @@ export default function Component() {
     useEffect(() => {
         reloadSession();
         fetchGithubRepos();
+        if (!isAdmin) {
+            router.replace('/');
+        }
     }, [status]);
+
+    const isAdmin = session?.role === 'admin';
+    console.log(session);
+
+    // Admin check and redirect
+    if (status === 'loading') {
+        return null;
+    }
 
     const fetchGithubRepos = async () => {
         if (!session?.githubAccessToken) {
@@ -133,6 +148,9 @@ export default function Component() {
                 : null,
             testFramework: data.contestStructure ? data.testFramework : null,
             testFiles: data.contestStructure ? data.testFiles : null,
+            isPublic: data.isPublic,
+            inviteOnly: !data.isPublic && data.inviteOnly,
+            enableAICodeEntryIdentification: data.enableAICodeEntryIdentification,
         };
 
         try {
@@ -549,7 +567,92 @@ export default function Component() {
                                 </p>
                             )}
                         </div>
-
+                        <div className='grid gap-2'>
+                            <div className='flex items-center justify-between'>
+                                <div className='space-y-0.5'>
+                                    <Label htmlFor='isPublic'>
+                                        {t('createContest.form.isPublic.label') || 'Public Contest'}
+                                    </Label>
+                                    <p className='text-sm text-muted-foreground'>
+                                        {t('createContest.form.isPublic.description') ||
+                                            'Public contests are visible to all users'}
+                                    </p>
+                                </div>
+                                <Controller
+                                    name='isPublic'
+                                    control={control}
+                                    defaultValue={true}
+                                    render={({ field }) => (
+                                        <Switch
+                                            id='isPublic'
+                                            checked={field.value}
+                                            onCheckedChange={(checked) => {
+                                                field.onChange(checked);
+                                                if (checked) {
+                                                    setValue('inviteOnly', false);
+                                                }
+                                            }}
+                                        />
+                                    )}
+                                />
+                            </div>
+                        </div>
+                        <div className='grid gap-2'>
+                            <div className='flex items-center justify-between'>
+                                <div className='space-y-0.5'>
+                                    <Label htmlFor='inviteOnly'>
+                                        {t('createContest.form.inviteOnly.label') || 'Invite Only'}
+                                    </Label>
+                                    <p className='text-sm text-muted-foreground'>
+                                        {t('createContest.form.inviteOnly.description') ||
+                                            'Only invited users can participate in this contest'}
+                                    </p>
+                                </div>
+                                <Controller
+                                    name='inviteOnly'
+                                    control={control}
+                                    defaultValue={false}
+                                    render={({ field }) => (
+                                        <Switch
+                                            id='inviteOnly'
+                                            checked={field.value}
+                                            onCheckedChange={(checked) => {
+                                                field.onChange(checked);
+                                                if (checked) {
+                                                    setValue('isPublic', false);
+                                                }
+                                            }}
+                                            disabled={watch('isPublic')}
+                                        />
+                                    )}
+                                />
+                            </div>
+                        </div>
+                        <div className='grid gap-2'>
+                            <div className='flex items-center justify-between'>
+                                <div className='space-y-0.5'>
+                                    <Label htmlFor='enableAICodeEntryIdentification'>
+                                        {t('createContest.form.enableAICodeEntryIdentification.label') || 'Enable AI Code Detection'}
+                                    </Label>
+                                    <p className='text-sm text-muted-foreground'>
+                                        {t('createContest.form.enableAICodeEntryIdentification.description') ||
+                                            'Enable AI-powered detection of code entries'}
+                                    </p>
+                                </div>
+                                <Controller
+                                    name='enableAICodeEntryIdentification'
+                                    control={control}
+                                    defaultValue={false}
+                                    render={({ field }) => (
+                                        <Switch
+                                            id='enableAICodeEntryIdentification'
+                                            checked={field.value}
+                                            onCheckedChange={field.onChange}
+                                        />
+                                    )}
+                                />
+                            </div>
+                        </div>
                         <div className='grid gap-2'>
                             <div className='flex justify-between items-center'>
                                 <Label htmlFor='github-repo-url'>

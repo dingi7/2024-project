@@ -26,7 +26,7 @@ type ContestType = z.infer<typeof ContestScheme>;
 type Props = {
     onEdit: (updatedContest: Contest) => void;
     contest: Contest;
-    updateTestCases: (testCase: TestCase, action: 'delete' | 'add') => void;
+    updateTestCases: (testCase: TestCase, action: 'delete' | 'add' | 'edit') => void;
 };
 
 export default function ContestEditForm({

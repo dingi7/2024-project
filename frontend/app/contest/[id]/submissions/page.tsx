@@ -5,8 +5,6 @@ import { useParams } from 'next/navigation';
 import { getContestById, getSubmissionsByContestID } from '@/app/api/requests';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/components/ui/use-toast';
-import { Button } from '@/components/ui/button';
-import Link from 'next/link';
 import {
     Table,
     TableBody,

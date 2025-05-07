@@ -1,4 +1,4 @@
-import { Contest, ContestSolution, TestCase, User } from "@/lib/types";
+import { Contest, ContestSolution, Invitation, TestCase, User } from "@/lib/types";
 import * as api from "./api";
 
 export const endpoints = {
@@ -18,7 +18,14 @@ export const endpoints = {
   getLeaderboard: "/leaderboard",
   editContest: (id: string) => `/contest/${id}`,
   getUserAttendedContests: (userId: string) => `/users/${userId}/contests`,
+  getUserOwnedContests: (userId: string) => `/users/${userId}/owned-contests`,
+  getUserInvitedContests: (userId: string) => `/users/${userId}/invited-contests`,
   createRepo: "/contest/github/createRepo",
+  createInvitation: (contestId: string) => `/contest/${contestId}/invitations`,
+  getContestInvitations: (contestId: string) => `/contest/${contestId}/invitations`,
+  getUserInvitations: "/invitations",
+  respondToInvitation: (invitationId: string) => `/invitation/${invitationId}/respond`,
+  cancelInvitation: (invitationId: string) => `/invitation/${invitationId}`,
 };
 
 export const userSignIn = async (payload: User) => {
@@ -102,6 +109,18 @@ export const getUserAttendedContests = async (
   return api.get(endpoints.getUserAttendedContests(userId));
 };
 
+export const getUserOwnedContests = async (
+  userId: string
+): Promise<Contest[]> => {
+  return api.get(endpoints.getUserOwnedContests(userId));
+};
+
+export const getUserInvitedContests = async (
+  userId: string
+): Promise<Contest[]> => {
+  return api.get(endpoints.getUserInvitedContests(userId));
+};
+
 export const createRepo = async (payload: {
   templateCloneURL: string;
   newRepoName: string;
@@ -112,4 +131,32 @@ export const createRepo = async (payload: {
 export const getGithubUserInfoById = async (id: string) => {
   const response = await fetch(`https://api.github.com/user/${id}`);
   return response.json();
+};
+
+export const createInvitation = async (contestId: string, payload: { userEmail: string }) => {
+  return api.post(endpoints.createInvitation(contestId), { ...payload, contestId });
+};
+
+export const getContestInvitations = async (contestId: string) => {
+  return api.get(endpoints.getContestInvitations(contestId));
+};
+
+export const getUserInvitations = async () => {
+  return api.get(endpoints.getUserInvitations);
+};
+
+export const respondToInvitation = async (invitationId: string, payload: { accept: boolean }) => {
+  return api.put(endpoints.respondToInvitation(invitationId), payload);
+};
+
+export const cancelInvitation = async (invitationId: string) => {
+  return api.del(endpoints.cancelInvitation(invitationId));
+};
+
+export const acceptAdminInvite = async (token: string) => {
+  return api.post('/admin/accept-invite', { token });
+};
+
+export const sendAdminInvite = async (email: string) => {
+  return api.post('/admin/invite', { email });
 };

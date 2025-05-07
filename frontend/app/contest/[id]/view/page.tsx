@@ -196,7 +196,7 @@ export default function TestCaseResultsPage() {
                                 {t('testResults.summary.passed')}
                             </span>
                             <span className='text-2xl font-bold text-green-600'>
-                                {testResults.filter((r) => r.status).length}
+                                {testResults.filter((r) => r.passed).length}
                             </span>
                         </div>
                         <div className='flex flex-col'>
@@ -204,7 +204,7 @@ export default function TestCaseResultsPage() {
                                 {t('testResults.summary.failed')}
                             </span>
                             <span className='text-2xl font-bold text-red-600'>
-                                {testResults.filter((r) => !r.status).length}
+                                {testResults.filter((r) => !r.passed).length}
                             </span>
                         </div>
                         <div className='flex flex-col'>
@@ -214,7 +214,7 @@ export default function TestCaseResultsPage() {
                             <span className='text-2xl font-bold'>
                                 {testResults.length > 0
                                     ? Math.round(
-                                          (testResults.filter((r) => r.status)
+                                          (testResults.filter((r) => r.passed)
                                               .length /
                                               testResults.length) *
                                               100
@@ -269,10 +269,10 @@ export default function TestCaseResultsPage() {
                             </TableHeader>
                             <TableBody>
                                 {testResults.map((result) => (
-                                    <TableRow key={result.testCase.id}>
+                                    <TableRow key={result.id}>
                                         <TableCell>
                                             <div className='flex items-center gap-2'>
-                                                {result.status ? (
+                                                {result.passed ? (
                                                     <>
                                                         <CheckCircle2 className='h-5 w-5 text-green-600' />
                                                         <Badge variant='success'>
@@ -295,22 +295,22 @@ export default function TestCaseResultsPage() {
                                         </TableCell>
                                         <TableCell>
                                             <CodeBlock
-                                                code={result.testCase.input}
+                                                code={result.input}
                                             />
                                         </TableCell>
                                         <TableCell>
                                             <OutputComparison
                                                 expected={
-                                                    result.testCase.output
+                                                    result.expectedOutput
                                                 }
-                                                received={result.SolutionOutput}
+                                                received={result.solutionOutput}
                                             />
                                         </TableCell>
                                         <TableCell>
                                             <Badge
                                                 variant={
                                                     result.time >
-                                                    result.testCase.timeLimit
+                                                    result.timeLimit
                                                         ? 'destructive'
                                                         : 'outline'
                                                 }
@@ -322,7 +322,7 @@ export default function TestCaseResultsPage() {
                                             <Badge
                                                 variant={
                                                     result.memoryUsage >
-                                                    result.testCase.memoryLimit
+                                                    result.memoryUsageLimit
                                                         ? 'destructive'
                                                         : 'outline'
                                                 }
@@ -344,3 +344,4 @@ export default function TestCaseResultsPage() {
         </div>
     );
 }
+

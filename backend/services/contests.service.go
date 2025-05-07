@@ -5,176 +5,222 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"gorm.io/gorm"
 )
 
 type ContestService struct {
-	ContestCollection *mongo.Collection
+	DB *gorm.DB
 }
 
-func NewContestService(client *mongo.Client) *ContestService {
+func NewContestService(db *gorm.DB) *ContestService {
 	return &ContestService{
-		ContestCollection: client.Database("contestify").Collection("contests"),
+		DB: db,
 	}
 }
 
-func (s *ContestService) GetContests(ctx context.Context) ([]models.Contest, error) {
-	var contests []models.Contest
-	cursor, err := s.ContestCollection.Find(ctx, bson.M{})
-	if err != nil {
+// GetContests returns all contests that are public or user has access to
+func (s *ContestService) GetContests(ctx context.Context, userID string) ([]models.Contest, error) {
+	var publicContests []models.Contest
+
+	// First get all public contests
+	if err := s.DB.Preload("TestCases").Where("is_public = ?", true).Find(&publicContests).Error; err != nil {
 		return nil, err
 	}
-	defer cursor.Close(ctx)
-	if err := cursor.All(ctx, &contests); err != nil {
+
+	// If no userID provided, return only public contests
+	if userID == "" {
+		return publicContests, nil
+	}
+
+	// Get contests where user is the owner
+	var ownedContests []models.Contest
+	if err := s.DB.Preload("TestCases").Where("owner_id = ?", userID).Find(&ownedContests).Error; err != nil {
 		return nil, err
 	}
-	return contests, nil
+
+	// Get private contests user has been invited to and accepted
+	var invitedContestIDs []string
+	if err := s.DB.Model(&models.ContestInvitation{}).
+		Distinct("contest_id").
+		Where("(user_id = ? OR user_email = (SELECT email FROM users WHERE id = ?)) AND status = ?",
+			userID, userID, models.InvitationStatusAccepted).
+		Pluck("contest_id", &invitedContestIDs).Error; err != nil {
+		return nil, err
+	}
+
+	log.Printf("DEBUG: invitedContestIDs: %+v", invitedContestIDs)
+
+	var invitedContests []models.Contest
+	if len(invitedContestIDs) > 0 {
+		if err := s.DB.Preload("TestCases").Where("id IN ? AND is_public = ?", invitedContestIDs, false).
+			Find(&invitedContests).Error; err != nil {
+			return nil, err
+		}
+	}
+
+	// Combine and deduplicate contests
+	allContests := append(publicContests, ownedContests...)
+	allContests = append(allContests, invitedContests...)
+
+	// Deduplicate contests using a map
+	deduplicatedContests := make(map[string]models.Contest)
+	for _, contest := range allContests {
+		deduplicatedContests[contest.ID] = contest
+	}
+
+	// Convert back to slice
+	result := make([]models.Contest, 0, len(deduplicatedContests))
+	for _, contest := range deduplicatedContests {
+		result = append(result, contest)
+	}
+
+	return result, nil
 }
 
-func (s *ContestService) FindContestByID(ctx context.Context, id string) (*models.Contest, error) {
-	fmt.Printf("ID: %s\n", id)
-	objectID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		fmt.Printf("Error converting ID to ObjectID: %v\n", err)
-		return nil, err
-	}
-	query := bson.M{"_id": objectID}
-	fmt.Printf("Query: %v\n", query)
+// CheckUserContestAccess checks if a user has access to a contest
+func (s *ContestService) CheckUserContestAccess(ctx context.Context, userID string, contestID string) (bool, error) {
+	// First get the contest
 	var contest models.Contest
-	err = s.ContestCollection.FindOne(ctx, query).Decode(&contest)
+	if err := s.DB.First(&contest, "id = ?", contestID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, fmt.Errorf("contest not found")
+		}
+		return false, err
+	}
+
+	// If the contest is public, anyone has access
+	if contest.IsPublic {
+		return true, nil
+	}
+
+	// If no user ID is provided, and the contest is not public, deny access
+	if userID == "" {
+		log.Printf("DEBUG: userID is empty, denying access")
+		return false, nil
+	}
+
+	// If user is the owner, they have access
+	if contest.OwnerID == userID {
+		return true, nil
+	}
+
+	// If the contest is invite-only, check for an invitation
+	if contest.InviteOnly {
+		log.Printf("DEBUG: contest is invite-only, checking for invitation")
+		var invitation models.ContestInvitation
+		result := s.DB.Where("contest_id = ? AND (user_id = ? OR user_email = (SELECT email FROM users WHERE id = ?))",
+			contestID, userID, userID).First(&invitation)
+
+		if result.Error != nil {
+			if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+				// No accepted invitation found
+				return false, nil
+			}
+			return false, result.Error
+		}
+
+		// Accepted invitation found
+		return true, nil
+	}
+
+	// If we got here, the contest is private but not invite-only,
+	// which shouldn't happen in the current model, but we'll return false to be safe
+	return false, nil
+}
+
+// FindContestByID finds a contest by ID and checks if the user has access
+func (s *ContestService) FindContestByID(ctx context.Context, id string, userID string) (*models.Contest, error) {
+	var contest models.Contest
+	result := s.DB.Preload("TestCases").First(&contest, "id = ?", id)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("contest not found")
+		}
+		return nil, result.Error
+	}
+
+	// Check if the user has access to the contest
+	hasAccess, err := s.CheckUserContestAccess(ctx, userID, id)
 	if err != nil {
-		fmt.Printf("Error: %v\n", err)
 		return nil, err
 	}
-	// log the contest
-	fmt.Printf("Contest: %v\n", contest.StartDate)
+
+	if !hasAccess {
+		return nil, fmt.Errorf("access denied")
+	}
+
 	return &contest, nil
 }
 
 func (s *ContestService) CreateContest(ctx context.Context, contest *models.Contest) error {
-	_, err := s.ContestCollection.InsertOne(ctx, contest)
-	return err
+	return s.DB.Create(contest).Error
+}
+
+func (s *ContestService) EditContest(ctx context.Context, id string, contest *models.Contest) error {
+	return s.DB.Model(&models.Contest{}).Where("id = ?", id).Updates(contest).Error
 }
 
 func (s *ContestService) DeleteContest(ctx context.Context, id string) error {
-	objectID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return err
-	}
-	query := bson.M{"_id": objectID}
-	_, err = s.ContestCollection.DeleteOne(ctx, query)
-	return err
+	return s.DB.Delete(&models.Contest{}, "id = ?", id).Error
 }
 
-func (s *ContestService) UpdateContest(ctx context.Context, id string, contest *models.Contest) error {
-	objectID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return err
-	}
-	query := bson.M{"_id": objectID}
-	update := bson.M{
-		"$set": bson.M{
-			"title":       contest.Title,
-			"description": contest.Description,
-			"language":    contest.Language,
-			"startDate":   contest.StartDate,
-			"endDate":     contest.EndDate,
-			"prize":       contest.Prize,
-			"ownerID":     contest.OwnerID,
-			"testCases":   contest.TestCases,
-			"contestRules": contest.ContestRules,
-		},
-	}
-	_, err = s.ContestCollection.UpdateOne(ctx, query, update)
-	return err
+func (s *ContestService) AddTestCase(ctx context.Context, contestID string, testCase *models.TestCase) error {
+	testCase.ContestID = contestID
+	return s.DB.Create(testCase).Error
 }
 
-func (s *ContestService) AddTestCase(ctx context.Context, id string, testCase *models.TestCase) error {
-	objectID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return err
-	}
-	testCase.ID = primitive.NewObjectID()
-	query := bson.M{"_id": objectID}
-	update := bson.M{
-		"$push": bson.M{
-			"testCases": testCase,
-		},
-	}
-	_, err = s.ContestCollection.UpdateOne(ctx, query, update)
-	return err
+func (s *ContestService) UpdateTestCase(ctx context.Context, testCase *models.TestCase) error {
+	return s.DB.Save(testCase).Error
 }
 
-func (s *ContestService) UpdateTestCase(ctx context.Context, id string, testCase *models.TestCase) error {
-	// Convert the contest ID from hex to ObjectID
-	objectID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return err
-	}
-
-	// Define the filter to locate the specific contest
-	filter := bson.M{"_id": objectID}
-
-	// Define the update to set the input and output of the specific test case
-	update := bson.M{
-		"$set": bson.M{
-			"testCases.$[tc].input":  testCase.Input,
-			"testCases.$[tc].output": testCase.Output,
-			"testCases.$[tc].public": testCase.Public,
-			"testCases.$[tc].timeLimit": testCase.TimeLimit,
-			"testCases.$[tc].memoryLimit": testCase.MemoryLimit,
-		},
-	}
-
-	// Define array filters to target the specific test case by its ID
-	arrayFilters := options.ArrayFilters{
-		Filters: []interface{}{
-			bson.M{"tc._id": testCase.ID},
-		},
-	}
-
-	// Set the array filters option
-	opts := options.Update().SetArrayFilters(arrayFilters)
-
-	// Perform the update operation
-	result, err := s.ContestCollection.UpdateOne(ctx, filter, update, opts)
-	if err != nil {
-		return err
-	}
-
-	// Check if any document was modified
-	if result.ModifiedCount == 0 {
-		return errors.New("test case not found or no changes made")
-	}
-
-	return nil
+func (s *ContestService) DeleteTestCase(ctx context.Context, testCaseID string) error {
+	return s.DB.Delete(&models.TestCase{}, "id = ?", testCaseID).Error
 }
 
-func (s *ContestService) DeleteTestCase(ctx context.Context, id string, testCaseId string) error {
-	objectID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return err
+// GetUserOwnedContests returns all contests where the user is the owner
+func (s *ContestService) GetUserOwnedContests(ctx context.Context, userID string) ([]models.Contest, error) {
+	if userID == "" {
+		return nil, fmt.Errorf("user ID is required")
 	}
-	testCaseObjectID, err := primitive.ObjectIDFromHex(testCaseId)
-	if err != nil {
-		return err
+
+	var ownedContests []models.Contest
+	if err := s.DB.Preload("TestCases").Where("owner_id = ?", userID).Find(&ownedContests).Error; err != nil {
+		return nil, err
 	}
-	query := bson.M{"_id": objectID}
-	update := bson.M{
-		"$pull": bson.M{
-			"testCases": bson.M{"_id": testCaseObjectID},
-		},
+
+	return ownedContests, nil
+}
+
+// GetUserInvitedContests returns all contests the user has been invited to
+func (s *ContestService) GetUserInvitedContests(ctx context.Context, userID string) ([]models.Contest, error) {
+	if userID == "" {
+		return nil, fmt.Errorf("user ID is required")
 	}
-	result, err := s.ContestCollection.UpdateOne(ctx, query, update)
-	if err != nil {
-		return err
+
+	// Get IDs of contests the user has been invited to
+	var invitedContestIDs []string
+	if err := s.DB.Model(&models.ContestInvitation{}).
+		Distinct("contest_id").
+		Where("(user_id = ? OR user_email = (SELECT email FROM users WHERE id = ?)) AND status = ?",
+			userID, userID, models.InvitationStatusAccepted).
+		Pluck("contest_id", &invitedContestIDs).Error; err != nil {
+		return nil, err
 	}
-	if result.ModifiedCount == 0 {
-		return errors.New("test case not found or not deleted")
+
+	// If no invitations found, return empty slice
+	if len(invitedContestIDs) == 0 {
+		return []models.Contest{}, nil
 	}
-	return nil
+
+	// Get the contests
+	var invitedContests []models.Contest
+	if err := s.DB.Preload("TestCases").
+		Where("id IN ? AND owner_id != ?", invitedContestIDs, userID).
+		Find(&invitedContests).Error; err != nil {
+		return nil, err
+	}
+
+	return invitedContests, nil
 }

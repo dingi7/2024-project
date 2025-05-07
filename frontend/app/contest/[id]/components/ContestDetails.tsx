@@ -11,8 +11,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { useRouter } from 'next/navigation';
 import ContestEditForm from './ContestEditForm';
 import { useTranslation } from '@/lib/useTranslation';
-
-
+import { useContestStore } from '../../../../lib/stores/ContestStore';
 
 type Props = {
     contest: Contest;
@@ -24,7 +23,7 @@ type Props = {
     contestRules: string | null;
 };
 
-const ContestDetails = ({
+export default function ContestDetails({
     contest,
     isOwner,
     setContest,
@@ -32,11 +31,12 @@ const ContestDetails = ({
     setIsEditEnabled,
     onEdit,
     contestRules,
-}: Props) => {
+}: Props) {
     const { toast } = useToast();
     const router = useRouter();
     const { t } = useTranslation();
     const [rulesFile, setRulesFile] = useState<File | null>(null);
+    const updateTestCase = useContestStore(state => state.updateTestCase);
 
     const handleEditContest = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -57,7 +57,11 @@ const ContestDetails = ({
         }
     };
 
-    const updateTestCases = (testCase: TestCase, action: 'delete' | 'add') => {
+    const handleUpdateTestCases = (testCase: TestCase, action: 'delete' | 'add' | 'edit') => {
+        // Update the global store
+        updateTestCase(testCase, action);
+        
+        // Also update local state for backward compatibility
         if (action === 'add') {
             setContest({
                 ...contest,
@@ -68,6 +72,13 @@ const ContestDetails = ({
                 ...contest,
                 testCases: contest.testCases.filter(
                     (tc) => tc.id !== testCase.id
+                ),
+            });
+        } else if (action === 'edit') {
+            setContest({
+                ...contest,
+                testCases: contest.testCases.map(
+                    tc => tc.id === testCase.id ? testCase : tc
                 ),
             });
         }
@@ -146,9 +157,7 @@ const ContestDetails = ({
                     </Button>
                 </div>
             )}
-            {isOwner && isEditEnabled && <ContestEditForm contest={contest} onEdit={onEdit} updateTestCases={updateTestCases} />}
+            {isOwner && isEditEnabled && <ContestEditForm contest={contest} onEdit={onEdit} updateTestCases={handleUpdateTestCases} />}
         </div>
     );
 };
-
-export default ContestDetails;

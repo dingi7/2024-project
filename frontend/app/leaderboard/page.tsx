@@ -1,9 +1,9 @@
 'use client';
+import { useEffect, useState } from 'react';
 
 import { Card } from '@/components/ui/card';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown } from "lucide-react";
 import {
     Table,
     TableHeader,
@@ -12,10 +12,12 @@ import {
     TableBody,
     TableCell,
 } from '@/components/ui/table';
+import { ArrowUpDown } from "lucide-react";
+
+import LeaderboardTop3Card from './components/leaderboardTop3Card';
+
 import { getLeaderboard } from '../api/requests';
-import LeaderboardTop3Card from './components/LeaderboardTop3Card';
 import { useTranslation } from "@/lib/useTranslation";
-import { useEffect, useState } from 'react';
 
 type LeaderboardEntry = {
     userId: string;
@@ -29,7 +31,7 @@ type SortConfig = {
     direction: 'asc' | 'desc';
 };
 
-function Leaderboard() {
+export default function Leaderboard() {
     const { t } = useTranslation();
     const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -80,9 +82,9 @@ function Leaderboard() {
     };
 
     const filteredData = sortData(
-        leaderboardData.filter(user =>
+        leaderboardData?.filter(user =>
             user.username.toLowerCase().includes(searchQuery.toLowerCase())
-        )
+        ) ?? []
     );
 
     return (
@@ -178,5 +180,3 @@ function Leaderboard() {
         </div>
     );
 }
-
-export default Leaderboard;

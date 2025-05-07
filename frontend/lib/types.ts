@@ -12,6 +12,7 @@ export interface User {
     name: string | undefined | null;
     image: string | undefined | null;
     GitHubAccessToken: string | undefined;
+    role: string | undefined;
 }
 
 export interface ContestSolution {
@@ -38,11 +39,16 @@ export interface TestCaseWithResult extends TestCase {
 }
 
 export interface TestCaseResult {
-    testCase: TestCase;
-    status: boolean;
-    SolutionOutput: string;
+    // testCase: TestCase;
+    id: string;
+    input: string;
+    passed: boolean;
+    solutionOutput: string;
+    expectedOutput: string;
     memoryUsage: number;
     time: number;
+    memoryUsageLimit: number;
+    timeLimit: number;
 }
 
 export interface Contest {
@@ -60,6 +66,9 @@ export interface Contest {
     createdAt: string;
     contestRules: string;
     contestStructure: string | null;
+    isPublic: boolean;
+    inviteOnly: boolean;
+    enableAICodeEntryIdentification: boolean;
 }
 
 export type Submission = {
@@ -90,4 +99,21 @@ export type PlaceholderSubmission = {
     testCasesResults?: TestCaseResult[];
     totalTestCases?: number;
     passedTestCases?: number;
+}
+
+export interface Invitation {
+    id: string;
+    contestID: string;
+    userID: string;
+    userEmail?: string;
+    status: 'pending' | 'accepted' | 'rejected';
+    createdAt: string;
+    updatedAt: string;
+    contest?: Contest;
+    user?: {
+        id: string;
+        name: string;
+        email: string;
+        image: string;
+    };
 }

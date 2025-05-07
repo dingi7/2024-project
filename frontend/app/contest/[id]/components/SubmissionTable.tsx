@@ -20,12 +20,7 @@ import { PlaceholderSubmission, Submission } from "@/lib/types";
 import { useTranslation } from '@/lib/useTranslation';
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-
-type FilterOptions = {
-  status: "all" | "Passed" | "Failed" | "pending";
-  sortBy: string;
-  order: string;
-};
+import { FilterOptions } from "../../../../lib/stores/ContestStore";
 
 type Props = {
   submissions: Submission[] | PlaceholderSubmission[];
@@ -33,11 +28,11 @@ type Props = {
   onFilterChange: (filter: FilterOptions) => void;
 };
 
-const SubmissionTable = ({
+export default function SubmissionTable({
   submissions,
   filterOptions,
   onFilterChange,
-}: Props) => {
+}: Props) {
   const { t } = useTranslation();
 
   const filteredSubmissions = submissions.filter((submission) => {
@@ -111,7 +106,7 @@ const SubmissionTable = ({
         </Label>
         <Select
           value={filterOptions.sortBy}
-          onValueChange={(value) => onFilterChange({ ...filterOptions, sortBy: value })}
+          onValueChange={(value) => onFilterChange({ ...filterOptions, sortBy: value as "date" | "score" })}
         >
           <SelectTrigger>
             <SelectValue placeholder={t('contestPage.filters.sortBy.date')} />
@@ -123,7 +118,7 @@ const SubmissionTable = ({
         </Select>
         <Select
           value={filterOptions.order}
-          onValueChange={(value) => onFilterChange({ ...filterOptions, order: value })}
+          onValueChange={(value) => onFilterChange({ ...filterOptions, order: value as "asc" | "desc" })}
         >
           <SelectTrigger>
             <SelectValue placeholder={t('contestPage.filters.order.desc')} />
@@ -195,4 +190,3 @@ const SubmissionTable = ({
   );
 };
 
-export default SubmissionTable;

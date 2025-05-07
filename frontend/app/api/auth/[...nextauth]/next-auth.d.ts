@@ -9,6 +9,7 @@ declare module 'next-auth' {
         user: {
             id: string;
         } & DefaultSession['user'];
+        role: string;
     }
 
     interface JWT extends DefaultJWT {
@@ -17,12 +18,14 @@ declare module 'next-auth' {
         accessTokenExpires: number;
         githubAccessToken: string;
         id: string;
+        role: string;
     }
 
     interface User extends DefaultUser {
         accessToken: string;
         refreshToken: string;
         githubAccessToken: string;
+        role: string;
         id: string;
     }
 }

@@ -5,18 +5,18 @@ import (
 	"backend/util"
 
 	"github.com/gofiber/fiber/v2"
-	"go.mongodb.org/mongo-driver/mongo"
+	"gorm.io/gorm"
 )
 
 type LeaderboardHandler struct {
-    LeaderboardService *services.LeaderboardService
+	LeaderboardService *services.LeaderboardService
 }
 
-func NewLeaderboardHandler(client *mongo.Client) *LeaderboardHandler {
-    leaderboardService := services.NewLeaderboardService(client)
-    return &LeaderboardHandler{
-        LeaderboardService: leaderboardService,
-    }
+func NewLeaderboardHandler(db *gorm.DB) *LeaderboardHandler {
+	leaderboardService := services.NewLeaderboardService(db)
+	return &LeaderboardHandler{
+		LeaderboardService: leaderboardService,
+	}
 }
 
 func (h *LeaderboardHandler) GetLeaderboard(c *fiber.Ctx) error {

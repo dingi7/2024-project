@@ -1,15 +1,18 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+
 import Contest from './components/contest';
 import Filters from './components/filters';
 import Search from './components/search';
+
 import { Contest as ContestType, ContestFilters } from '@/lib/types';
 import { getContests } from '../api/requests';
+
 import { Skeleton } from '@/components/ui/skeleton';
 import { useTranslation } from '@/lib/useTranslation';
 
-const ContestPage = () => {
+export default function ContestPage() {
     const { t } = useTranslation();
     const [loading, setLoading] = useState(true);
     const [contests, setContests] = useState<ContestType[] | []>([]);
@@ -145,4 +148,3 @@ const ContestPage = () => {
     );
 };
 
-export default ContestPage;

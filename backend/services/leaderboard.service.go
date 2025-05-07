@@ -1,22 +1,20 @@
 package services
 
 import (
+	"backend/models"
 	"context"
 	"sort"
 
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
+	"gorm.io/gorm"
 )
 
 type LeaderboardService struct {
-	SubmissionCollection *mongo.Collection
-	UserCollection       *mongo.Collection
+	DB *gorm.DB
 }
 
-func NewLeaderboardService(client *mongo.Client) *LeaderboardService {
+func NewLeaderboardService(db *gorm.DB) *LeaderboardService {
 	return &LeaderboardService{
-		SubmissionCollection: client.Database("contestify").Collection("submissions"),
-		UserCollection:       client.Database("contestify").Collection("users"),
+		DB: db,
 	}
 }
 
@@ -28,59 +26,54 @@ type LeaderboardEntry struct {
 }
 
 func (s *LeaderboardService) GetLeaderboard(ctx context.Context) ([]LeaderboardEntry, error) {
-	pipeline := []bson.M{
-		{
-			"$group": bson.M{
-				"_id": bson.M{
-					"userId":    "$ownerId",
-					"contestId": "$contestId",
-				},
-				"bestScore": bson.M{"$max": "$score"},
-			},
-		},
-		{
-			"$group": bson.M{
-				"_id":                  "$_id.userId",
-				"totalScore":           bson.M{"$sum": "$bestScore"},
-				"contestsParticipated": bson.M{"$addToSet": "$_id.contestId"},
-			},
-		},
-		{
-			"$lookup": bson.M{
-				"from":         "users",
-				"localField":   "_id",
-				"foreignField": "_id",
-				"as":           "user",
-			},
-		},
-		{
-			"$unwind": "$user",
-		},
-		{
-			"$project": bson.M{
-				"userId":               "$_id",
-				"username":             "$user.name",
-				"totalScore":           1,
-				"contestsParticipated": bson.M{"$size": "$contestsParticipated"},
-			},
-		},
-	}
-
-	cursor, err := s.SubmissionCollection.Aggregate(ctx, pipeline)
-	if err != nil {
-		return nil, err
-	}
-	defer cursor.Close(ctx)
-
-	var leaderboard []LeaderboardEntry
-	if err := cursor.All(ctx, &leaderboard); err != nil {
+	// Query all submissions with preloaded users
+	var submissions []models.Submission
+	if err := s.DB.Find(&submissions).Error; err != nil {
 		return nil, err
 	}
 
-	sort.Slice(leaderboard, func(i, j int) bool {
-		if leaderboard[i].TotalScore == leaderboard[j].TotalScore {
-			return leaderboard[i].ContestsParticipated > leaderboard[j].ContestsParticipated
+	// Query all users to get usernames
+	var users []models.User
+	if err := s.DB.Find(&users).Error; err != nil {
+		return nil, err
+	}
+
+	// Map to store user data
+	userMap := make(map[string]string)
+	for _, user := range users {
+		userMap[user.ID] = user.Name
+	}
+
+	// Calculate scores per user
+	userScores := make(map[string]float64)
+	userContestCounts := make(map[string]map[string]bool)
+
+	for _, submission := range submissions {
+		// Initialize user contest map if needed
+		if userContestCounts[submission.OwnerID] == nil {
+			userContestCounts[submission.OwnerID] = make(map[string]bool)
 		}
+
+		// Add this contest to the user's participated contests
+		userContestCounts[submission.OwnerID][submission.ContestID] = true
+
+		// Add to the user's total score
+		userScores[submission.OwnerID] += submission.Score
+	}
+
+	// Create leaderboard entries
+	var leaderboard []LeaderboardEntry
+	for userID, totalScore := range userScores {
+		leaderboard = append(leaderboard, LeaderboardEntry{
+			UserID:               userID,
+			Username:             userMap[userID],
+			TotalScore:           totalScore,
+			ContestsParticipated: len(userContestCounts[userID]),
+		})
+	}
+
+	// Sort the leaderboard by total score (descending)
+	sort.Slice(leaderboard, func(i, j int) bool {
 		return leaderboard[i].TotalScore > leaderboard[j].TotalScore
 	})
 

@@ -21,28 +21,38 @@ import { useTranslation } from '@/lib/useTranslation';
 type Props = {
     onSubmit: (solution: { language: string; code: string }) => Promise<void>;
     selectedRepo: { name: string; clone_url: string };
+    contestLanguage: string;
 };
 
-const SubmissionForm = ({ onSubmit, selectedRepo }: Props) => {
+export default function SubmissionForm({ onSubmit, selectedRepo, contestLanguage }: Props) {
+    console.log(contestLanguage);
     const {t} = useTranslation();
     const [code, setCode] = useState(
         "function main() {\n\tconsole.log('Hello, World!');\n}"
     );
-    const [language, setLanguage] = useState('JavaScript');
+    const [language, setLanguage] = useState(contestLanguage);
     const [isOpen, setIsOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [editorOptions, setEditorOptions] = useState({
         theme: 'vs-dark',
-        language: 'JavaScript',
+        language: contestLanguage,
     });
 
     const languages = useMemo(() => [
         { value: 'JavaScript', monacoValue: 'javascript', label: 'JavaScript' },
         { value: 'Python', monacoValue: 'python', label: 'Python' },
-        { value: 'Java', monacoValue: 'java', label: 'Java' },
+        { value: 'Java', monacoValue: 'Java', label: 'Java' },
         { value: 'C++', monacoValue: 'cpp', label: 'C++' },
         { value: 'C#', monacoValue: 'csharp', label: 'C#' },
     ], []);
+
+    // Sync language state with contestLanguage prop, matching correct casing
+    useEffect(() => {
+        const match = languages.find(
+            l => l.value.toLowerCase() === contestLanguage.toLowerCase()
+        );
+        setLanguage(match ? match.value : languages[0].value);
+    }, [contestLanguage, languages]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -60,7 +70,7 @@ const SubmissionForm = ({ onSubmit, selectedRepo }: Props) => {
     };
 
     useEffect(() => {
-        const selectedLanguage = languages.find((l) => l.value === language);
+        const selectedLanguage = languages.find((l) => l.value.toLowerCase() === language.toLowerCase());
         if (!selectedLanguage) {
             throw new Error('Language is required');
         }
@@ -162,5 +172,3 @@ const SubmissionForm = ({ onSubmit, selectedRepo }: Props) => {
         </Popover>
     );
 };
-
-export default SubmissionForm;
