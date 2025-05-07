@@ -12,6 +12,7 @@ import LanguageToggle from "./LanguageToggle";
 import InvitationsPopup from "./InvitationsPopup";
 import { useTranslation } from "@/lib/useTranslation";
 import { useInvitationStore } from "@/lib/stores/invitationStore";
+import { reloadSession } from "@/lib/utils";
 
 type Props = {};
 
@@ -33,10 +34,18 @@ function Header({}: Props) {
   // Initial fetch of invitations when user logs in
   useEffect(() => {
     if (session?.user) {
-      setIsAdmin(session.role == "admin");
       fetchInvitations();
     }
-  }, [session?.user, fetchInvitations]);
+    if (!session?.role) {
+      reloadSession();
+      setTimeout(() => {
+        setIsAdmin(session?.role == "admin");
+      }, 1000);
+    }
+    if (session?.role) {
+      setIsAdmin(session?.role == "admin");
+    }
+  }, [session?.user, fetchInvitations, session?.role]);
 
   const menuVariants = {
     closed: { opacity: 0, y: -20 },
