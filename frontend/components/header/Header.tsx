@@ -20,6 +20,7 @@ function Header({}: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const { t } = useTranslation();
   const { fetchInvitations } = useInvitationStore();
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
@@ -32,6 +33,7 @@ function Header({}: Props) {
   // Initial fetch of invitations when user logs in
   useEffect(() => {
     if (session?.user) {
+      setIsAdmin(session.role == "admin");
       fetchInvitations();
     }
   }, [session?.user, fetchInvitations]);
@@ -66,7 +68,7 @@ function Header({}: Props) {
         >
           {t("header.leaderboard")}
         </Link>
-        {status === "authenticated" && session?.role === "admin" && (
+        {isAdmin && (
           <Link
             href="/contest/create"
             className="text-sm font-bold hover:underline underline-offset-4"
@@ -118,7 +120,7 @@ function Header({}: Props) {
             >
               {t("header.leaderboard")}
             </Link>
-            {status === "authenticated" && session?.user && session.role === "admin" ? (
+            {isAdmin ? (
               <>
                 <Link
                   href="/contest/create"
