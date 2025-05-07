@@ -9,6 +9,7 @@ import (
 
 var adminEmails = []string{
 	"kamenkanev88@gmail.com",
+	"bgtrak@gmail.com",
 }
 
 // EnsureAdminUsers checks if users with adminEmails exist and sets their role to admin if not already

@@ -66,6 +66,9 @@ export interface Contest {
     createdAt: string;
     contestRules: string;
     contestStructure: string | null;
+    isPublic: boolean;
+    inviteOnly: boolean;
+    enableAICodeEntryIdentification: boolean;
 }
 
 export type Submission = {

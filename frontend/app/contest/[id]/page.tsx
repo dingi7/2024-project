@@ -220,7 +220,7 @@ export default function ContestPage() {
                             onEdit={handleEditContestWrapper}
                             contestRules={contestRulesBlobURL}
                         />
-                        {isContestActive() && (
+                        {isContestActive() && contest.inviteOnly && (
                             <InvitationManager
                                 contestId={params?.id ?? ''}
                                 isOwner={isOwner}
