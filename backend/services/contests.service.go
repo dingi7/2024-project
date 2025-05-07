@@ -50,6 +50,8 @@ func (s *ContestService) GetContests(ctx context.Context, userID string) ([]mode
 		return nil, err
 	}
 
+	log.Printf("DEBUG: invitedContestIDs: %+v", invitedContestIDs)
+
 	var invitedContests []models.Contest
 	if len(invitedContestIDs) > 0 {
 		if err := s.DB.Preload("TestCases").Where("id IN ? AND is_public = ?", invitedContestIDs, false).
