@@ -24,6 +24,8 @@ func InitDatabase() (*gorm.DB, error) {
 		os.Getenv("DB_PORT"),
 	)
 
+	log.Println("DEBUG: DSN:", dsn)
+
 	// // Configure GORM logger
 	// gormLogger := logger.New(
 	// 	log.New(os.Stdout, "\r\n", log.LstdFlags),
