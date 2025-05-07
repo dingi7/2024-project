@@ -36,7 +36,7 @@ import { getSession, useSession } from 'next-auth/react';
 import { useToast } from '@/components/ui/use-toast';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import GithubRepos from '../[id]/github/RepoList';
+import GithubRepos from '../[id]/github/repoList';
 import { useTranslation } from '@/lib/useTranslation';
 
 const ContestScheme = z.object({
