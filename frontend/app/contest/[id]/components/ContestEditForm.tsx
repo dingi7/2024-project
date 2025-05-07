@@ -29,7 +29,11 @@ type Props = {
     updateTestCases: (testCase: TestCase, action: 'delete' | 'add' | 'edit') => void;
 };
 
-export default function ContestEditForm({ contest, onEdit, updateTestCases }: Props) {
+export default function ContestEditForm({
+    contest,
+    onEdit,
+    updateTestCases,
+}: Props) {
     const { t } = useTranslation();
     const {
         register,
@@ -46,8 +50,8 @@ export default function ContestEditForm({ contest, onEdit, updateTestCases }: Pr
                 startDate: data.startDate,
                 endDate: data.endDate,
                 prize: Number(data.prize),
-                contestRules: data.rulesFile
-            })
+                contestRules: data.rulesFile,
+            });
         } catch (error) {
             toast({
                 title: t('contestPage.editForm.errors.editFailed'),
@@ -56,15 +60,19 @@ export default function ContestEditForm({ contest, onEdit, updateTestCases }: Pr
             });
         }
     };
-    console.log(contest.contestStructure)
+    console.log(contest.contestStructure);
 
     return (
         <div className='mt-8'>
-            <h2 className='text-lg font-medium mb-4'>{t('contestPage.editForm.title')}</h2>
+            <h2 className='text-lg font-medium mb-4'>
+                {t('contestPage.editForm.title')}
+            </h2>
             <form onSubmit={handleSubmit(handleEditContest)}>
                 <div className='grid grid-cols-2 gap-6 mb-6'>
                     <div>
-                        <Label htmlFor='title'>{t('contestPage.editForm.fields.title')}</Label>
+                        <Label htmlFor='title'>
+                            {t('contestPage.editForm.fields.title')}
+                        </Label>
                         <Input
                             id='title'
                             defaultValue={contest.title}
@@ -73,7 +81,9 @@ export default function ContestEditForm({ contest, onEdit, updateTestCases }: Pr
                         />
                     </div>
                     <div>
-                        <Label htmlFor='description'>{t('contestPage.editForm.fields.description')}</Label>
+                        <Label htmlFor='description'>
+                            {t('contestPage.editForm.fields.description')}
+                        </Label>
                         <Textarea
                             id='description'
                             defaultValue={contest.description}
@@ -89,37 +99,53 @@ export default function ContestEditForm({ contest, onEdit, updateTestCases }: Pr
                 </div>
                 <div className='grid grid-cols-2 gap-6 mb-6'>
                     <div>
-                        <Label htmlFor='startDate'>{t('contestPage.editForm.fields.startDate')}</Label>
+                        <Label htmlFor='startDate'>
+                            {t('contestPage.editForm.fields.startDate')}
+                        </Label>
                         <Input
                             id='startDate'
                             type='date'
-                            defaultValue={new Date(contest.startDate).toISOString().split('T')[0]}
+                            defaultValue={
+                                new Date(contest.startDate)
+                                    .toISOString()
+                                    .split('T')[0]
+                            }
                             {...register('startDate')}
                         />
                     </div>
                     <div>
-                        <Label htmlFor='endDate'>{t('contestPage.editForm.fields.endDate')}</Label>
+                        <Label htmlFor='endDate'>
+                            {t('contestPage.editForm.fields.endDate')}
+                        </Label>
                         <Input
                             id='endDate'
                             type='date'
-                            defaultValue={new Date(contest.endDate).toISOString().split('T')[0]}
+                            defaultValue={
+                                new Date(contest.endDate)
+                                    .toISOString()
+                                    .split('T')[0]
+                            }
                             {...register('endDate')}
                         />
                     </div>
                 </div>
                 <div>
-                    <Label htmlFor='prize'>{t('contestPage.editForm.fields.prize')}</Label>
-                    <Input 
-                        id='prize' 
-                        defaultValue={contest.prize} 
-                        required 
-                        type='number' 
-                        min={0} 
-                        {...register('prize')} 
+                    <Label htmlFor='prize'>
+                        {t('contestPage.editForm.fields.prize')}
+                    </Label>
+                    <Input
+                        id='prize'
+                        defaultValue={contest.prize}
+                        required
+                        type='number'
+                        min={0}
+                        {...register('prize')}
                     />
                 </div>
                 <div className='mt-4 mb-6'>
-                    <Label htmlFor='rulesFile'>{t('contestPage.editForm.fields.rules')}</Label>
+                    <Label htmlFor='rulesFile'>
+                        {t('contestPage.editForm.fields.rules')}
+                    </Label>
                     <div className='flex items-center gap-2'>
                         <Input
                             id='rulesFile'
@@ -130,25 +156,35 @@ export default function ContestEditForm({ contest, onEdit, updateTestCases }: Pr
                         {contest.contestRules && (
                             <Button
                                 variant='outline'
-                                onClick={() => window.open(decodeBase64ToBlobUrl(contest.contestRules!), '_blank')}
+                                onClick={() =>
+                                    window.open(
+                                        decodeBase64ToBlobUrl(
+                                            contest.contestRules!
+                                        ),
+                                        '_blank'
+                                    )
+                                }
                             >
                                 {t('contestPage.editForm.fields.viewCurrent')}
                             </Button>
                         )}
                     </div>
                 </div>
-                <div className="grid gap-2 mb-6">
-                    <Label htmlFor="testCaseFile">
-                        {t('contestPage.editForm.fields.testCase')}
-                    </Label>
-                    <Input
-                        id="testCaseFile"
-                        type="file"
-                        accept=".pdf"
-                        multiple={false}
-                        {...register("testCaseFile")}
-                    />
-                </div>
+                {contest.contestStructure && (
+                    <div className='grid gap-2 mb-6'>
+                        <Label htmlFor='testCaseFile'>
+                            {t('contestPage.editForm.fields.testCase')}
+                        </Label>
+                        <Input
+                            id='testCaseFile'
+                            type='file'
+                            accept='.pdf'
+                            multiple={false}
+                            {...register('testCaseFile')}
+                        />
+                    </div>
+                )}
+
                 {contest.contestStructure && (
                     <ContestTestCases
                         contestId={contest.id}

@@ -12,14 +12,16 @@ import LanguageToggle from "./LanguageToggle";
 import InvitationsPopup from "./InvitationsPopup";
 import { useTranslation } from "@/lib/useTranslation";
 import { useInvitationStore } from "@/lib/stores/invitationStore";
+import { reloadSession } from "@/lib/utils";
 
 type Props = {};
 
 function Header({}: Props) {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [menuOpen, setMenuOpen] = useState(false);
   const { t } = useTranslation();
   const { fetchInvitations } = useInvitationStore();
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
@@ -34,7 +36,13 @@ function Header({}: Props) {
     if (session?.user) {
       fetchInvitations();
     }
-  }, [session?.user, fetchInvitations]);
+    if (!session?.role) {
+      reloadSession();
+    }
+    setTimeout(() => {
+      setIsAdmin(session?.role == "admin");
+    }, 1000);
+  }, [status]);
 
   const menuVariants = {
     closed: { opacity: 0, y: -20 },
@@ -66,7 +74,7 @@ function Header({}: Props) {
         >
           {t("header.leaderboard")}
         </Link>
-        {session?.user && session.role === "admin" && (
+        {isAdmin && (
           <Link
             href="/contest/create"
             className="text-sm font-bold hover:underline underline-offset-4"
@@ -118,7 +126,7 @@ function Header({}: Props) {
             >
               {t("header.leaderboard")}
             </Link>
-            {session?.user && session.role === "admin" ? (
+            {isAdmin ? (
               <>
                 <Link
                   href="/contest/create"
