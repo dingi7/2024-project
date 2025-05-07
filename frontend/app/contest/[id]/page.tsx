@@ -12,7 +12,7 @@ import { RefreshCcwIcon } from 'lucide-react';
 import ContestDetails from './components/ContestDetails';
 import SubmissionForm from './components/SubmissionForm';
 import SubmissionTable from './components/SubmissionTable';
-import GithubRepos from './github/RepoList';
+import GithubRepos from './github/repoList';
 import TimeLocked from './components/TimeLocked';
 import InvitationManager from './components/InvitationManager';
 
