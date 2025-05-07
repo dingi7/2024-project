@@ -198,6 +198,18 @@
                 "label": "Prize",
                 "placeholder": "Enter prize"
             },
+            "isPublic": {
+                "label": "Public Contest",
+                "description": "Public contests are visible to all users"
+            },
+            "inviteOnly": {
+                "label": "Invite Only",
+                "description": "Only invited users can participate in this contest"
+            },
+            "enableAICodeEntryIdentification": {
+                "label": "Enable AI Code Detection",
+                "description": "Enable AI-powered detection of code entries"
+            },
             "structure": {
                 "label": "Contest Structure Template",
                 "optional": "(Optional)"
