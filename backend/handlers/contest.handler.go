@@ -93,11 +93,13 @@ func (h *ContestHandler) CreateContest(c *fiber.Ctx) error {
 	// Get public and invite-only flags (optional)
 	isPublicStr, _ := getFormValue(form, "isPublic")
 	inviteOnlyStr, _ := getFormValue(form, "inviteOnly")
+	isAiEnabledStr, _ := getFormValue(form, "enableAICodeEntryIdentification")
+	
 
 	// Robustly parse boolean values
 	isPublic := parseBool(isPublicStr, true)
 	inviteOnly := parseBool(inviteOnlyStr, false)
-
+	isAiEnabled := parseBool(isAiEnabledStr, false)
 	// if isPublic {
 	// 	inviteOnly = false
 	// }
@@ -124,6 +126,7 @@ func (h *ContestHandler) CreateContest(c *fiber.Ctx) error {
 		TestCases:   []models.TestCase{},
 		IsPublic:    isPublic,
 		InviteOnly:  inviteOnly,
+		EnableAICodeEntryIdentification: isAiEnabled,
 	}
 
 	if contestStructure != "" {
