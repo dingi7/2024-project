@@ -41,8 +41,10 @@ export interface TestCaseWithResult extends TestCase {
 export interface TestCaseResult {
     // testCase: TestCase;
     id: string;
+    testCaseId?: string;
     input: string;
     passed: boolean;
+    status?: boolean;
     solutionOutput: string;
     expectedOutput: string;
     memoryUsage: number;

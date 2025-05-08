@@ -125,6 +125,11 @@ const OutputComparison = ({
     );
 };
 
+const isTestPassed = (result: TestCaseResult) => {
+    // Handle both field names since backend sends 'status' but our type has 'passed'
+    return result.status !== undefined ? result.status : result.passed;
+};
+
 export default function TestCaseResultsPage() {
     const { t } = useTranslation();
     const params = useParams<{ id: string }>();
@@ -139,6 +144,7 @@ export default function TestCaseResultsPage() {
             try {
                 setLoading(true);
                 const response = await getSubmissionById(params.id);
+                console.log(response);
                 if (response.submission?.testCasesResults) {
                     setTestResults(response.submission.testCasesResults);
                 }
@@ -196,7 +202,7 @@ export default function TestCaseResultsPage() {
                                 {t('testResults.summary.passed')}
                             </span>
                             <span className='text-2xl font-bold text-green-600'>
-                                {testResults.filter((r) => r.passed).length}
+                                {testResults.filter(result => isTestPassed(result)).length}
                             </span>
                         </div>
                         <div className='flex flex-col'>
@@ -204,7 +210,7 @@ export default function TestCaseResultsPage() {
                                 {t('testResults.summary.failed')}
                             </span>
                             <span className='text-2xl font-bold text-red-600'>
-                                {testResults.filter((r) => !r.passed).length}
+                                {testResults.filter(result => !isTestPassed(result)).length}
                             </span>
                         </div>
                         <div className='flex flex-col'>
@@ -214,7 +220,7 @@ export default function TestCaseResultsPage() {
                             <span className='text-2xl font-bold'>
                                 {testResults.length > 0
                                     ? Math.round(
-                                          (testResults.filter((r) => r.passed)
+                                          (testResults.filter(result => isTestPassed(result))
                                               .length /
                                               testResults.length) *
                                               100
@@ -272,7 +278,7 @@ export default function TestCaseResultsPage() {
                                     <TableRow key={result.id}>
                                         <TableCell>
                                             <div className='flex items-center gap-2'>
-                                                {result.passed ? (
+                                                {isTestPassed(result) ? (
                                                     <>
                                                         <CheckCircle2 className='h-5 w-5 text-green-600' />
                                                         <Badge variant='success'>
